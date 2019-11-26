@@ -10,9 +10,6 @@ from matplotlib.font_manager import FontProperties
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
-# Known ligands
-
-
 def radians_to_degrees(rad):
     """Converts radians into degrees"""
     return rad*180/np.pi
