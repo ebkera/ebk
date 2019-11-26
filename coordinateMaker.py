@@ -4,6 +4,7 @@ Can make diamond/zinc blende material to required size blocks
 Can trim these blocks to make sperical quantum dots
 Can passivate these dots with Hydrogen atoms (can change H bond length)
 Can output coordinates in multimple formats including .xyz and .fdf formats
+Can output file with nearest neighbours and next nearest neighbours for use in any Tight Binding code
 """
 import os
 import sys
