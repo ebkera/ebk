@@ -138,35 +138,16 @@ class DotDiamond():
     def T2SL(self, monolayers):
         """Expected that the input be a non replicated slab. All coordinates are postive values"""
         self.monolayers = monolayers
-        file = open("before", "w")
-        file2 = open("after", "w")
-        file3 = open("in", "w")
-        file4 = open("out", "w")
+        temp_list = self.finalcell.copy()
         for cell in self.finalcell:
-            file3.write(f"{cell}\n")
-
-        for cell in self.finalcell:
+            file2.write(f'Considering Cell {cell}********************\n')
             for x in range(0,3):
-                file.write(f"{cell}\n")
-                if cell[x] >= 2*0.25*self.monolayers[x]:
-                    # print(f"Has to be removed since {cell[x]} >= {self.monolayers[x]}")
-                    file2.write(f"{cell}\n")
+                if float(cell[x]) > 2*0.25*self.monolayers[x]:
                     try:
                         # This try is because if the cell was already removed due to another coordinate being too large they it will raise an error
-                        self.finalcell.remove(cell)
-                        print(f'Cell {cell} made it')
+                        temp_list.remove(cell)
                     except:
-                        print(f'Cell {cell} made it to except')
-                else:
-                    print(f'Cell {cell} did not make it')
-                    
-        for cell in self.finalcell:
-            file4.write(f"{cell}\n")
-        
-        file.close()
-        file2.close()
-        file3.close()
-        file4.close()
+        self.finalcell = temp_list
 
     def trim_to_dot(self, cut_off, evenize): 
         """This method trims the initial cube into a ball"""
