@@ -2,8 +2,8 @@
 All Code for UIC and related stuff
 
 This repository will have all required code for any of the projects that I will be doing while at UIC. This repo will include
-codes in written in python.
+codes written in python.
 
-Some of the insight
+Some insight into the codes within:
 QE folder has code for manipulating Quantum Esspresso outputs and inputs
 SIESTA folder has code for manipulating SIESTA outputs and inputs
