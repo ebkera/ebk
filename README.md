@@ -6,6 +6,8 @@ codes written in python.
 
 Some insight into the codes within:
 
-QE folder has code for manipulating Quantum Esspresso outputs and inputs\n
-SIESTA folder has code for manipulating SIESTA outputs and inputs\n
+QE folder has code for manipulating Quantum Esspresso outputs and inputs
+SIESTA folder has code for manipulating SIESTA outputs and inputs
 The base folder contains code that is generic in nature.
+
+More code will be added.
