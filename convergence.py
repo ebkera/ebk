@@ -67,10 +67,10 @@ class E_cut_Optimize():
         # plt.ylim(-3176.5, -3175.5)
         if MP == True:
             plt.title(f"Convergence SCF for wavefunction K-Grid cutoff {self.graph_title}")
-
+            plt.xlabel("Monkhorst-Pack grid (3D)")
         else:
             plt.title(f"Convergence SCF for wavefunction Kinetic Energy cutoff {self.graph_title}")
-        plt.xlabel("Wave function cutoff (Ry)")
+            plt.xlabel("Wave function cutoff (Ry)")
         plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_MP{MP}.pdf")
         plt.show()
 
