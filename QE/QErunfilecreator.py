@@ -11,7 +11,7 @@ class QERunCreator:
     def make_name(self, k, ke, r, bands):
         return f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
 
-    def jobCreator(self, k, ke, r, bands, dirname):
+    def jobCreator(self, k, ke, r, walltime_mins, bands, dirname):
         name = self.make_name(k, ke, r, bands)
         file_name = name
         if bands == True:
@@ -20,7 +20,7 @@ class QERunCreator:
             file.write(f"#!/bin/bash\n")
             file.write(f"#\n")
             file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n#PBS -l nodes=5:ppn=8\n")
-            file.write(f"#PBS -l walltime=0:10:00\n")
+            file.write(f"#PBS -l walltime=0:{walltime_mins}:00\n")
             if bands == True:
                 file.write(f"#PBS -N {name}.bands\n")
             else:
@@ -100,7 +100,7 @@ class QERunCreator:
         shutil.move(f"{file_name}.in", f"./{dirname}/{file_name}.in")
 
 
-    def runcreator(self, k_set, ke_set, r_set, together):
+    def runcreator(self, k_set, ke_set, r_set, walltime, together):
         self.k_file_reader()
         if together == True:
             dirname = "Run"
@@ -113,8 +113,8 @@ class QERunCreator:
                         os.mkdir(dirname)
                     except:
                         pass
-                    self.jobCreator(k, ke, r, True, dirname)
-                    self.jobCreator(k, ke, r, False, dirname)
+                    self.jobCreator(k, ke, r, walltime, True, dirname)
+                    self.jobCreator(k, ke, r, walltime, False, dirname)
                     self.infileCreator(k, ke, r, False, dirname)
                     self.infileCreator(k, ke, r, True, dirname)
 
@@ -133,4 +133,4 @@ if __name__ == "__main__":
     k_set = [30,31,32]
     ke_set = [200, 250, 300, 320]
     r_set = [300, 400]
-    Sn_run.runcreator(k_set, ke_set, r_set, together = True)
+    Sn_run.runcreator(k_set, ke_set, r_set, 30, together = True)
