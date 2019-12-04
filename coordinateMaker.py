@@ -58,8 +58,8 @@ def cartesian_to_polar(u2,u1):
         phi = radians_to_degrees(np.arctan(y/x))
     return([r,theta,phi])
 
-class DotDiamond():
-    def __init__(self, radius, coordinate_format, lattice_constant, replicate):
+class CoordinateMaker():
+    def __init__(self, radius, coordinate_format, lattice_constant, replicate, alloy):
         """ The radius is the half-length if a side of a cube that will be created.
         The cutoff is the actual radius of the dot we use the cutoff to trim the dots that are further than the cutoff length"""
         self.conventional_cell = []
@@ -69,7 +69,7 @@ class DotDiamond():
         # self.conventional_cell.append([0.000,0.500,0.500]) # Index:2 three atoms forming the lattice vectors (fcc_a). # This atom can be removed since slotting another box will duplicate this atom
         # self.conventional_cell.append([0.500,0.000,0.500]) # Index:3 # This atom can be removed since slotting another box will duplicate this atom
         # self.conventional_cell.append([0.500,0.500,0.000]) # Index:4 # This atom can be removed since slotting another box will duplicate this atom
-        # self.conventional_cell.append([1.000,1.000,0.000]) # Index:4,5 last atom on the xy plane (fcc_a)
+        # self.conventional_cell.append([1.000,1.000,0.000]) # Index:4,5 last atom on the xy plane (fcc_a) # This atom can be removed since slotting another box will duplicate this atom
         self.conventional_cell.append([0.750, 0.750, 0.250, "C"])  # Index:5,6 last atom on the xy_.25 plane (fcc_b)
         self.conventional_cell.append([0.500, 1.000, 0.500, "A"])  # Index:6,7 last two atoms on the 0.5 xy plane (fcc_a)
         self.conventional_cell.append([1.000, 0.500, 0.500, "A"])  # Index:8
@@ -78,6 +78,44 @@ class DotDiamond():
         # self.conventional_cell.append([0.000,1.000,1.000]) # Index:9,11 three atoms forming z=1 xy plane (fcc_a) # This atom can be removed since slotting another box will duplicate this atom
         # self.conventional_cell.append([1.000,0.000,1.000]) # Index:10,12 # This atom can be removed since slotting another box will duplicate this atom
         self.conventional_cell.append([0.500, 0.500, 1.000, "A"])  # Index:11,13
+
+        self.conventional_cell_alloy_1 = []
+        # This is the conventional (FCC) unit cell for a diamond lattice
+        self.conventional_cell_alloy_1.append([0.000, 0.000, 0.000, "A"])  # Index:0 atom at 000 (fcc_a)
+        self.conventional_cell_alloy_1.append([0.250, 0.250, 0.250, "C"])  # Index:1 basis atom connected to (fcc_b)
+        # self.conventional_cell_alloy_1.append([0.000, 0.500, 0.500, "A"])  # Index:2 three atoms forming the lattice vectors (fcc_a). # This atom can be removed since slotting another box will duplicate this atom
+        # self.conventional_cell_alloy_1.append([0.500, 0.000, 0.500, "A"])  # Index:3 # This atom can be removed since slotting another box will duplicate this atom
+        # self.conventional_cell_alloy_1.append([0.500, 0.500, 0.000, "A"])  # Index:4 # This atom can be removed since slotting another box will duplicate this atom
+        # self.conventional_cell_alloy_1.append([1.000, 1.000, 0.000, "A"])  # Index:4,5 last atom on the xy plane (fcc_a) # This atom can be removed since slotting another box will duplicate this atom
+        self.conventional_cell_alloy_1.append([0.750, 0.750, 0.250, "C"])  # Index:5,6 last atom on the xy_.25 plane (fcc_b)
+        self.conventional_cell_alloy_1.append([0.500, 1.000, 0.500, "A"])  # Index:6,7 last two atoms on the 0.5 xy plane (fcc_a)
+        self.conventional_cell_alloy_1.append([1.000, 0.500, 0.500, "A"])  # Index:8
+        self.conventional_cell_alloy_1.append([0.250, 0.750, 0.750, "B"])  # Index:7,9 The last two atoms on the 0.75 xy plane (fcc_b)
+        self.conventional_cell_alloy_1.append([0.750, 0.250, 0.750, "B"])  # Index:8,10
+        # self.conventional_cell_alloy_1.append([0.000, 1.000, 1.000, "A"])  # Index:9,11 three atoms forming z=1 xy plane (fcc_a) # This atom can be removed since slotting another box will duplicate this atom
+        # self.conventional_cell_alloy_1.append([1.000, 0.000, 1.000, "A"])  # Index:10,12 # This atom can be removed since slotting another box will duplicate this atom
+        self.conventional_cell_alloy_1.append([0.500, 0.500, 1.000, "A"])  # Index:11,13
+        # self.conventional_cell_alloy_1.append([0.000, 0.000, 1.000, "A"])  # Index:0 atom at 000 (fcc_a)
+        # self.conventional_cell_alloy_1.append([1.000, 0.000, 0.000, "A"])  # Index:0 atom at 000 (fcc_a)
+        # self.conventional_cell_alloy_1.append([0.000, 1.000, 0.000, "A"])  # Index:0 atom at 000 (fcc_a)
+        # self.conventional_cell_alloy_1.append([1.000, 1.000, 1.000, "A"])  # Index:0 atom at 000 (fcc_a)
+
+        # self.conventional_cell_alloy_2 = []
+        # # This is the conventional (FCC) unit cell for a diamond lattice
+        # self.conventional_cell_alloy_2.append([0.000, 0.000, 0.000, "B"])  # Index:0 atom at 000 (fcc_a)
+        # self.conventional_cell_alloy_2.append([0.250, 0.250, 0.250, "C"])  # Index:1 basis atom connected to (fcc_b)
+        # # self.conventional_cell_alloy_2.append([0.000,0.500,0.500]) # Index:2 three atoms forming the lattice vectors (fcc_a). # This atom can be removed since slotting another box will duplicate this atom
+        # # self.conventional_cell_alloy_2.append([0.500,0.000,0.500]) # Index:3 # This atom can be removed since slotting another box will duplicate this atom
+        # # self.conventional_cell_alloy_2.append([0.500,0.500,0.000]) # Index:4 # This atom can be removed since slotting another box will duplicate this atom
+        # # self.conventional_cell_alloy_2.append([1.000,1.000,0.000]) # Index:4,5 last atom on the xy plane (fcc_a)
+        # self.conventional_cell_alloy_2.append([0.750, 0.750, 0.250, "C"])  # Index:5,6 last atom on the xy_.25 plane (fcc_b)
+        # self.conventional_cell_alloy_2.append([0.500, 1.000, 0.500, "A"])  # Index:6,7 last two atoms on the 0.5 xy plane (fcc_a)
+        # self.conventional_cell_alloy_2.append([1.000, 0.500, 0.500, "B"])  # Index:8
+        # self.conventional_cell_alloy_2.append([0.250, 0.750, 0.750, "C"])  # Index:7,9 The last two atoms on the 0.75 xy plane (fcc_b)
+        # self.conventional_cell_alloy_2.append([0.750, 0.250, 0.750, "C"])  # Index:8,10
+        # # self.conventional_cell_alloy_2.append([0.000,1.000,1.000]) # Index:9,11 three atoms forming z=1 xy plane (fcc_a) # This atom can be removed since slotting another box will duplicate this atom
+        # # self.conventional_cell_alloy_2.append([1.000,0.000,1.000]) # Index:10,12 # This atom can be removed since slotting another box will duplicate this atom
+        # self.conventional_cell_alloy_2.append([0.500, 0.500, 1.000, "A"])  # Index:11,13
 
         self.radius = radius
         self.replicate = replicate
@@ -94,25 +132,28 @@ class DotDiamond():
         self.evenize = False  # Keeping track of whether the dot was evenized to have equal number of anions and cations
         self.finalcell = []  # This is the final dot. All passivation and evenizing will be included
 
+        if alloy == True:
+            self.conventional_cell = self.conventional_cell_alloy_1
+
         # Building the super_cell
         # We start with the first octant (+,+,+)
         # First we make a row in the x direction that has the requested radius(number of boxes)
         # We always iterate upto radius + 1 so that we don't miss any atoms that might have radii that are at the edge
         # We start the row with 0 since we want to start at zero
         # Then for the rest we have to start at 1 since we don't want the row we just did to be counted or the xy square we just did to be counted
-        for step in range(0, self.radius + 1):
+        for step in range(0, self.radius[0] + 1):
             for coordinate in self.conventional_cell:
                 new_vector_x = [coordinate[0] + float(step), coordinate[1], coordinate[2], coordinate[3]]
                 self.super_cell.append(new_vector_x)
         # Then we replicated those rows in the y direction
         full_x_row = self.super_cell.copy()  # Saving the row of the super cell
-        for step in range(1, self.radius + 1):
+        for step in range(1, self.radius[1] + 1):
             for coordinate in full_x_row:
                 new_vector_y = [coordinate[0], coordinate[1] + float(step), coordinate[2], coordinate[3]]
                 self.super_cell.append(new_vector_y)
         # Then we replicate this base into stacks in the z direction
         full_xy_square = self.super_cell.copy()  # Saving the xy base in the first quadrant of the super cell
-        for step in range(1, self.radius + 1):
+        for step in range(1, self.radius[2] + 1):
             for coordinate in full_xy_square:
                 new_vector_z = [coordinate[0], coordinate[1], coordinate[2] + float(step), coordinate[3]]
                 self.super_cell.append(new_vector_z)
@@ -121,17 +162,17 @@ class DotDiamond():
             # Then we replicate this into the (-,+,+) octant
             full_ppp_cube = self.super_cell.copy()  # Saving the +++ cube
             for coordinate in full_ppp_cube:
-                new_vector = [coordinate[0] - float(self.radius + 1), coordinate[1], coordinate[2], coordinate[3]]
+                new_vector = [coordinate[0] - float(self.radius[0] + 1), coordinate[1], coordinate[2], coordinate[3]]
                 self.super_cell.append(new_vector)
             # Then we replicate this into the (Z>0) volume
             full_0pp_cube = self.super_cell.copy()  # Saving the +++ cube
             for coordinate in full_0pp_cube:
-                new_vector = [coordinate[0], coordinate[1] - float(self.radius + 1), coordinate[2], coordinate[3]]
+                new_vector = [coordinate[0], coordinate[1] - float(self.radius[1] + 1), coordinate[2], coordinate[3]]
                 self.super_cell.append(new_vector)
             # Then we replicate this into the full volume
             full_zgt0_cube = self.super_cell.copy()  # Saving the +++ cube
             for coordinate in full_zgt0_cube:
-                new_vector = [coordinate[0], coordinate[1], coordinate[2] - float(self.radius + 1), coordinate[3]]
+                new_vector = [coordinate[0], coordinate[1], coordinate[2] - float(self.radius[2] + 1), coordinate[3]]
                 self.super_cell.append(new_vector)  # Then we replicated those rows in the y direction
         self.finalcell = self.super_cell
 
@@ -143,13 +184,25 @@ class DotDiamond():
             # file2.write(f'Considering Cell {cell}********************\n')
             for x in range(0,3):
                 # Here x is the iterator for the x,y,z coordinates of the cell
-                if float(cell[x]) > 2*0.25*self.monolayers[x]:
+                if float(cell[x]) >= 2*0.25*self.monolayers[x] or float(cell[x]) < 0:
                     try:
                         # This try is because if the cell was already removed due to another coordinate being too large they it will raise an error
                         temp_list.remove(cell)
                     except:
                         pass
         self.finalcell = temp_list
+
+    def add_supercell(self, struct, add_at):
+        """
+        This function can add another supercell at the coordinate add_at
+        Inputs
+        struct: object of the same type as self
+        add_at: a list of [x,y,z] coordinates of the point where you want to add the new cell to
+        """
+
+        for atom in struct.finalcell: 
+            self.finalcell.append([atom[0] + add_at[0], atom[1] + add_at[1], atom[2] + add_at[2], atom[3]])
+
 
     def trim_to_dot(self, cut_off, evenize): 
         """This method trims the initial cube into a ball"""
@@ -496,6 +549,8 @@ class DotDiamond():
                         file_xmol.write("A ")
                     elif i[3] == "C":
                         file_xmol.write("C ")
+                    elif i[3] == "B":
+                        file_xmol.write("B ")
                     elif i[3] == "SA" or i[3] == "SC":
                         file_xmol.write("S ")
                     elif i[3] == "H":
@@ -510,6 +565,8 @@ class DotDiamond():
                         file_xmol.write("A ")
                     elif i[3] == "C":
                         file_xmol.write("C ")
+                    elif i[3] == "B":
+                        file_xmol.write("B ")
                     elif i[3] == "SA":
                         file_xmol.write("A ")
                     elif i[3] == "SC":
@@ -598,7 +655,7 @@ class DotDiamond():
 
 
 if __name__ == "__main__": 
-    dot = DotDiamond(2, "Ang", 6.432, replicate=True)            # (Radius to build, lattice constant, replicate to all octants)
+    dot = CoordinateMaker(2, "Ang", 6.432, replicate=True, alloy = False)            # (Radius to build, lattice constant, replicate to all octants, Alloy?)
     dot.trim_to_dot(1.5, True)                                 # (radius to cutoff, evenize)
     # dot.oxygenate(1.7)                                           # Hydrogen bond length in Angstroms
     # dot.hydrogenate(1.7)                                         # Hydrogen bond length in Angstroms
