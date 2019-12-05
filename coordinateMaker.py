@@ -60,7 +60,7 @@ def cartesian_to_polar(u2,u1):
 
 class CoordinateMaker():
     def __init__(self, radius, coordinate_format, lattice_constant, replicate, alloy):
-        """ The radius is the half-length if a side of a cube that will be created.
+        """ The radius is the half-length (0 to positive x,y,z) if a side of a cube that will be created.
         The cutoff is the actual radius of the dot we use the cutoff to trim the dots that are further than the cutoff length"""
         self.conventional_cell = []
         # This is the conventional (FCC) unit cell for a diamond lattice
