@@ -59,9 +59,17 @@ def cartesian_to_polar(u2,u1):
     return([r,theta,phi])
 
 class CoordinateMaker():
-    def __init__(self, radius, coordinate_format, lattice_constant, replicate, alloy):
-        """ The radius is the half-length (0 to positive x,y,z) if a side of a cube that will be created.
-        The cutoff is the actual radius of the dot we use the cutoff to trim the dots that are further than the cutoff length"""
+    def __init__(self, radius, coordinate_format, lattice_constant, replicate, alloy, xyz_ratios = [1,1,1]):
+        """
+        This creates a bulk block of the required material and then has other functions that can act on it and change the shape to get desired geometry
+        Inputs:
+            radius            :(int) The radius is the half-length (0 to positive x,y,z) if a side of a cube that will be created. This has to be a multiple of a lattice constant since it will create conventional unit cells
+            coordinate_format :
+            lattice_constant  :(List of 3 floats or a single float) is the directional or single lattice constant
+            replicate:        :(Bool) For replicating the created block in 3D
+            alloy             :(Bool) For making alloys with 0.5 composition
+
+        """
         self.conventional_cell = []
         # This is the conventional (FCC) unit cell for a diamond lattice
         self.conventional_cell.append([0.000, 0.000, 0.000, "A"])  # Index:0 atom at 000 (fcc_a)
@@ -116,7 +124,13 @@ class CoordinateMaker():
         self.finalcell = []  # This is the final dot. All passivation and evenizing will be included
 
         if alloy == True:
+        # This makes the current conventional_cell set to the alloy
             self.conventional_cell = self.conventional_cell_alloy_1
+
+        for x in range(0,len(self.conventional_cell)):
+        # This loop is to set the dimentions of the conventional_cell box to the ratios required when the x, y, z lattice constants are different.
+            for i in range(0,3):
+                self.conventional_cell[x][i] = self.conventional_cell[x][i]*xyz_ratios[i]
 
         # Building the super_cell
         # We start with the first octant (+,+,+)
@@ -276,9 +290,9 @@ class CoordinateMaker():
         self.no_of_atoms_after_trimming = len(self.finalcell)
         print(f"trim_to_dot: Number of atoms after trimming: {self.no_of_atoms_after_trimming}")
 
-    def write_to_log(self):
+    def write_to_log(self, fname = "coordinates"):
         """Printing the final into an out file that contains the coordinates"""
-        file_my = open("coordinates.log", "w+")
+        file_my = open(f"{fname}.log", "w+")
         for i in self.finalcell:
             for j in i:
                 try:
@@ -294,7 +308,7 @@ class CoordinateMaker():
         file_my.write("\\centering\n")
         file_my.write("\\begin{tabular}{ll}\n")
         file_my.write("Atom count for initial box    &: " + str(len(self.super_cell)) + " \\\\\n")
-        file_my.write("Initial box length            &: " + str(self.radius*2.0*self.lattice_constant) + " (\\AA) (" + str(self.radius*2.0) + " conventional unit cells)\\\\\n")
+        file_my.write(f"Initial box length            &: {str(self.radius[0]*2.0*self.lattice_constant)} x {str(self.radius[1]*2.0*self.lattice_constant)} x {str(self.radius[2]*2.0*self.lattice_constant)} (\\AA) ({str(self.radius[0]*2.0)} x {str(self.radius[1]*2.0)} x {str(self.radius[2]*2.0)} conventional unit cells)\\\\\n")
         file_my.write("Coordinate Format             &: " + str(self.coordinate_format)+" \\\\\n")
         try:
             file_my.write("Atom count after trimming     &: " + str(self.no_of_atoms_after_trimming) + " \\\\\n")
@@ -422,9 +436,9 @@ class CoordinateMaker():
         for x in new_O_atoms:
             self.finalcell.append(x)
 
-    def write_to_fdf(self, zincblende, surface):
+    def write_to_fdf(self, zincblende, surface, fname = "coordinates"):
         # Printing the final into an out file that contains the coordinates
-        file_fdf = open("coordinates.fdf", "w+")
+        file_fdf = open(f"{fname}.fdf", "w+")
         if self.coordinate_format == "Ang":
             file_fdf.write("AtomicCoordinatesFormat  Ang\n")
         elif self.coordinate_format == "Fractional":
@@ -466,10 +480,10 @@ class CoordinateMaker():
         print("write_to_fdf: Successfully written to fdf file")
         file_fdf.close()
 
-    def write_to_fdf_zmatrix(self, zincblende, surface):
+    def write_to_fdf_zmatrix(self, zincblende, surface, fname = "coordinates"):
         # Printing the final into an out file that contains the coordinates in Z matrix format
         print(f"write_to_fdf_zmatrix: Make sure that the central atom is at the origin (cartesian: 0 0 0)")
-        file_fdf = open("coordinates.fdf", "w+")
+        file_fdf = open(f"{fname}.fdf", "w+")
         file_fdf.write("%block Zmatrix\n")
         file_fdf.write("molecule\n")
         file_fdf.write("cartesian\n")
@@ -520,84 +534,84 @@ class CoordinateMaker():
         print("write_to_fdf_zmatrix: Successfully written to fdf file (z matrix)")
         file_fdf.close()
 
-    def write_to_xmol(self, zincBlende, surface):
+    def write_to_xyz(self, zincBlende, surface, fname = "coordinates"):
         # Printing the final into an out file that contains the coordinates
-        file_xmol = open("coordinates.xyz", "w+")
-        file_xmol.write(str(len(self.finalcell)) + "\n")
-        file_xmol.write("The coordinates for the quantum dot atoms\n")
+        file_xyz = open(f"{fname}.xyz", "w+")
+        file_xyz.write(str(len(self.finalcell)) + "\n")
+        file_xyz.write("The coordinates for the quantum dot atoms\n")
         if zincBlende:
             if surface:
                 for i in self.finalcell:
                     if i[3] == "A":
-                        file_xmol.write("A ")
+                        file_xyz.write("A ")
                     elif i[3] == "C":
-                        file_xmol.write("C ")
+                        file_xyz.write("C ")
                     elif i[3] == "B":
-                        file_xmol.write("B ")
+                        file_xyz.write("B ")
                     elif i[3] == "SA" or i[3] == "SC":
-                        file_xmol.write("S ")
+                        file_xyz.write("S ")
                     elif i[3] == "H":
-                        file_xmol.write("H ")
-                    file_xmol.write(str(i[0]) + " ")
-                    file_xmol.write(str(i[1]) + " ")
-                    file_xmol.write(str(i[2]) + " ")
-                    file_xmol.write("\n")
+                        file_xyz.write("H ")
+                    file_xyz.write(str(i[0]) + " ")
+                    file_xyz.write(str(i[1]) + " ")
+                    file_xyz.write(str(i[2]) + " ")
+                    file_xyz.write("\n")
             if not surface:
                 for i in self.finalcell:
                     if i[3] == "A":
-                        file_xmol.write("A ")
+                        file_xyz.write("A ")
                     elif i[3] == "C":
-                        file_xmol.write("C ")
+                        file_xyz.write("C ")
                     elif i[3] == "B":
-                        file_xmol.write("B ")
+                        file_xyz.write("B ")
                     elif i[3] == "SA":
-                        file_xmol.write("A ")
+                        file_xyz.write("A ")
                     elif i[3] == "SC":
-                        file_xmol.write("C ")
+                        file_xyz.write("C ")
                     elif i[3] == "H":
-                        file_xmol.write("H ")
-                    file_xmol.write(str(i[0]) + " ")
-                    file_xmol.write(str(i[1]) + " ")
-                    file_xmol.write(str(i[2]) + " ")
-                    file_xmol.write("\n")
+                        file_xyz.write("H ")
+                    file_xyz.write(str(i[0]) + " ")
+                    file_xyz.write(str(i[1]) + " ")
+                    file_xyz.write(str(i[2]) + " ")
+                    file_xyz.write("\n")
 
         elif not zincBlende:
             if surface:
                 for i in self.finalcell:
                     if i[3] == "A":
-                        file_xmol.write("A ")
+                        file_xyz.write("A ")
                     elif i[3] == "C":
-                        file_xmol.write("A ")
+                        file_xyz.write("A ")
                     elif i[3] == "SA" or i[3] == "SC":
-                        file_xmol.write("S ")
+                        file_xyz.write("S ")
                     elif i[3] == "H":
-                        file_xmol.write("H ")
-                    file_xmol.write(str(i[0]) + " ")
-                    file_xmol.write(str(i[1]) + " ")
-                    file_xmol.write(str(i[2]) + " ")
-                    file_xmol.write("\n")
+                        file_xyz.write("H ")
+                    file_xyz.write(str(i[0]) + " ")
+                    file_xyz.write(str(i[1]) + " ")
+                    file_xyz.write(str(i[2]) + " ")
+                    file_xyz.write("\n")
             if not surface:
                 for i in self.finalcell:
                     if i[3] == "A":
-                        file_xmol.write("A ")
+                        file_xyz.write("A ")
                     elif i[3] == "C":
-                        file_xmol.write("A ")
+                        file_xyz.write("A ")
                     elif i[3] == "SA":
-                        file_xmol.write("A ")
+                        file_xyz.write("A ")
                     elif i[3] == "SC":
-                        file_xmol.write("A ")
+                        file_xyz.write("A ")
                     elif i[3] == "H":
-                        file_xmol.write("H ")
-                    file_xmol.write(str(i[0]) + " ")
-                    file_xmol.write(str(i[1]) + " ")
-                    file_xmol.write(str(i[2]) + " ")
-                    file_xmol.write("\n")
-        print("write_to_xmol: Successfully written to xmol file")
-        file_xmol.close()
+                        file_xyz.write("H ")
+                    file_xyz.write(str(i[0]) + " ")
+                    file_xyz.write(str(i[1]) + " ")
+                    file_xyz.write(str(i[2]) + " ")
+                    file_xyz.write("\n")
+        print("write_to_xyz: Successfully written to '.xyz' file")
+        file_xyz.close()
 
-    def write_to_nn(self):
+    def write_to_nn(self, fname = "coordinates"):
         # Printing the final into an out file that contains the coordinates
-        file_nn = open("coordinates.nn", "w+")
+        file_nn = open(f"{fname}.nn", "w+")
         try:
             for atom1 in self.finalcell:
                 file_nn.write(
@@ -638,7 +652,7 @@ class CoordinateMaker():
 
 
 if __name__ == "__main__": 
-    dot = CoordinateMaker(2, "Ang", 6.432, replicate=True, alloy = False)            # (Radius to build, lattice constant, replicate to all octants, Alloy?)
+    dot = CoordinateMaker([2,2,2], "Ang", 6.432, replicate=True, alloy = False)            # (Radius to build, lattice constant, replicate to all octants, Alloy?)
     dot.trim_to_dot(1.5, True)                                 # (radius to cutoff, evenize)
     # dot.oxygenate(1.7)                                           # Hydrogen bond length in Angstroms
     # dot.hydrogenate(1.7)                                         # Hydrogen bond length in Angstroms
@@ -650,7 +664,7 @@ if __name__ == "__main__":
     dot.write_to_log()
     dot.write_to_fdf(True, False)                               # (zincBlende, surface)
     # dot.write_to_fdf_zmatrix(False, False)                       # (zincBlende, surface)
-    dot.write_to_xmol(True, False)                               # (zincBlende, surface)
+    dot.write_to_xyz(True, False)                               # (zincBlende, surface)
     dot.write_to_nn()
     # print(f"The cartesian to polar conversion: {cartesian_to_polar([-1,-1,1],[0,0,0])}")
     # print(f"The angle between those three atoms: {triatom_angle([0,0,0],[1,1,0],[0,0,1])}")
