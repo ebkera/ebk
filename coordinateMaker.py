@@ -59,16 +59,15 @@ def cartesian_to_polar(u2,u1):
     return([r,theta,phi])
 
 class CoordinateMaker():
-    def __init__(self, radius, coordinate_format, lattice_constant, replicate, alloy, xyz_ratios = [1,1,1]):
+    def __init__(self, radius, coordinate_format, lattice_constant, replicate, material_type = "d", xyz_ratios = [1,1,1]):
         """
         This creates a bulk block of the required material and then has other functions that can act on it and change the shape to get desired geometry
-        Inputs:
-            radius            :(int) The radius is the half-length (0 to positive x,y,z) if a side of a cube that will be created. This has to be a multiple of a lattice constant since it will create conventional unit cells
-            coordinate_format :
-            lattice_constant  :(List of 3 floats or a single float) is the directional or single lattice constant
-            replicate:        :(Bool) For replicating the created block in 3D
-            alloy             :(Bool) For making alloys with 0.5 composition
-
+        |Inputs:
+        |    radius            :(int) The radius is the half-length (0 to positive x,y,z) if a side of a cube that will be created. This has to be a multiple of a lattice constant since it will create conventional unit cells
+        |    coordinate_format :(Str) "Ang" for angstroms, "Fractional" for fractional
+        |    lattice_constant  :(List of 3 floats or a single float) is the directional or single lattice constant
+        |    replicate:        :(Bool) For replicating the created block in 3D
+        |    material_type     :(char) For making different type of material (a = alloy with 0.5 composition, d = diamond, z = zinc blende)
         """
         self.conventional_cell = []
         # This is the conventional (FCC) unit cell for a diamond lattice
@@ -108,10 +107,33 @@ class CoordinateMaker():
         # self.conventional_cell_alloy_1.append([0.000, 1.000, 0.000, "A"])  # Index:0 atom at 000 (fcc_a)
         # self.conventional_cell_alloy_1.append([1.000, 1.000, 1.000, "A"])  # Index:0 atom at 000 (fcc_a)
 
+        self.conventional_cell_zinc_blende = []
+        # This is the conventional (FCC) unit cell for a diamond lattice
+        self.conventional_cell_zinc_blende.append([0.000, 0.000, 0.000, "A"])  # Index:0 atom at 000 (fcc_a)
+        self.conventional_cell_zinc_blende.append([0.250, 0.250, 0.250, "C"])  # Index:1 basis atom connected to (fcc_b)
+        # self.conventional_cell_zinc_blende.append([0.000, 0.500, 0.500, "A"])  # Index:2 three atoms forming the lattice vectors (fcc_a). # This atom can be removed since slotting another box will duplicate this atom
+        # self.conventional_cell_zinc_blende.append([0.500, 0.000, 0.500, "A"])  # Index:3 # This atom can be removed since slotting another box will duplicate this atom
+        # self.conventional_cell_zinc_blende.append([0.500, 0.500, 0.000, "A"])  # Index:4 # This atom can be removed since slotting another box will duplicate this atom
+        # self.conventional_cell_zinc_blende.append([1.000, 1.000, 0.000, "A"])  # Index:4,5 last atom on the xy plane (fcc_a) # This atom can be removed since slotting another box will duplicate this atom
+        self.conventional_cell_zinc_blende.append([0.750, 0.750, 0.250, "C"])  # Index:5,6 last atom on the xy_.25 plane (fcc_b)
+        self.conventional_cell_zinc_blende.append([0.500, 1.000, 0.500, "A"])  # Index:6,7 last two atoms on the 0.5 xy plane (fcc_a)
+        self.conventional_cell_zinc_blende.append([1.000, 0.500, 0.500, "A"])  # Index:8
+        self.conventional_cell_zinc_blende.append([0.250, 0.750, 0.750, "B"])  # Index:7,9 The last two atoms on the 0.75 xy plane (fcc_b)
+        self.conventional_cell_zinc_blende.append([0.750, 0.250, 0.750, "B"])  # Index:8,10
+        # self.conventional_cell_zinc_blende.append([0.000, 1.000, 1.000, "A"])  # Index:9,11 three atoms forming z=1 xy plane (fcc_a) # This atom can be removed since slotting another box will duplicate this atom
+        # self.conventional_cell_zinc_blende.append([1.000, 0.000, 1.000, "A"])  # Index:10,12 # This atom can be removed since slotting another box will duplicate this atom
+        self.conventional_cell_zinc_blende.append([0.500, 0.500, 1.000, "A"])  # Index:11,13
+        # self.conventional_cell_zinc_blende.append([0.000, 0.000, 1.000, "A"])  # Index:0 atom at 000 (fcc_a)
+        # self.conventional_cell_zinc_blende.append([1.000, 0.000, 0.000, "A"])  # Index:0 atom at 000 (fcc_a)
+        # self.conventional_cell_zinc_blende.append([0.000, 1.000, 0.000, "A"])  # Index:0 atom at 000 (fcc_a)
+        # self.conventional_cell_zinc_blende.append([1.000, 1.000, 1.000, "A"])  # Index:0 atom at 000 (fcc_a)
+
+
         self.radius = radius
         self.replicate = replicate
         self.lattice_constant = lattice_constant
         self.coordinate_format = coordinate_format
+        self.material_type = material_type
         self.start_at = [0.000, 0.000, 0.000]
         self.now_at = self.start_at.copy()
         self.basis = [0.250, 0.250, 0.250]
@@ -123,9 +145,15 @@ class CoordinateMaker():
         self.evenize = False  # Keeping track of whether the dot was evenized to have equal number of anions and cations
         self.finalcell = []  # This is the final dot. All passivation and evenizing will be included
 
-        if alloy == True:
+        if material_type == "a":
         # This makes the current conventional_cell set to the alloy
             self.conventional_cell = self.conventional_cell_alloy_1
+        elif material_type == "d":
+        # This makes the current conventional_cell set to diamond
+            self.conventional_cell = self.conventional_cell
+        elif material_type == "z":
+        # This makes the current conventional_cell set to zinc blende
+            self.conventional_cell = self.conventional_cell_zinc_blende
 
         for x in range(0,len(self.conventional_cell)):
         # This loop is to set the dimentions of the conventional_cell box to the ratios required when the x, y, z lattice constants are different.
@@ -454,158 +482,116 @@ class CoordinateMaker():
             # For writing the Type of atom
             if i[3] == "A":
                 file_fdf.write("1")
-            elif i[3] == "C" and zincblende == False:
-                file_fdf.write("1")
-            elif i[3] == "C" and zincblende == True:
+            elif i[3] == "C":
                 file_fdf.write("2")
-            elif i[3] == "SA" or i[3] == "SC" and zincblende == False and surface == False:
-                file_fdf.write("1")
-            elif i[3] == "SA" or i[3] == "SC" and zincblende == False and surface == True:
-                file_fdf.write("2")
-            elif i[3] == "SA" or i[3] == "SC" and zincblende == True and surface == False:
+            elif i[3] == "B":
+                file_fdf.write("3")
+            elif i[3] == "SA" or i[3] == "SC" and surface == False:
                 if i[3] == "SA":
                     file_fdf.write("1")
                 elif i[3] == "SC":
                     file_fdf.write("2")
-            elif i[3] == "SA" or i[3] == "SC" and zincblende == True and surface == True:
+            elif i[3] == "SA" or i[3] == "SC" and surface == True:
                 file_fdf.write("3")
-            elif i[3] == "H" and zincblende == False:
-                file_fdf.write("2")
-            elif i[3] == "H" and zincblende == True and surface == False:
+            elif i[3] == "H" and surface == False:
                 file_fdf.write("3")
-            elif i[3] == "H" and zincblende == True and surface == True:
+            elif i[3] == "H" and surface == True:
                 file_fdf.write("4")
             file_fdf.write("\n")
         file_fdf.write("%endblock AtomicCoordinatesAndAtomicSpecies\n")
         print("write_to_fdf: Successfully written to fdf file")
         file_fdf.close()
 
-    def write_to_fdf_zmatrix(self, zincblende, surface, fname = "coordinates"):
-        # Printing the final into an out file that contains the coordinates in Z matrix format
-        print(f"write_to_fdf_zmatrix: Make sure that the central atom is at the origin (cartesian: 0 0 0)")
-        file_fdf = open(f"{fname}.fdf", "w+")
-        file_fdf.write("%block Zmatrix\n")
-        file_fdf.write("molecule\n")
-        file_fdf.write("cartesian\n")
-        for i in range(0,len(self.finalcell)):
-        # for i in self.finalcell:
-            # For writing the Type of atom
-            if self.finalcell[i][3] == "A":
-                file_fdf.write("1  ")
-            elif self.finalcell[i][3] == "C" and zincblende == False:
-                file_fdf.write("1  ")
-            elif self.finalcell[i][3] == "C" and zincblende == True:
-                file_fdf.write("2  ")
-            elif self.finalcell[i][3] == "SA" or self.finalcell[i][3] == "SC" and zincblende == False and surface == False:
-                file_fdf.write("1  ")
-            elif self.finalcell[i][3] == "SA" or self.finalcell[i][3] == "SC" and zincblende == False and surface == True:
-                file_fdf.write("2  ")
-            elif self.finalcell[i][3] == "SA" or self.finalcell[i][3] == "SC" and zincblende == True and surface == False:
-                if self.finalcell[i][3] == "SA":
-                    file_fdf.write("1  ")
-                elif self.finalcell[i][3] == "SC":
-                    file_fdf.write("2  ")
-            elif self.finalcell[i][3] == "SA" or self.finalcell[i][3] == "SC" and zincblende == True and surface == True:
-                file_fdf.write("3  ")
-            elif self.finalcell[i][3] == "H" and zincblende == False:
-                file_fdf.write("2  ")
-            elif self.finalcell[i][3] == "H" and zincblende == True and surface == False:
-                file_fdf.write("3  ")
-            elif self.finalcell[i][3] == "H" and zincblende == True and surface == True:
-                file_fdf.write("4  ")
-            # Below: Assignment of atoms relative to the other atoms and their coordinates
-            if i == 0:
-                file_fdf.write("0 0 0 ") # First atom therefore with respect nothing
-                file_fdf.write(f"0.0 0.0 0.0 ") # first atom therefore with respect to itself
-            elif i == 1:
-                file_fdf.write("1 0 0 ") # with respect to the first atom
-                polar = cartesian_to_polar(self.finalcell[i],self.finalcell[i-1])
-                file_fdf.write(f"{polar[0]} {polar[1]} {polar[2]} ") # first atom therefore with respect to itself
-            else:
-                pass
+    # def write_to_fdf_zmatrix(self, surface, fname = "coordinates"):
+    # Under construction
+    #     # Printing the final into an out file that contains the coordinates in Z matrix format
+    #     print(f"write_to_fdf_zmatrix: Make sure that the central atom is at the origin (cartesian: 0 0 0)")
+    #     file_fdf = open(f"{fname}.fdf", "w+")
+    #     file_fdf.write("%block Zmatrix\n")
+    #     file_fdf.write("molecule\n")
+    #     file_fdf.write("cartesian\n")
+    #     for i in range(0,len(self.finalcell)):
+    #     # for i in self.finalcell:
+    #         # For writing the Type of atom
+    #         if self.finalcell[i][3] == "A":
+    #             file_fdf.write("1  ")
+    #         elif self.finalcell[i][3] == "C":
+    #             file_fdf.write("2  ")
+    #         elif self.finalcell[i][3] == "B":
+    #             file_fdf.write("3  ")
+    #         elif self.finalcell[i][3] == "SA" or self.finalcell[i][3] == "SC" and surface == False:
+    #             if self.finalcell[i][3] == "SA":
+    #                 file_fdf.write("1  ")
+    #             elif self.finalcell[i][3] == "SC":
+    #                 file_fdf.write("2  ")
+    #         elif self.finalcell[i][3] == "SA" or self.finalcell[i][3] == "SC" and surface == True:
+    #             file_fdf.write("3  ")
+    #         elif self.finalcell[i][3] == "H" and zincblende == False:
+    #             file_fdf.write("2  ")
+    #         elif self.finalcell[i][3] == "H" and zincblende == True and surface == False:
+    #             file_fdf.write("3  ")
+    #         elif self.finalcell[i][3] == "H" and zincblende == True and surface == True:
+    #             file_fdf.write("4  ")
+    #         # Below: Assignment of atoms relative to the other atoms and their coordinates
+    #         if i == 0:
+    #             file_fdf.write("0 0 0 ") # First atom therefore with respect nothing
+    #             file_fdf.write(f"0.0 0.0 0.0 ") # first atom therefore with respect to itself
+    #         elif i == 1:
+    #             file_fdf.write("1 0 0 ") # with respect to the first atom
+    #             polar = cartesian_to_polar(self.finalcell[i],self.finalcell[i-1])
+    #             file_fdf.write(f"{polar[0]} {polar[1]} {polar[2]} ") # first atom therefore with respect to itself
+    #         else:
+    #             pass
 
-            # Below: Constraining atoms
-            if  self.finalcell[i][3] == "H":
-                file_fdf.write("1 1 1")
-            else:
-                file_fdf.write("0 0 0")
-            file_fdf.write("\n")
-        file_fdf.write("%endblock Zmatrix\n")
-        print("write_to_fdf_zmatrix: Successfully written to fdf file (z matrix)")
-        file_fdf.close()
+    #     # Below: Constraining atoms
+    #     if  self.finalcell[i][3] == "H":
+    #         file_fdf.write("1 1 1")
+    #     else:
+    #         file_fdf.write("0 0 0")
+    #     file_fdf.write("\n")
+    # file_fdf.write("%endblock Zmatrix\n")
+    # print("write_to_fdf_zmatrix: Successfully written to fdf file (z matrix)")
+    # file_fdf.close()
 
     def write_to_xyz(self, zincBlende, surface, fname = "coordinates"):
         # Printing the final into an out file that contains the coordinates
         file_xyz = open(f"{fname}.xyz", "w+")
         file_xyz.write(str(len(self.finalcell)) + "\n")
         file_xyz.write("The coordinates for the quantum dot atoms\n")
-        if zincBlende:
-            if surface:
-                for i in self.finalcell:
-                    if i[3] == "A":
-                        file_xyz.write("A ")
-                    elif i[3] == "C":
-                        file_xyz.write("C ")
-                    elif i[3] == "B":
-                        file_xyz.write("B ")
-                    elif i[3] == "SA" or i[3] == "SC":
-                        file_xyz.write("S ")
-                    elif i[3] == "H":
-                        file_xyz.write("H ")
-                    file_xyz.write(str(i[0]) + " ")
-                    file_xyz.write(str(i[1]) + " ")
-                    file_xyz.write(str(i[2]) + " ")
-                    file_xyz.write("\n")
-            if not surface:
-                for i in self.finalcell:
-                    if i[3] == "A":
-                        file_xyz.write("A ")
-                    elif i[3] == "C":
-                        file_xyz.write("C ")
-                    elif i[3] == "B":
-                        file_xyz.write("B ")
-                    elif i[3] == "SA":
-                        file_xyz.write("A ")
-                    elif i[3] == "SC":
-                        file_xyz.write("C ")
-                    elif i[3] == "H":
-                        file_xyz.write("H ")
-                    file_xyz.write(str(i[0]) + " ")
-                    file_xyz.write(str(i[1]) + " ")
-                    file_xyz.write(str(i[2]) + " ")
-                    file_xyz.write("\n")
-
-        elif not zincBlende:
-            if surface:
-                for i in self.finalcell:
-                    if i[3] == "A":
-                        file_xyz.write("A ")
-                    elif i[3] == "C":
-                        file_xyz.write("A ")
-                    elif i[3] == "SA" or i[3] == "SC":
-                        file_xyz.write("S ")
-                    elif i[3] == "H":
-                        file_xyz.write("H ")
-                    file_xyz.write(str(i[0]) + " ")
-                    file_xyz.write(str(i[1]) + " ")
-                    file_xyz.write(str(i[2]) + " ")
-                    file_xyz.write("\n")
-            if not surface:
-                for i in self.finalcell:
-                    if i[3] == "A":
-                        file_xyz.write("A ")
-                    elif i[3] == "C":
-                        file_xyz.write("A ")
-                    elif i[3] == "SA":
-                        file_xyz.write("A ")
-                    elif i[3] == "SC":
-                        file_xyz.write("A ")
-                    elif i[3] == "H":
-                        file_xyz.write("H ")
-                    file_xyz.write(str(i[0]) + " ")
-                    file_xyz.write(str(i[1]) + " ")
-                    file_xyz.write(str(i[2]) + " ")
-                    file_xyz.write("\n")
+        if surface:
+            for i in self.finalcell:
+                if i[3] == "A":
+                    file_xyz.write("A ")
+                elif i[3] == "C":
+                    file_xyz.write("C ")
+                elif i[3] == "B":
+                    file_xyz.write("B ")
+                elif i[3] == "SA" or i[3] == "SC":
+                    file_xyz.write("S ")
+                elif i[3] == "H":
+                    file_xyz.write("H ")
+                file_xyz.write(str(i[0]) + " ")
+                file_xyz.write(str(i[1]) + " ")
+                file_xyz.write(str(i[2]) + " ")
+                file_xyz.write("\n")
+        if not surface:
+            for i in self.finalcell:
+                if i[3] == "A":
+                    file_xyz.write("A ")
+                elif i[3] == "C":
+                    file_xyz.write("C ")
+                elif i[3] == "B":
+                    file_xyz.write("B ")
+                elif i[3] == "SA":
+                    file_xyz.write("A ")
+                elif i[3] == "SC":
+                    file_xyz.write("C ")
+                elif i[3] == "H":
+                    file_xyz.write("H ")
+                file_xyz.write(str(i[0]) + " ")
+                file_xyz.write(str(i[1]) + " ")
+                file_xyz.write(str(i[2]) + " ")
+                file_xyz.write("\n")
         print("write_to_xyz: Successfully written to '.xyz' file")
         file_xyz.close()
 
