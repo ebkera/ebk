@@ -27,7 +27,7 @@ def run(*args, **kwargs):
     if bands == True:
         bands = ".bands"
     else:
-        bands = ""
+        bands = ".scf"
 
     print(f"EBK: {bands} run with {np} processors")
     os.system(f"mpirun  -np {np} '/mnt/c/Users/Eranjan/Desktop/Quantum_Expresso/qe-6.4.1/bin/pw.x' -in {name}{bands}.in {out_type} {name}{bands}.out")

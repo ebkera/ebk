@@ -5,9 +5,19 @@ import subprocess
 from ebk.kPathCreator import *
 
 class QERunCreator:
-    def __init__(self, system_name):
+    def __init__(self, system_name, k_set = [30,31,32], ke_set = [200, 250, 300, 320], r_set = [300, 400]):
+        """
+        This function initializes the object but usually 
+        """
         self.system_name = system_name
-        
+        self.k_points_number = 0
+        self.k_set = k_set
+        self.ke_set = ke_set
+        self.r_set = r_set
+        self.excorr = "pbe"     # "pbe"   = "sla+pw+pbx+pbc"    = PBE, "pz"    = "sla+pz"            = Perdew-Zunger LDA
+        self.PP_name = "Sn.UPF"
+        self.lspinorb = False
+
     def make_name(self, k, ke, r, bands):
         return f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
 
@@ -42,7 +52,7 @@ class QERunCreator:
             if bands == True:
                 file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {name}.bands.in > {name}.bands.out\n")
             else:
-                file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {name}.in > {name}.out\n")
+                file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {name}.scf.in > {name}.scf.out\n")
         shutil.move(f"{file_name}.job", f"./{dirname}/{file_name}.job")
 
     def k_file_reader(self):
@@ -54,6 +64,8 @@ class QERunCreator:
         file_name = name
         if bands == True:
             file_name = f"{name}.bands"
+        else:
+            file_name = f'{name}.scf'
         with open (f"{file_name}.in", "w") as file:
             file.write(f"&control\n")
             if bands == False:
@@ -61,6 +73,8 @@ class QERunCreator:
             else:
                 file.write(f"    calculation     = 'bands'\n")
             file.write(f"    verbosity       = 'high'\n")
+            if self.excorr != "auto":
+                file.write(f"    input_dft       = '{self.excorr}'\n")
             file.write(f"    prefix          = '{name}'\n")
             file.write(f"    wf_collect      = .false.\n")
             file.write(f"    pseudo_dir      = './'\n")
@@ -76,6 +90,9 @@ class QERunCreator:
                 pass
             else:
                 file.write(f"    nbnd            = 30\n")
+            if self.lspinorb == True:
+                file.write(f"    lspinorb        = .true.\n")
+                file.write(f"    noncolin        = .true.\n")
             file.write(f"    ecutrho         = {r}\n")
             file.write(f"    occupations     = 'smearing'\n")
             file.write(f"    smearing        = 'gaussian'\n")
@@ -85,7 +102,7 @@ class QERunCreator:
             file.write(f"    mixing_beta     = 0.7\n")
             file.write(f"/\n")
             file.write(f"ATOMIC_SPECIES\n")
-            file.write(f" Sn 118.71  Sn.UPF\n")
+            file.write(f" Sn 118.71  {self.PP_name}\n")
             file.write(f"ATOMIC_POSITIONS alat \n")
             file.write(f"Sn        0.000000000   0.000000000   0.000000000\n")
             file.write(f"Sn        0.250000000   0.250000000   0.250000000\n")
@@ -100,15 +117,15 @@ class QERunCreator:
         shutil.move(f"{file_name}.in", f"./{dirname}/{file_name}.in")
 
 
-    def runcreator(self, k_set, ke_set, r_set, walltime, together):
+    def create_run(self, walltime, together):
         self.k_file_reader()
         if together == True:
             dirname = "Run"
         else:
             dirname = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
-        for k in k_set:
-            for ke in ke_set:
-                for r in r_set:
+        for k in self.k_set:
+            for ke in self.ke_set:
+                for r in self.r_set:
                     try:
                         os.mkdir(dirname)
                     except:
@@ -130,7 +147,9 @@ if __name__ == "__main__":
     path.add_kpath(L, 20)
     path.out_kpath_QE()
     Sn_run.k_points_number = len(path.k_distance)
-    k_set = [30,31,32]
-    ke_set = [200, 250, 300, 320]
-    r_set = [300, 400]
-    Sn_run.runcreator(k_set, ke_set, r_set, 30, together = True)
+    Sn_run.excorr = 'auto'
+    # Sn_run.excorr = 'pz'
+    Sn_run.k_set = [10]
+    Sn_run.ke_set = [40]
+    Sn_run.r_set = [300]
+    Sn_run.create_run(30, together = True)
