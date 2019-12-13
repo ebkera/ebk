@@ -5,7 +5,7 @@ import subprocess
 from ebk.kPathCreator import *
 
 class QERunCreator:
-    def __init__(self, system_name, k_set = [30,31,32], ke_set = [200, 250, 300, 320], r_set = [300, 400]):
+    def __init__(self, system_name, k_set = [30,32,34], ke_set = [180, 200, 220], r_set = [300, 400]):
         """
         This function initializes the object but usually 
         """
@@ -26,6 +26,8 @@ class QERunCreator:
         file_name = name
         if bands == True:
             file_name = f"{name}.bands"
+        else:
+            file_name = f"{name}.scf"
         with open (f"{file_name}.job", "w") as file:
             file.write(f"#!/bin/bash\n")
             file.write(f"#\n")
