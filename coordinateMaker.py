@@ -72,16 +72,16 @@ class CoordinateMaker():
         self.conventional_cell = []
         # This is the conventional (FCC) unit cell for a diamond lattice
         self.conventional_cell.append([0.000, 0.000, 0.000, "A"])  # Index:0 atom at 000 (fcc_a)
-        self.conventional_cell.append([0.250, 0.250, 0.250, "C"])  # Index:1 basis atom connected to (fcc_b)
+        self.conventional_cell.append([0.250, 0.250, 0.250, "A"])  # Index:1 basis atom connected to (fcc_b)
         # self.conventional_cell.append([0.000,0.500,0.500]) # Index:2 three atoms forming the lattice vectors (fcc_a). # This atom can be removed since slotting another box will duplicate this atom
         # self.conventional_cell.append([0.500,0.000,0.500]) # Index:3 # This atom can be removed since slotting another box will duplicate this atom
         # self.conventional_cell.append([0.500,0.500,0.000]) # Index:4 # This atom can be removed since slotting another box will duplicate this atom
         # self.conventional_cell.append([1.000,1.000,0.000]) # Index:4,5 last atom on the xy plane (fcc_a) # This atom can be removed since slotting another box will duplicate this atom
-        self.conventional_cell.append([0.750, 0.750, 0.250, "C"])  # Index:5,6 last atom on the xy_.25 plane (fcc_b)
+        self.conventional_cell.append([0.750, 0.750, 0.250, "A"])  # Index:5,6 last atom on the xy_.25 plane (fcc_b)
         self.conventional_cell.append([0.500, 1.000, 0.500, "A"])  # Index:6,7 last two atoms on the 0.5 xy plane (fcc_a)
         self.conventional_cell.append([1.000, 0.500, 0.500, "A"])  # Index:8
-        self.conventional_cell.append([0.250, 0.750, 0.750, "C"])  # Index:7,9 The last two atoms on the 0.75 xy plane (fcc_b)
-        self.conventional_cell.append([0.750, 0.250, 0.750, "C"])  # Index:8,10
+        self.conventional_cell.append([0.250, 0.750, 0.750, "A"])  # Index:7,9 The last two atoms on the 0.75 xy plane (fcc_b)
+        self.conventional_cell.append([0.750, 0.250, 0.750, "A"])  # Index:8,10
         # self.conventional_cell.append([0.000,1.000,1.000]) # Index:9,11 three atoms forming z=1 xy plane (fcc_a) # This atom can be removed since slotting another box will duplicate this atom
         # self.conventional_cell.append([1.000,0.000,1.000]) # Index:10,12 # This atom can be removed since slotting another box will duplicate this atom
         self.conventional_cell.append([0.500, 0.500, 1.000, "A"])  # Index:11,13
@@ -118,8 +118,8 @@ class CoordinateMaker():
         self.conventional_cell_zinc_blende.append([0.750, 0.750, 0.250, "C"])  # Index:5,6 last atom on the xy_.25 plane (fcc_b)
         self.conventional_cell_zinc_blende.append([0.500, 1.000, 0.500, "A"])  # Index:6,7 last two atoms on the 0.5 xy plane (fcc_a)
         self.conventional_cell_zinc_blende.append([1.000, 0.500, 0.500, "A"])  # Index:8
-        self.conventional_cell_zinc_blende.append([0.250, 0.750, 0.750, "B"])  # Index:7,9 The last two atoms on the 0.75 xy plane (fcc_b)
-        self.conventional_cell_zinc_blende.append([0.750, 0.250, 0.750, "B"])  # Index:8,10
+        self.conventional_cell_zinc_blende.append([0.250, 0.750, 0.750, "C"])  # Index:7,9 The last two atoms on the 0.75 xy plane (fcc_b)
+        self.conventional_cell_zinc_blende.append([0.750, 0.250, 0.750, "C"])  # Index:8,10
         # self.conventional_cell_zinc_blende.append([0.000, 1.000, 1.000, "A"])  # Index:9,11 three atoms forming z=1 xy plane (fcc_a) # This atom can be removed since slotting another box will duplicate this atom
         # self.conventional_cell_zinc_blende.append([1.000, 0.000, 1.000, "A"])  # Index:10,12 # This atom can be removed since slotting another box will duplicate this atom
         self.conventional_cell_zinc_blende.append([0.500, 0.500, 1.000, "A"])  # Index:11,13
@@ -553,12 +553,13 @@ class CoordinateMaker():
     # print("write_to_fdf_zmatrix: Successfully written to fdf file (z matrix)")
     # file_fdf.close()
 
-    def write_to_xyz(self, zincBlende, surface, fname = "coordinates"):
-        # Printing the final into an out file that contains the coordinates
+    def write_to_xyz(self, surface, fname = "coordinates"):
+        # Printing the final into an xyz file that contains the coordinates
         file_xyz = open(f"{fname}.xyz", "w+")
         file_xyz.write(str(len(self.finalcell)) + "\n")
         file_xyz.write("The coordinates for the quantum dot atoms\n")
         if surface:
+            print("works")
             for i in self.finalcell:
                 if i[3] == "A":
                     file_xyz.write("A ")
