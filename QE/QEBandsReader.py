@@ -16,6 +16,22 @@ epsilon0 = 8.85E-12 # (Units F/m)
 epsilonr = 24
 a = 6.432E-10 #lattice constant for Sn
 
+def read_scf_out(file_name):
+    """
+    This function reads the total energy and fermi level from a *.scf.out file.
+    |file_name: (str) the file name without the .scf.in part
+    |output: float,float
+    """
+    with open(f"{file_name}.scf.out", "r") as file:
+        data = file.read()
+        data  = data.split("\n")
+
+        for line in data:
+            if "     the Fermi energy is" in line:
+                fermi_energy = line.split()[4]
+            if "!    total energy              " in line:
+                total_energy = line.split()[4]
+    return(total_energy, fermi_energy)
 
 class QEBandsReader():
     def __init__(self, file_name):
