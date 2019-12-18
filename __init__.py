@@ -21,6 +21,9 @@ mh_HgTe = 0.5*m0
 me_Sn = 0.0236*m0  # alpha-Sn
 mh_Sn = 0.21*m0  # alpha-Sn
 
+# Lattice Constants here in Angstroms
+a_InAs = 6.0583
+
 def reduced_mass(me2, mh2):
     '''This function calculates reduced mass'''
     return me2*mh2/(me2+mh2)

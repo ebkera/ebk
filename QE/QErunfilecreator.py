@@ -16,7 +16,10 @@ class QERunCreator:
         self.r_set = r_set
         self.excorr = "pbe"     # "pbe"   = "sla+pw+pbx+pbc"    = PBE, "pz"    = "sla+pz"            = Perdew-Zunger LDA
         self.PP_name = "Sn.UPF"
+        self.celldm = 12.394714
         self.lspinorb = False
+        self.supercell_file = "default"
+        self.atomic_species = [["Sn", "118.71", "Sn.UPF"]]
 
     def make_name(self, k, ke, r, bands):
         return f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
@@ -84,7 +87,7 @@ class QERunCreator:
             file.write(f"/\n")
             file.write(f"&system\n")
             file.write(f"    ibrav           = 2\n")
-            file.write(f"    celldm(1)       = 12.394714\n")
+            file.write(f"    celldm(1)       = {self.celldm}\n")
             file.write(f"    nat             = 2\n")
             file.write(f"    ntyp            = 1\n")
             file.write(f"    ecutwfc         = {ke}\n")
@@ -104,10 +107,28 @@ class QERunCreator:
             file.write(f"    mixing_beta     = 0.7\n")
             file.write(f"/\n")
             file.write(f"ATOMIC_SPECIES\n")
-            file.write(f" Sn 118.71  {self.PP_name}\n")
+            for specie in self.atomic_species:
+                file.write(f"{specie[0]}   {specie[1]}   {specie[2]}\n")
             file.write(f"ATOMIC_POSITIONS alat \n")
-            file.write(f"Sn        0.000000000   0.000000000   0.000000000\n")
-            file.write(f"Sn        0.250000000   0.250000000   0.250000000\n")
+            # Here we have to make srue that the new requrired supercell (basis) is loaded into the file
+            if self.supercell_file == "default":
+                file.write(f"Sn        0.000000000   0.000000000   0.000000000\n")
+                file.write(f"Sn        0.250000000   0.250000000   0.250000000\n")
+            else:
+                try:
+                    with open (f"{self.supercell_file}", "r") as file2:
+                        data = file2.read()
+                        data = data.split("\n")
+                        for line in data:
+                            # x = line.split()
+                            # print
+                            if len(line.split()) == 4:
+                                file.write(f"{line}\n")
+                except:
+                    print(f"QERunCreator.inFileCreator: Could not open file {self.supercell_file}. Writing default structure (diamond) with prefix Sn")
+                    file.write(f"Sn        0.000000000   0.000000000   0.000000000\n")
+                    file.write(f"Sn        0.250000000   0.250000000   0.250000000\n")
+
             if bands == False:
                 file.write(f"K_POINTS automatic\n{k} {k} {k} 1 1 1\n")
             else:
