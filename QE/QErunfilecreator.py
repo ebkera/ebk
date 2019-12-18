@@ -16,7 +16,7 @@ class QERunCreator:
         self.r_set = r_set
         self.excorr = "pbe"     # "pbe"   = "sla+pw+pbx+pbc"    = PBE, "pz"    = "sla+pz"            = Perdew-Zunger LDA
         self.PP_name = "Sn.UPF"
-        self.celldm = 12.394714
+        # self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
         self.lspinorb = False
         self.supercell_file = "default"
         self.atomic_species = [["Sn", "118.71", "Sn.UPF"]]
@@ -87,7 +87,9 @@ class QERunCreator:
             file.write(f"/\n")
             file.write(f"&system\n")
             file.write(f"    ibrav           = 2\n")
-            file.write(f"    celldm(1)       = {self.celldm}\n")
+            for x in range(1,6):
+                if self.celldm[x] != 0:
+                    file.write(f"    celldm({x})       = {self.celldm[x]}\n")
             file.write(f"    nat             = 2\n")
             file.write(f"    ntyp            = 1\n")
             file.write(f"    ecutwfc         = {ke}\n")
