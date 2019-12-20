@@ -3,6 +3,7 @@ import shutil
 import sys
 import subprocess
 from ebk.kPathCreator import *
+from ebk import A2Bohr
 
 class QERunCreator:
     def __init__(self, system_name, k_set = [30,32,34], ke_set = [180, 200, 220], r_set = [300, 400]):
@@ -16,30 +17,32 @@ class QERunCreator:
         self.r_set = r_set
         self.excorr = "pbe"     # "pbe"   = "sla+pw+pbx+pbc"    = PBE, "pz"    = "sla+pz"            = Perdew-Zunger LDA
         self.PP_name = "Sn.UPF"
-        # self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
+        self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
         self.lspinorb = False
         self.supercell_file = "default"
         self.atomic_species = [["Sn", "118.71", "Sn.UPF"]]
+        self.lat_const = [6.5]
 
-    def make_name(self, k, ke, r, bands):
-        return f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
-
-    def jobCreator(self, k, ke, r, walltime_mins, bands, dirname):
-        name = self.make_name(k, ke, r, bands)
-        file_name = name
+    def make_name(self, k, ke, r, bands, a):
+        name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}_a{a}"
         if bands == True:
             file_name = f"{name}.bands"
         else:
-            file_name = f"{name}.scf"
+            file_name = f'{name}.scf'
+
+        return file_name
+
+    def jobCreator(self, k, ke, r, walltime_mins, bands, dirname, a):
+        file_name = self.make_name(k, ke, r, bands, a)
         with open (f"{file_name}.job", "w") as file:
             file.write(f"#!/bin/bash\n")
             file.write(f"#\n")
             file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n#PBS -l nodes=5:ppn=8\n")
             file.write(f"#PBS -l walltime=0:{walltime_mins}:00\n")
             if bands == True:
-                file.write(f"#PBS -N {name}.bands\n")
+                file.write(f"#PBS -N {file_name}.bands\n")
             else:
-                file.write(f"#PBS -N {name}\n")
+                file.write(f"#PBS -N {file_name}\n")
             file.write(f"#PBS -A cnm66441\n")
             file.write(f"#\n")
             file.write(f"#  File names for stdout and stderr.  If not set here, the defaults\n")
@@ -54,23 +57,15 @@ class QERunCreator:
             file.write(f"cd $PBS_O_WORKDIR\n")
             file.write("\n")
             file.write(f"# start MPI job over default interconnect; count allocated cores on the fly.\n")
-            if bands == True:
-                file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {name}.bands.in > {name}.bands.out\n")
-            else:
-                file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {name}.scf.in > {name}.scf.out\n")
+            file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {file_name}.in > {file_name}.out\n")
         shutil.move(f"{file_name}.job", f"./{dirname}/{file_name}.job")
 
     def k_file_reader(self):
         with open ("kpath.kpath",'r') as k_path_file:
             self.k_path = k_path_file.read()
 
-    def infileCreator(self, k, ke, r, bands, dirname):
-        name = self.make_name(k, ke, r, bands)
-        file_name = name
-        if bands == True:
-            file_name = f"{name}.bands"
-        else:
-            file_name = f'{name}.scf'
+    def infileCreator(self, k, ke, r, bands, dirname, a):
+        file_name = self.make_name(k, ke, r, bands, a)
         with open (f"{file_name}.in", "w") as file:
             file.write(f"&control\n")
             if bands == False:
@@ -80,7 +75,7 @@ class QERunCreator:
             file.write(f"    verbosity       = 'high'\n")
             if self.excorr != "auto":
                 file.write(f"    input_dft       = '{self.excorr}'\n")
-            file.write(f"    prefix          = '{name}'\n")
+            file.write(f"    prefix          = '{file_name}'\n")
             file.write(f"    wf_collect      = .false.\n")
             file.write(f"    pseudo_dir      = './'\n")
             file.write(f"    outdir          = './'\n")
@@ -141,7 +136,6 @@ class QERunCreator:
                 file.write(self.k_path)
         shutil.move(f"{file_name}.in", f"./{dirname}/{file_name}.in")
 
-
     def create_run(self, walltime, together):
         self.k_file_reader()
         if together == True:
@@ -155,10 +149,12 @@ class QERunCreator:
                         os.mkdir(dirname)
                     except:
                         pass
-                    self.jobCreator(k, ke, r, walltime, True, dirname)
-                    self.jobCreator(k, ke, r, walltime, False, dirname)
-                    self.infileCreator(k, ke, r, False, dirname)
-                    self.infileCreator(k, ke, r, True, dirname)
+                    for a in self.lat_const:
+                        b = A2Bohr(a)
+                        self.jobCreator(k, ke, r, walltime, True, dirname, b)
+                        self.jobCreator(k, ke, r, walltime, False, dirname, b)
+                        self.infileCreator(k, ke, r, False, dirname, b)
+                        self.infileCreator(k, ke, r, True, dirname, b)
 
 if __name__ == "__main__":
     Sn_run = QERunCreator("Sn")
