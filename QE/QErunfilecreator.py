@@ -31,9 +31,6 @@ class QERunCreator:
         name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
         if a != False:
             name = f"{name}_a{a:.2f}"
-
-        # Saving the set of file names generated for later use
-        self.set_of_files.append(name)
         return name
 
     def jobCreator(self, k, ke, r, walltime_mins, bands, dirname, a):
@@ -73,6 +70,9 @@ class QERunCreator:
     def infileCreator(self, k, ke, r, bands, dirname, a):
         # We need to have the below lines since the prefix has to not have the .scf / .bands parts
         name = self.make_name(k, ke, r, bands, a)
+        # This is here to save the files names into a list for later use to call the out files
+        if bands == False:
+            self.set_of_files.append(name)
         if bands == True:
             file_name = f"{name}.bands"
         else:
