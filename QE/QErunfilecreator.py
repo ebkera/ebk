@@ -31,6 +31,7 @@ class QERunCreator:
     def make_name(self, k, ke, r, bands, a = False):
         name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
         if a != False:
+        # Here the lattice constant will only appear in the file name if you want it specifically for a lat optimization run
             name = f"{name}_a{a:.2f}"
         return name
 
