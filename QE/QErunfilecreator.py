@@ -25,11 +25,15 @@ class QERunCreator:
         self.atomic_species = [["Sn", "118.71", "Sn.UPF"]]
         self.lat_const = [6.5]
         self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
+        self.set_of_files = []
 
     def make_name(self, k, ke, r, bands, a = False):
         name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
         if a != False:
             name = f"{name}_a{a:.2f}"
+
+        # Saving the set of file names generated for later use
+        self.set_of_files.append(name)
         return name
 
     def jobCreator(self, k, ke, r, walltime_mins, bands, dirname, a):
