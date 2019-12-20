@@ -26,6 +26,7 @@ class QERunCreator:
         self.lat_const = [6.5]
         self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
         self.set_of_files = []
+        self.ibrav = 2
 
     def make_name(self, k, ke, r, bands, a = False):
         name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
@@ -92,7 +93,7 @@ class QERunCreator:
             file.write(f"    outdir          = './'\n")
             file.write(f"/\n")
             file.write(f"&system\n")
-            file.write(f"    ibrav           = 2\n")
+            file.write(f"    ibrav           = {self.ibrav}\n")
             if a != False:
                 # Works only if a lattice parameter has been set.
                 file.write(f"    celldm(1)       = {a}\n")
