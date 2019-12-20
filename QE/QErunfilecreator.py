@@ -32,6 +32,7 @@ class QERunCreator:
         name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
         if a != False:
         # Here the lattice constant will only appear in the file name if you want it specifically for a lat optimization run
+        # This is for another test
             name = f"{name}_a{a:.2f}"
         return name
 
