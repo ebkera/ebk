@@ -27,7 +27,8 @@ class QERunCreator:
         self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
         self.set_of_files = []
         self.ibrav = 2
-
+        self.nat = 2
+        self.ntyp = 1
     def make_name(self, k, ke, r, bands, a = False):
         name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
         if a != False:
@@ -103,8 +104,8 @@ class QERunCreator:
                 for x in range(1,6):
                     if self.celldm[x] != 0:
                         file.write(f"    celldm({x})       = {self.celldm[x]}\n")
-            file.write(f"    nat             = 2\n")
-            file.write(f"    ntyp            = 1\n")
+            file.write(f"    nat             = {self.nat}\n")
+            file.write(f"    ntyp            = {self.ntyp}\n")
             file.write(f"    ecutwfc         = {ke}\n")
             if bands == False:
                 pass
