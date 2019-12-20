@@ -17,32 +17,34 @@ class QERunCreator:
         self.r_set = r_set
         self.excorr = "pbe"     # "pbe"   = "sla+pw+pbx+pbc"    = PBE, "pz"    = "sla+pz"            = Perdew-Zunger LDA
         self.PP_name = "Sn.UPF"
-        self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
+        self.nodes = 4
+        self.procs = 8
+        # self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
         self.lspinorb = False
         self.supercell_file = "default"
         self.atomic_species = [["Sn", "118.71", "Sn.UPF"]]
         self.lat_const = [6.5]
+        self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
 
-    def make_name(self, k, ke, r, bands, a):
-        name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}_a{a}"
+    def make_name(self, k, ke, r, bands, a = False):
+        name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
+        if a != False:
+            name = f"{name}_a{a:.2f}"
+        return name
+
+    def jobCreator(self, k, ke, r, walltime_mins, bands, dirname, a):
+        name = self.make_name(k, ke, r, bands, a)
         if bands == True:
             file_name = f"{name}.bands"
         else:
             file_name = f'{name}.scf'
-
-        return file_name
-
-    def jobCreator(self, k, ke, r, walltime_mins, bands, dirname, a):
-        file_name = self.make_name(k, ke, r, bands, a)
         with open (f"{file_name}.job", "w") as file:
             file.write(f"#!/bin/bash\n")
             file.write(f"#\n")
-            file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n#PBS -l nodes=5:ppn=8\n")
+            file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
+            file.write(f"#PBS -l nodes={self.nodes}:ppn={self.procs}\n")
             file.write(f"#PBS -l walltime=0:{walltime_mins}:00\n")
-            if bands == True:
-                file.write(f"#PBS -N {file_name}.bands\n")
-            else:
-                file.write(f"#PBS -N {file_name}\n")
+            file.write(f"#PBS -N {file_name}\n")
             file.write(f"#PBS -A cnm66441\n")
             file.write(f"#\n")
             file.write(f"#  File names for stdout and stderr.  If not set here, the defaults\n")
@@ -65,7 +67,12 @@ class QERunCreator:
             self.k_path = k_path_file.read()
 
     def infileCreator(self, k, ke, r, bands, dirname, a):
-        file_name = self.make_name(k, ke, r, bands, a)
+        # We need to have the below lines since the prefix has to not have the .scf / .bands parts
+        name = self.make_name(k, ke, r, bands, a)
+        if bands == True:
+            file_name = f"{name}.bands"
+        else:
+            file_name = f'{name}.scf'
         with open (f"{file_name}.in", "w") as file:
             file.write(f"&control\n")
             if bands == False:
@@ -75,16 +82,20 @@ class QERunCreator:
             file.write(f"    verbosity       = 'high'\n")
             if self.excorr != "auto":
                 file.write(f"    input_dft       = '{self.excorr}'\n")
-            file.write(f"    prefix          = '{file_name}'\n")
+            file.write(f"    prefix          = '{name}'\n")
             file.write(f"    wf_collect      = .false.\n")
             file.write(f"    pseudo_dir      = './'\n")
             file.write(f"    outdir          = './'\n")
             file.write(f"/\n")
             file.write(f"&system\n")
             file.write(f"    ibrav           = 2\n")
-            for x in range(1,6):
-                if self.celldm[x] != 0:
-                    file.write(f"    celldm({x})       = {self.celldm[x]}\n")
+            if a != False:
+                # Works only if a lattice parameter has been set.
+                file.write(f"    celldm(1)       = {a}\n")
+            else:
+                for x in range(1,6):
+                    if self.celldm[x] != 0:
+                        file.write(f"    celldm({x})       = {self.celldm[x]}\n")
             file.write(f"    nat             = 2\n")
             file.write(f"    ntyp            = 1\n")
             file.write(f"    ecutwfc         = {ke}\n")
