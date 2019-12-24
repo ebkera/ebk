@@ -32,6 +32,7 @@ class QERunCreator:
         self.ibrav = 2
         self.nat = 2
         self.ntyp = 1
+        self.dirname = "Run"
     def make_name(self, k, ke, r, bands, a = False):
         name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
         if a != False:
@@ -108,6 +109,8 @@ class QERunCreator:
             file.write(f"    pseudo_dir      = './'\n")
             file.write(f"    outdir          = './'\n")
             file.write(f"/\n")
+            file.write(f"\n")
+
             file.write(f"&system\n")
             file.write(f"    ibrav           = {self.ibrav}\n")
             if a != False and self.cell_parameters == False:
@@ -132,8 +135,11 @@ class QERunCreator:
             file.write(f"    smearing        = 'gaussian'\n")
             file.write(f"    degauss         = 0.01\n")
             file.write(f"/\n")
+            file.write(f"\n")
+            
             file.write(f"&electrons\n")
             file.write(f"    mixing_beta     = 0.7\n")
+            file.write(f"/\n")
 
             # This is for the cell_parameter_block
             if self.cell_parameters != False:
@@ -183,7 +189,7 @@ class QERunCreator:
     def create_run(self, walltime, together):
         self.k_file_reader()
         if together == True:
-            dirname = "Run"
+            dirname = self.dirname
         else:
             dirname = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
         for k in self.k_set:
