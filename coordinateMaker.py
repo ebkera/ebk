@@ -228,6 +228,19 @@ class CoordinateMaker():
         for atom in struct.finalcell: 
             self.finalcell.append([atom[0] + add_at[0], atom[1] + add_at[1], atom[2] + add_at[2], atom[3]])
 
+    def normalize_supercell(self):
+        """
+        This function normalizes the supercell (only works for positive cubes for now)
+        """
+        # max = [0,0,0]
+        # for atom in self.finalcell:
+        #     for x in range(0,3):
+        #         if atom[x] > max[x]:
+        #             max[x] = atom[x]
+
+        for atom_number range(0, len(self.finalcell)):
+            for coordinate in range(0,3):
+                self.finalcell[atom_number][coordinate] = self.finalcell[atom_number][coordinate]/self.radius[coordinate]
 
     def trim_to_dot(self, cut_off, evenize): 
         """This method trims the initial cube into a ball"""

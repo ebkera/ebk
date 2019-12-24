@@ -168,14 +168,6 @@ class QERunCreator:
                 file.write(self.k_path)
         shutil.move(f"{file_name}.in", f"./{dirname}/{file_name}.in")
 
-
-    def normalize(self):
-        pass
-
-
-
-
-
     def create_run(self, walltime, together):
         self.k_file_reader()
         if together == True:
