@@ -8,7 +8,8 @@ from ebk import A2Bohr
 class QERunCreator:
     def __init__(self, system_name, k_set = [30,32,34], ke_set = [180, 200, 220], r_set = [300, 400]):
         """
-        This function initializes the object but usually 
+        This function initializes the object. Default initializations are
+        |self.job_manager [options: "torque", "slurm"]
         """
         self.system_name = system_name
         self.k_points_number = 0
@@ -19,6 +20,7 @@ class QERunCreator:
         self.PP_name = "Sn.UPF"
         self.nodes = 4
         self.procs = 8
+        self.job_manager = "torque" #options 
         # self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
         self.lspinorb = False
         self.supercell_file = "default"
@@ -44,28 +46,38 @@ class QERunCreator:
             file_name = f"{name}.bands"
         else:
             file_name = f'{name}.scf'
-        with open (f"{file_name}.job", "w") as file:
-            file.write(f"#!/bin/bash\n")
-            file.write(f"#\n")
-            file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
-            file.write(f"#PBS -l nodes={self.nodes}:ppn={self.procs}\n")
-            file.write(f"#PBS -l walltime=0:{walltime_mins}:00\n")
-            file.write(f"#PBS -N {file_name}\n")
-            file.write(f"#PBS -A cnm66441\n")
-            file.write(f"#\n")
-            file.write(f"#  File names for stdout and stderr.  If not set here, the defaults\n")
-            file.write(f"#  are <JOBNAME>.o<JOBNUM> and <JOBNAME>.e<JOBNUM>\n")
-            file.write(f"#PBS -o job.out\n")
-            file.write(f"#PBS -e job.err\n")
-            file.write("\n")
-            file.write(f"# Send mail at begin, end, abort, or never (b, e, a, n). Default is 'a'.\n")
-            file.write(f"#PBS -m bea erathnayake@sivananthanlabs.us\n")
-            file.write("\n")
-            file.write(f"# change into the directory where qsub will be executed\n")
-            file.write(f"cd $PBS_O_WORKDIR\n")
-            file.write("\n")
-            file.write(f"# start MPI job over default interconnect; count allocated cores on the fly.\n")
-            file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {file_name}.in > {file_name}.out\n")
+
+        # This is if the job manager is "Torque"
+        if self.job_manager == "torque":
+            with open (f"{file_name}.job", "w") as file:
+                file.write(f"#!/bin/bash\n")
+                file.write(f"#\n")
+                file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
+                file.write(f"#PBS -l nodes={self.nodes}:ppn={self.procs}\n")
+                file.write(f"#PBS -l walltime=0:{walltime_mins}:00\n")
+                file.write(f"#PBS -N {file_name}\n")
+                file.write(f"#PBS -A cnm66441\n")
+                file.write(f"#\n")
+                file.write(f"#  File names for stdout and stderr.  If not set here, the defaults\n")
+                file.write(f"#  are <JOBNAME>.o<JOBNUM> and <JOBNAME>.e<JOBNUM>\n")
+                file.write(f"#PBS -o job.out\n")
+                file.write(f"#PBS -e job.err\n")
+                file.write("\n")
+                file.write(f"# Send mail at begin, end, abort, or never (b, e, a, n). Default is 'a'.\n")
+                file.write(f"#PBS -m bea erathnayake@sivananthanlabs.us\n")
+                file.write("\n")
+                file.write(f"# change into the directory where qsub will be executed\n")
+                file.write(f"cd $PBS_O_WORKDIR\n")
+                file.write("\n")
+                file.write(f"# start MPI job over default interconnect; count allocated cores on the fly.\n")
+                file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {file_name}.in > {file_name}.out\n")
+
+        # This is if the job manager is "slurm"
+        elif self.job_manager == "slurm":
+            with open (f"{file_name}.job", "w") as file:
+                file.write(f"#!/bin/bash/sh\n")
+                file.write(f"#SBATCH --time={walltime_mins}\n")
+                file.write(f"srun -l pw.x -in {file_name}.in > {file_name}.out\n")
         shutil.move(f"{file_name}.job", f"./{dirname}/{file_name}.job")
 
     def k_file_reader(self):
