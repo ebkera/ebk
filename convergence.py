@@ -77,8 +77,9 @@ class E_cut_Optimize():
     def plot(self, diff = True, MP = False):
         plt.rcParams["figure.figsize"] = (14,9)
         if diff == True:
+            self.final_DEs = [x*1000 for x in self.final_DEs]   # Converting in to meV
             plt.plot(self.cut_off, self.final_DEs, 'x-')
-            plt.ylabel("$\Delta$ E (eV/atom)")
+            plt.ylabel("$\Delta$ E (meV/atom)")
         else:
             plt.plot(self.cut_off, self.final_energies, 'x-')
             plt.ylabel("Total Energy (eV/atom)")
