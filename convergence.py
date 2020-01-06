@@ -38,7 +38,7 @@ class LatticeConstantOptimize():
     def plot(self):
         fit_label = "Fit (" + str(round(self.a0_optimized,3)) + " $\\AA$)"
         plt.ylabel('Total Energy (eV)')
-        plt.xlabel('Bond length ($\\AA$)')
+        plt.xlabel('Lattice Constant ($\\AA$)')
         plt.plot(self.a, self.e, 'x', label="Data")
         plt.plot(self.x_fit, self.y_fit, '--', label=fit_label)
         plt.title(self.graph_title)
