@@ -4,7 +4,7 @@ import sys
 import subprocess
 import time
 import matplotlib
-matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
+# matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
@@ -16,6 +16,7 @@ class LatticeConstantOptimize():
         """
         self.a = a
         self.e = E
+        self.v = [n**3/4.0 for n in self.a]   # There are four primitive cells in a single conventional cell
         self.name = name
                 
         #Any other parameters you can set here
@@ -27,6 +28,12 @@ class LatticeConstantOptimize():
         self.x_fit = np.linspace(self.a[0], self.a[-1], 100)
         self.y_fit = self.f(self.x_fit)
 
+        # Similarly for the volume
+        self.vz = np.polyfit(self.v, self.e, 2)  # Getting the fit parameters
+        self.vf = np.poly1d(self.vz)  ## Getting the new function
+        self.v_x_fit = np.linspace(self.v[0], self.v[-1], 100)
+        self.v_y_fit = self.vf(self.v_x_fit)
+
         # Getting the minimum energy
         self.E_optimized = min(self.y_fit)
         self.E_optimized_printable = self.E_optimized.astype(np.float)
@@ -34,9 +41,20 @@ class LatticeConstantOptimize():
         # Getting the optimized lattice constant
         self.min_index = np.argmin(self.y_fit)
         self.a0_optimized = self.x_fit.flat[self.min_index]
+        self.v0_optimized = self.v_x_fit.flat[self.min_index]      # There are four primitive cells in a single conventional cell
+        self.v0_optimized = 6.672**3/4.0      # There are four primitive cells in a single conventional cell
+
+        # self.v0_optimized = self.a0_optimized**3/4.0      # There are four primitive cells in a single conventional cell
+
+        # Calculations
+        # Getting the double derivative using a 3rd degree polynomial
+        self.dda0 = 2*self.z[0]#.flat[0]
+        self.ddv0 = 2*self.vz[0]#.flat[0]
+        # self.ddv0 = 6*self.vz.flat[0]*self.v0_optimized + 2*self.vz.flat[1]
+        self.B = self.v0_optimized*self.ddv0#*160.21766208  # 1 eV/Angstrom3 = 160.21766208 GPa
 
     def plot(self):
-        fit_label = "Fit (" + str(round(self.a0_optimized,3)) + " $\\AA$)"
+        fit_label = f"a$_0$: {round(self.a0_optimized,3)} $\\AA$, B$_0$: {round(self.B,3)} GPa, $\\Omega_0$:{round(self.v0_optimized,3)} $\\AA^3$"
         plt.ylabel('Total Energy (eV)')
         plt.xlabel('Lattice Constant ($\\AA$)')
         plt.plot(self.a, self.e, 'x', label="Data")
@@ -44,6 +62,7 @@ class LatticeConstantOptimize():
         plt.title(self.graph_title)
         plt.legend(loc='best')
         plt.savefig(f"{self.name}.pdf")
+        plt.show()
 
 class E_cut_Optimize():
     def __init__(self, E_cut, E, name="", per_atoms = 2):
