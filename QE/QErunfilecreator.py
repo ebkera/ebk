@@ -33,6 +33,7 @@ class QERunCreator:
         self.nat = 2
         self.ntyp = 1
         self.dirname = "Run"
+        
     def make_name(self, k, ke, r, bands, a = False):
         name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
         if a != False:
