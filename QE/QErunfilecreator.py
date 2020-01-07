@@ -35,6 +35,9 @@ class QERunCreator:
         self.dirname = "Run"
         
     def make_name(self, k, ke, r, bands, a = False):
+        """
+        This method creates a name for every run.
+        """
         name = f"{self.system_name}_QE_K{k}_KE{ke}_R{r}"
         if a != False:
         # Here the lattice constant will only appear in the file name if you want it specifically for a lat optimization run
