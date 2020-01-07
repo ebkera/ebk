@@ -33,6 +33,7 @@ class QERunCreator:
         self.nat = 2
         self.ntyp = 1
         self.dirname = "Run"
+        self.pseudo_dir = "./"
         
     def make_name(self, k, ke, r, bands, a = False):
         """
@@ -101,6 +102,7 @@ class QERunCreator:
             file_name = f'{name}.scf'
         with open (f"{file_name}.in", "w") as file:
             file.write(f"&control\n")
+            file.write(f"    Title = '{}\n")
             if bands == False:
                 file.write(f"    calculation     = 'scf'\n")
             else:
@@ -110,7 +112,8 @@ class QERunCreator:
                 file.write(f"    input_dft       = '{self.excorr}'\n")
             file.write(f"    prefix          = '{name}'\n")
             file.write(f"    wf_collect      = .false.\n")
-            file.write(f"    pseudo_dir      = './'\n")
+            if self.pseudo_dir != "system_path":
+                file.write(f"    pseudo_dir      = '{self.pseudo_dir}'\n")
             file.write(f"    outdir          = './'\n")
             file.write(f"/\n")
             file.write(f"\n")
