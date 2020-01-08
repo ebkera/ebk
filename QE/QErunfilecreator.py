@@ -13,17 +13,23 @@ class QERunCreator:
         |self.nstep   : Number of molecular-dynamics or structural optimization steps performed in this run.
         |               If set to 0, the code performs a quick "dry run", stopping just after initialization. This is useful
         |               to check for input correctness and to have the summary printed.
-        |self.tstress : calculate stress. It is set to .TRUE. automatically if calculation == 'vc-md' or 'vc-relax'
+        |self.tstress : Calculate stress. It is set to .TRUE. automatically if calculation == 'vc-md' or 'vc-relax'
+        |self.tprnfor : Calculate forces. The default is false (it will be set to true automatically if calculation == 'relax','md','vc-md')
         """
+        # Job initializations
+        self.nodes = 1
+        self.procs = 48
+        self.ntasks = 48
+        self.job_manager = "torque"
+        self.partition = "bigmem"  # Set by default to bigmem
+        # QE initializations
+        self.Title = "Run"
         self.system_name = system_name
         self.k_points_number = 0
         self.k_set = k_set
         self.ke_set = ke_set
         self.r_set = r_set
         self.excorr = "pbe"     # "pbe"   = "sla+pw+pbx+pbc"    = PBE, "pz"    = "sla+pz"            = Perdew-Zunger LDA
-        self.nodes = 4
-        self.procs = 8
-        self.job_manager = "torque"
         # self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
         self.lspinorb = False
         self.supercell_file = "default"
@@ -45,8 +51,8 @@ class QERunCreator:
         self.etot_conv_thr  = "1.0e-6"
         self.forc_conv_thr  = "1.0e-4"
         self.nstep  = 1
-        self.tstress  = ".true."
-        self.tprnfor   = ".true."
+        self.tstress  = ".TRUE."
+        self.tprnfor   = ".TRUE."
 
     def make_name(self, k, ke, r, bands, a = False):
         """
@@ -59,7 +65,11 @@ class QERunCreator:
             name = f"{name}_a{a:.2f}"
         return name
 
-    def jobCreator(self, k, ke, r, walltime_mins, bands, dirname, a):
+    def jobCreator(self, k, ke, r, walltime, bands, dirname, a):
+        self.walltime_days = walltime[0]
+        self.walltime_hours = walltime[1]
+        self.walltime_mins = walltime[2]
+        self.walltime_secs = walltime[3]
         name = self.make_name(k, ke, r, bands, a)
         if bands == True:
             file_name = f"{name}.bands"
@@ -94,9 +104,12 @@ class QERunCreator:
         # This is if the job manager is "slurm"
         elif self.job_manager == "slurm":
             with open (f"{file_name}.job", "w") as file:
-                file.write(f"#!/bin/bash/sh\n")
-                file.write(f"#SBATCH --time={walltime_mins}\n")
-                file.write(f"srun -l pw.x -in {file_name}.in > {file_name}.out\n")
+                file.write(f"#!/bin/bash\n")
+                file.write(f"#SBATCH --partition={self.partition}\n")
+                file.write(f"#SBATCH --time={self.walltime_days}-{self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
+                file.write(f"#SBATCH --nodes={self.nodes}\n")
+                file.write(f"#SBATCH --ntasks={self.ntasks}\n")
+                file.write(f"mpirun -np {self.ntasks} pw.x -in {file_name}.in > {file_name}.out\n")
         shutil.move(f"{file_name}.job", f"./{dirname}/{file_name}.job")
 
     def k_file_reader(self):
@@ -115,8 +128,7 @@ class QERunCreator:
             file_name = f'{name}.scf'
         with open (f"{file_name}.in", "w") as file:
             file.write(f"&control\n")
-            # file.write(f"    Title = '{}'\n")
-            file.write(f"    Title           = '{self.Title}\n")
+            file.write(f"    Title           = '{self.Title}'\n")
             file.write(f"    prefix          = '{name}'\n")
             if bands == False:
                 file.write(f"    calculation     = 'scf'\n")
@@ -124,15 +136,15 @@ class QERunCreator:
                 file.write(f"    restart_mode    = '{self.restart_mode}'\n")
             file.write(f"    verbosity       = 'high'\n")
             if self.wf_collect == True:
-                file.write(f"    wf_collect      = .true.\n")
+                file.write(f"    wf_collect      = .TRUE.\n")
             if self.lkpoint_dir == False:
                 file.write(f"    lkpoint_dir     = .false.\n")  # The default is true
             file.write(f"    etot_conv_thr   = {self.etot_conv_thr}\n")
             file.write(f"    forc_conv_thr   = {self.forc_conv_thr}\n")
             if self.tstress == True:
-                file.write(f"    tstress         = .true.\n")  # The default is false
+                file.write(f"    tstress         = .TRUE.\n")  # The default is false
             if self.tprnfor == True:
-                file.write(f"    tprnfor         = .true.\n")  # The default is false
+                file.write(f"    tprnfor         = .TRUE.\n")  # The default is false (it will be set automatically if calculation == 'relax','md','vc-md')
             if self.excorr != "auto":
                 file.write(f"    input_dft       = '{self.excorr}'\n")
             if self.pseudo_dir != "system_path":
@@ -158,8 +170,8 @@ class QERunCreator:
             else:
                 file.write(f"    nbnd            = 30\n")
             if self.lspinorb == True:
-                file.write(f"    lspinorb        = .true.\n")
-                file.write(f"    noncolin        = .true.\n")
+                file.write(f"    lspinorb        = .TRUE.\n")
+                file.write(f"    noncolin        = .TRUE.\n")
             file.write(f"    ecutrho         = {r}\n")
             file.write(f"    occupations     = 'smearing'\n")
             file.write(f"    smearing        = 'gaussian'\n")
