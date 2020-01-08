@@ -10,6 +10,10 @@ class QERunCreator:
         """
         This function initializes the object. Default initializations are
         |self.job_manager [options: "torque", "slurm"]
+        |self.nstep   : Number of molecular-dynamics or structural optimization steps performed in this run.
+        |               If set to 0, the code performs a quick "dry run", stopping just after initialization. This is useful
+        |               to check for input correctness and to have the summary printed.
+        |self.tstress : calculate stress. It is set to .TRUE. automatically if calculation == 'vc-md' or 'vc-relax'
         """
         self.system_name = system_name
         self.k_points_number = 0
@@ -17,10 +21,9 @@ class QERunCreator:
         self.ke_set = ke_set
         self.r_set = r_set
         self.excorr = "pbe"     # "pbe"   = "sla+pw+pbx+pbc"    = PBE, "pz"    = "sla+pz"            = Perdew-Zunger LDA
-        self.PP_name = "Sn.UPF"
         self.nodes = 4
         self.procs = 8
-        self.job_manager = "torque" #options 
+        self.job_manager = "torque"
         # self.celldm = [0, 12.394714, 0, 0, 0, 0, 0] # celldm variables. index 0 is not used and index 1,6 corresponds to celldm1,6
         self.lspinorb = False
         self.supercell_file = "default"
@@ -34,7 +37,17 @@ class QERunCreator:
         self.ntyp = 1
         self.dirname = "Run"
         self.pseudo_dir = "./"
-        
+        self.restart_mode = "from_scratch"
+        self.wf_collect = False
+        self.lkpoint_dir = False
+        self.disk_io = "default"
+        self.verbosity  = "high"
+        self.etot_conv_thr  = "1.0e-6"
+        self.forc_conv_thr  = "1.0e-4"
+        self.nstep  = 1
+        self.tstress  = ".true."
+        self.tprnfor   = ".true."
+
     def make_name(self, k, ke, r, bands, a = False):
         """
         This method creates a name for every run.
@@ -102,22 +115,32 @@ class QERunCreator:
             file_name = f'{name}.scf'
         with open (f"{file_name}.in", "w") as file:
             file.write(f"&control\n")
-            file.write(f"    Title = '{}\n")
+            # file.write(f"    Title = '{}'\n")
+            file.write(f"    Title           = '{self.Title}\n")
+            file.write(f"    prefix          = '{name}'\n")
             if bands == False:
                 file.write(f"    calculation     = 'scf'\n")
             else:
-                file.write(f"    calculation     = 'bands'\n")
+                file.write(f"    restart_mode    = '{self.restart_mode}'\n")
             file.write(f"    verbosity       = 'high'\n")
+            if self.wf_collect == True:
+                file.write(f"    wf_collect      = .true.\n")
+            if self.lkpoint_dir == False:
+                file.write(f"    lkpoint_dir     = .false.\n")  # The default is true
+            file.write(f"    etot_conv_thr   = {self.etot_conv_thr}\n")
+            file.write(f"    forc_conv_thr   = {self.forc_conv_thr}\n")
+            if self.tstress == True:
+                file.write(f"    tstress         = .true.\n")  # The default is false
+            if self.tprnfor == True:
+                file.write(f"    tprnfor         = .true.\n")  # The default is false
             if self.excorr != "auto":
                 file.write(f"    input_dft       = '{self.excorr}'\n")
-            file.write(f"    prefix          = '{name}'\n")
-            file.write(f"    wf_collect      = .false.\n")
             if self.pseudo_dir != "system_path":
                 file.write(f"    pseudo_dir      = '{self.pseudo_dir}'\n")
             file.write(f"    outdir          = './'\n")
             file.write(f"/\n")
             file.write(f"\n")
-
+            # Start of the system block
             file.write(f"&system\n")
             file.write(f"    ibrav           = {self.ibrav}\n")
             if a != False and self.cell_parameters == False:
