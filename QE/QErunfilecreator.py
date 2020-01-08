@@ -10,11 +10,15 @@ class QERunCreator:
         """
         This function initializes the object. Default initializations are
         |self.job_manager [options: "torque", "slurm"]
-        |self.nstep   : Number of molecular-dynamics or structural optimization steps performed in this run.
-        |               If set to 0, the code performs a quick "dry run", stopping just after initialization. This is useful
-        |               to check for input correctness and to have the summary printed.
-        |self.tstress : Calculate stress. It is set to .TRUE. automatically if calculation == 'vc-md' or 'vc-relax'
-        |self.tprnfor : Calculate forces. The default is false (it will be set to true automatically if calculation == 'relax','md','vc-md')
+        |self.nstep               : Number of molecular-dynamics or structural optimization steps performed in this run.
+        |                           If set to 0, the code performs a quick "dry run", stopping just after initialization. This is useful
+        |                           to check for input correctness and to have the summary printed.
+        |self.tstress             : Calculate stress. It is set to .TRUE. automatically if calculation == 'vc-md' or 'vc-relax'
+        |self.tprnfor             : Calculate forces. The default is false (it will be set to true automatically if calculation == 'relax','md','vc-md')
+        |self.job_calculation_type: scf or bands (if bands it will do scf and bands both)
+        |self.lkpoint_dir         : (Defualt: True) If .false. a subdirectory for each k_point is not opened in the "prefix".save directory; Kohn-Sham eigenvalues are
+        |                           stored instead in a single file for all k-points. Currently doesn't work together with wf_collect
+         
         """
         # Job initializations
         self.nodes = 1
@@ -22,9 +26,12 @@ class QERunCreator:
         self.ntasks = 48
         self.job_manager = "torque"
         self.partition = "bigmem"  # Set by default to bigmem
+        self.job_calculation_type = "scf"  #options
+        self.supercell_file_replace_species = []
         # QE initializations
         self.Title = "Run"
         self.system_name = system_name
+        self.restart_mode = "from_scratch"
         self.k_points_number = 0
         self.k_set = k_set
         self.ke_set = ke_set
@@ -105,6 +112,7 @@ class QERunCreator:
         elif self.job_manager == "slurm":
             with open (f"{file_name}.job", "w") as file:
                 file.write(f"#!/bin/bash\n")
+                file.write(f"#SBATCH --job-name={file_name}\n")
                 file.write(f"#SBATCH --partition={self.partition}\n")
                 file.write(f"#SBATCH --time={self.walltime_days}-{self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
                 file.write(f"#SBATCH --nodes={self.nodes}\n")
@@ -130,6 +138,8 @@ class QERunCreator:
             file.write(f"&control\n")
             file.write(f"    Title           = '{self.Title}'\n")
             file.write(f"    prefix          = '{name}'\n")
+            file.write(f"    restart_mode    = '{self.restart_mode}'\n")
+            file.write(f"    disk_io         = '{self.disk_io}'\n")
             if bands == False:
                 file.write(f"    calculation     = 'scf'\n")
             else:
@@ -178,7 +188,6 @@ class QERunCreator:
             file.write(f"    degauss         = 0.01\n")
             file.write(f"/\n")
             file.write(f"\n")
-            
             file.write(f"&electrons\n")
             file.write(f"    mixing_beta     = 0.7\n")
             file.write(f"/\n")
@@ -209,16 +218,21 @@ class QERunCreator:
                         data = file2.read()
                         data = data.split("\n")
                         for line in data:
-                            # x = line.split()
-                            # print
-                            if len(line.split()) == 4:
-                                file.write(f"{line}\n")
+                            if len(self.supercell_file_replace_species) == 0:  # No replacements set
+                                if len(line.split()) == 4:
+                                    line_vals = line.split()
+                                    for x in range (0,len(self.supercell_file_replace_species), 2):
+                                        if line_vals[0] == self.supercell_file_replace_species[x]:
+                                            file.write(f"{self.supercell_file_replace_species[x+1]}    {line_vals[1]}    {line_vals[2]}    {line_vals[3]}\n")
+                            else:
+                                file.write(f"{line}\n")  # use this if you really dont want to do the replacement
                 except:
                     print(f"QERunCreator.inFileCreator: Could not open file {self.supercell_file}. Writing default structure (diamond) with prefix Sn")
                     file.write(f"Sn        0.000000000   0.000000000   0.000000000\n")
                     file.write(f"Sn        0.250000000   0.250000000   0.250000000\n")
 
             if bands == False:
+                file.write(f"\n")
                 file.write(f"K_POINTS automatic\n{k} {k} {k} 1 1 1\n")
             else:
                 file.write(f"\n")
@@ -243,10 +257,12 @@ class QERunCreator:
                         pass
                     for a in self.lat_const:
                         b = A2Bohr(a)
-                        self.jobCreator(k, ke, r, walltime, True, dirname, b)
                         self.jobCreator(k, ke, r, walltime, False, dirname, b)
                         self.infileCreator(k, ke, r, False, dirname, b)
-                        self.infileCreator(k, ke, r, True, dirname, b)
+                        if self.job_calculation_type == 'bands':
+                            self.infileCreator(k, ke, r, True, dirname, b)
+                            self.jobCreator(k, ke, r, walltime, True, dirname, b)
+
 
 if __name__ == "__main__":
     Sn_run = QERunCreator("Sn")
