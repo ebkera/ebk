@@ -67,3 +67,11 @@ def Rydberg2eV(R):
 def eV2Rydberg(e):
     """Takes energies in eV and returns energies in Rydbergs"""
     return e/13.6056980659
+
+def Rydberg2J(R):
+    """Takes energies in Rydbergs and returns energies in J"""
+    return R*2.179872E-18
+
+def J2Rydberg(J):
+    """Takes energies in J and returns energies in Rydbergs"""
+    return J*4.5874253167158E+17 
