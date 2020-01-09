@@ -218,14 +218,15 @@ class QERunCreator:
                         data = file2.read()
                         data = data.split("\n")
                         for line in data:
-                            if len(self.supercell_file_replace_species) == 0:  # No replacements set
-                                if len(line.split()) == 4:
+                            if len(line.split()) == 4:
+                                if len(self.supercell_file_replace_species) != 0:  # No replacements are made
                                     line_vals = line.split()
                                     for x in range (0,len(self.supercell_file_replace_species), 2):
                                         if line_vals[0] == self.supercell_file_replace_species[x]:
-                                            file.write(f"{self.supercell_file_replace_species[x+1]}    {line_vals[1]}    {line_vals[2]}    {line_vals[3]}\n")
-                            else:
-                                file.write(f"{line}\n")  # use this if you really dont want to do the replacement
+                                            # print(f"x:{self.supercell_file_replace_species[x]} - lineval=:{line_vals[0]}")
+                                            file.write(f"{self.supercell_file_replace_species[x+1]}  {line_vals[1]}    {line_vals[2]}    {line_vals[3]}\n")
+                                else:
+                                    file.write(f"{line}\n")  # use this if you really dont want to do the replacement
                 except:
                     print(f"QERunCreator.inFileCreator: Could not open file {self.supercell_file}. Writing default structure (diamond) with prefix Sn")
                     file.write(f"Sn        0.000000000   0.000000000   0.000000000\n")
@@ -233,7 +234,8 @@ class QERunCreator:
 
             if bands == False:
                 file.write(f"\n")
-                file.write(f"K_POINTS automatic\n{k} {k} {k} 1 1 1\n")
+                file.write(f"K_POINTS automatic\n1 5 5 1 1 1\n")
+                # file.write(f"K_POINTS automatic\n{k} {k} {k} 1 1 1\n")
             else:
                 file.write(f"\n")
                 file.write(f"K_POINTS tpiba\n#  tpiba = k-points in units of 2pi/a\n#  number of k-points\n")
