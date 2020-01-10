@@ -75,3 +75,7 @@ def Rydberg2J(R):
 def J2Rydberg(J):
     """Takes energies in J and returns energies in Rydbergs"""
     return J*4.5874253167158E+17 
+
+def eVA32GPa(e):
+    """Takes eV/Angstroms^3 and converts it into GPa. This is useful when calculating the bulk modulus especially."""
+    return e*160.21766208
