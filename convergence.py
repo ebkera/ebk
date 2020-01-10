@@ -17,10 +17,8 @@ class LatticeConstantOptimize():
         """
         Takes the lattice constants[list in Angstroms], energies[list in eV] and a name[for .out files] as inputs
         """
-        print(f"LatticeConstantOptimize: E = {E}")
         self.a = a
         self.e = [Rydberg2eV(x) for x in E]  # everything is in Jules now
-        print(f"LatticeConstantOptimize: E = {self.e}")
         self.v = [n**3/4 for n in self.a]   # There are four primitive cells in a single conventional cell this is for a diamond/zinc blende structure
         self.name = name
         #Any other parameters you can set here
