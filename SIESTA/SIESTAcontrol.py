@@ -22,54 +22,54 @@ E_vals = []
 os.mkdir(dirname)
 
 for x in a_0:
-	# Get all the lines from the current fdf file.
-	file = open("Sn.fdf", "r")
-	rows = []
-	for line in file:
-		rows.append(line)
-	file.close
-	
-	# Save new fdf file
-	for row in rows:
-		if "LatticeConstant" in row:
-			index = rows.index(row)
-			rows[index] = "LatticeConstant        "+str(x)+"  Ang     # 6.457 in paper for no rel corrs and 6.432 for final values and 6.672 for GGA final\n"
-	
-	# Overwriting the fdf file
-	file_toWrite = open("Sn.fdf", "w+")
-	for row in rows:
-		file_toWrite.write(row)
-	file_toWrite.close()
-	
-	# Run plot file which will run siesta
-	os.system("python3 plot.py r g h 0 1 2 3 4 5 6 7 8 9 10")
+    # Get all the lines from the current fdf file.
+    file = open("Sn.fdf", "r")
+    rows = []
+    for line in file:
+        rows.append(line)
+    file.close
+    
+    # Save new fdf file
+    for row in rows:
+        if "LatticeConstant" in row:
+            index = rows.index(row)
+            rows[index] = "LatticeConstant        "+str(x)+"  Ang     # 6.457 in paper for no rel corrs and 6.432 for final values and 6.672 for GGA final\n"
+    
+    # Overwriting the fdf file
+    file_toWrite = open("Sn.fdf", "w+")
+    for row in rows:
+        file_toWrite.write(row)
+    file_toWrite.close()
+    
+    # Run plot file which will run siesta
+    os.system("python3 plot.py r g h 0 1 2 3 4 5 6 7 8 9 10")
 
-	# Read the Sn.out file
-	file = open("Sn.out", "r")
-	rows = []
-	for line in file:
-		rows.append(line)
-	file.close()
-	# saving the Energy values in a list
-	for row in rows:
-		if "siesta:         Total =" in row:
-			E_vals.append(row.strip("siesta:         Total ="))
-	
-	#Waiting a bit for the plots to be saved into a pdf just to be be safe
-	print("Waiting a bit for the plots to be saved into a pdf just to be be safe")
-	time.sleep(5)
-	#Renaming the band diagrams
-	os.rename("Sn_BandDiagramPlots.pdf", "./"+dirname+"/Sn_BandDiagramPlots_" + str(x) +".pdf")	
-	#Renaming the outfiles
-	os.rename("Sn.out", "./"+dirname+"/Sn" + str(x) +".out")
-	#Renaming the bands files
-	os.rename("Sn.bands", "./"+dirname+"/Sn" + str(x) +".bands")
-	
+    # Read the Sn.out file
+    file = open("Sn.out", "r")
+    rows = []
+    for line in file:
+        rows.append(line)
+    file.close()
+    # saving the Energy values in a list
+    for row in rows:
+        if "siesta:         Total =" in row:
+            E_vals.append(row.strip("siesta:         Total ="))
+    
+    #Waiting a bit for the plots to be saved into a pdf just to be be safe
+    print("Waiting a bit for the plots to be saved into a pdf just to be be safe")
+    time.sleep(5)
+    #Renaming the band diagrams
+    os.rename("Sn_BandDiagramPlots.pdf", "./"+dirname+"/Sn_BandDiagramPlots_" + str(x) +".pdf")	
+    #Renaming the outfiles
+    os.rename("Sn.out", "./"+dirname+"/Sn" + str(x) +".out")
+    #Renaming the bands files
+    os.rename("Sn.bands", "./"+dirname+"/Sn" + str(x) +".bands")
+    
 
 ## Calculations and plotting the lattice constants
 to_plot = []
 for i in E_vals:
-	to_plot.append(float(i))
+    to_plot.append(float(i))
 
 # Since we will need volume/ per atom
 v_0 = [n**3/4.0 for n in a_0]
@@ -101,7 +101,7 @@ v0_optimized = Vx_new.flat[min_index_v]
 # Write Energies to an energies.my file
 file_toWrite_output = open("./"+dirname+"/energies.my", "w+")
 for x in E_vals:
-	file_toWrite_output.write(x)		
+    file_toWrite_output.write(x)		
 file_toWrite_output.write("The optimized lattice constant is: " + str(a0_optimized) + "\n")
 file_toWrite_output.write("The optimized volume is: " + str(v0_optimized) + "\n")
 file_toWrite_output.write("The optimized Total Energy is: " + str(E_optimized_printable) + "\n")
@@ -118,18 +118,18 @@ B = v0_optimized*ddv0*160.21766208 # 1 eV/Angstrom3 = 160.21766208 GPa
 
 # The Individual plots.
 if output == "a":
-	toplotx = a_0
-	fitx = x_new
-	fity = y_new
-	plt.xlabel('Lattice Constant a$_0$ in $\\AA$')
+    toplotx = a_0
+    fitx = x_new
+    fity = y_new
+    plt.xlabel('Lattice Constant a$_0$ in $\\AA$')
 elif output == "v":
-	toplotx = v_0
-	fitx = Vx_new
-	fity = Vy_new
-	plt.xlabel('Volume $\\AA^3$')
-			
+    toplotx = v_0
+    fitx = Vx_new
+    fity = Vy_new
+    plt.xlabel('Volume $\\AA^3$')
+            
 plt.plot(toplotx, to_plot, 'x-', label="RELpsp (Paper lists: 6.432 $\\AA$)")
-	
+    
 # Setting the fit label
 fit_label = "Fit (" + str(round(a0_optimized,3)) + " $\\AA$) B$_0$: " + str(round(B,3)) + " GPa, $\\Omega_0$:" + str(round(v0_optimized,3))+ " $\\AA^3$"
 
