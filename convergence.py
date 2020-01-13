@@ -4,7 +4,7 @@ import sys
 import subprocess
 import time
 import matplotlib
-matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
+# matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UIs
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
@@ -19,7 +19,7 @@ class LatticeConstantOptimize():
         """
         print(f"LatticeConstantOptimize: E = {E}")
         self.a = a
-        self.e = [Rydberg2eV(x) for x in E]  # everything is in Jules now
+        self.e = E #[Rydberg2eV(x) for x in E]  # everything is in Jules now
         print(f"LatticeConstantOptimize: E = {self.e}")
         self.v = [n**3/4 for n in self.a]   # There are four primitive cells in a single conventional cell this is for a diamond/zinc blende structure
         self.name = name
@@ -57,6 +57,7 @@ class LatticeConstantOptimize():
         self.B = eVA32GPa(self.v0_optimized*self.ddv0)  # 1 eV/Angstrom3 = 160.21766208 GPa
 
     def plot(self):
+        plt.rcParams["figure.figsize"] = (14,9)
         fit_label = f"a$_0$: {round(self.a0_optimized,3)} $\\AA$, B$_0$: {round(self.B,3)} GPa, $\\Omega_0$:{round(self.v0_optimized,3)} $\\AA^3$"
         plt.ylabel('Total Energy (eV)')
         plt.xlabel('Lattice Constant ($\\AA$)')
@@ -72,7 +73,7 @@ class E_cut_Optimize():
         self.cut_off = E_cut
         self.final_energies = [x/per_atoms for x in E]
         self.name = name
-        self.final_energies = np.array(self.final_energies)*13.6056980659 # Converting to eV
+        self.final_energies = np.array(self.final_energies)#*13.6056980659 # Converting to eV
         E0 = np.amin(self.final_energies)
         self.final_DEs = [E - E0 for E in self.final_energies]
         self.graph_title = ""
