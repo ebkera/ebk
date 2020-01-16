@@ -8,8 +8,6 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
-from ebk import Rydberg2J
-from ebk import Rydberg2eV
 from ebk import eVA32GPa
 
 class LatticeConstantOptimize():
