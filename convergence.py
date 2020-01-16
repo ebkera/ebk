@@ -46,8 +46,6 @@ class LatticeConstantOptimize():
         self.min_index = np.argmin(self.y_fit)
         self.a0_optimized = self.x_fit.flat[self.min_index]
         self.v0_optimized = self.v_x_fit.flat[self.min_index]      # There are four primitive cells in a single conventional cell
-        # self.v0_optimized = 6.672**3/4.0      # There are four primitive cells in a single conventional cell
-        # self.v0_optimized = self.a0_optimized**3/4.0      # There are four primitive cells in a single conventional cell
 
         # Calculations
         # Getting the double derivative using a 2nd degree polynomial
