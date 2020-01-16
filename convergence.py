@@ -18,7 +18,7 @@ class LatticeConstantOptimize():
         Takes the lattice constants[list in Angstroms], energies[list in eV] and a name[for .out files] as inputs
         """
         # print(f"LatticeConstantOptimize: E = {E}")  # This is for occational debugging
-        self.a = a
+        self.a = [n-0.187 for n in a]
         self.e = E #[Rydberg2eV(x) for x in E]  # everything is in Jules now
         # print(f"LatticeConstantOptimize: E = {self.e}")  # This is for occational debugging
         self.v = [n**3/4 for n in self.a]   # There are four primitive cells in a single conventional cell this is for a diamond/zinc blende structure
@@ -54,6 +54,7 @@ class LatticeConstantOptimize():
         self.dda0 = 2*self.z[0]#.flat[0]
         self.ddv0 = 2*self.vz[0]#.flat[0]
         # self.ddv0 = 6*self.vz.flat[0]*self.v0_optimized + 2*self.vz.flat[1]
+        # self.B = eVA32GPa(68.314*self.ddv0)  # 1 eV/Angstrom3 = 160.21766208 GPa 
         self.B = eVA32GPa(self.v0_optimized*self.ddv0)  # 1 eV/Angstrom3 = 160.21766208 GPa
 
     def plot(self):
