@@ -19,7 +19,7 @@ class LatticeConstantOptimize():
         self.e = E # All inputs should ne in eV now.
         self.v = [n**3/4 for n in self.a]   # There are four primitive cells in a single conventional cell this is for a diamond/zinc blende structure
         self.name = name
-        #Any other parameters you can set here
+        #Any other parameters you can set here:
         self.graph_title = "Optimization of lattice constant"
 
     def compute_fit(self):
