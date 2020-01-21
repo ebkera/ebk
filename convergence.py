@@ -47,8 +47,6 @@ class LatticeConstantOptimize():
         # Getting the double derivative using a 2nd degree polynomial
         self.dda0 = 2*self.z[0]#.flat[0]
         self.ddv0 = 2*self.vz[0]#.flat[0]
-        # self.ddv0 = 6*self.vz.flat[0]*self.v0_optimized + 2*self.vz.flat[1]
-        # self.B = eVA32GPa(68.314*self.ddv0)  # 1 eV/Angstrom3 = 160.21766208 GPa 
         self.B = eVA32GPa(self.v0_optimized*self.ddv0)  # 1 eV/Angstrom3 = 160.21766208 GPa
 
     def plot(self):
