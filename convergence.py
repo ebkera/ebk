@@ -16,7 +16,7 @@ class LatticeConstantOptimize():
         Takes the lattice constants[list in Angstroms], energies[list in eV] and a name[for .out files] as inputs
         """
         self.a = a
-        self.e = E  # everything is in Jules now
+        self.e = E  # everything is in eV now
         self.v = [n**3/4 for n in self.a]   # There are four primitive cells in a single conventional cell this is for a diamond/zinc blende structure
         self.name = name
         #Any other parameters you can set here:
