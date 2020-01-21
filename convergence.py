@@ -23,6 +23,9 @@ class LatticeConstantOptimize():
         self.graph_title = "Optimization of lattice constant"
 
     def compute_fit(self):
+        """
+        This method calculates the fit parameters, optimized lattice costant/ volume / Bulk modulus.
+        """
         self.z = np.polyfit(self.a, self.e, 2)  # Getting the fit parameters
         self.f = np.poly1d(self.z)  ## Getting the new function
         self.x_fit = np.linspace(self.a[0], self.a[-1], 100)
