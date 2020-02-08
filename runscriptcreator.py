@@ -16,16 +16,18 @@ class Runscriptcreator:
         # Here goes the other stuff
         self.PP = "Sn_ONCV_PBE_FR-1.1.upf"
         self.pseudopotentials = {'Sn': 'Sn_ONCV_PBE_FR-1.1.upf'}
-        self.a0 = [6.6, 6.7, 6.8, 6.9]
-        self.KE_cut = [20, 40, 60, 80, 100]
+        self.a0 = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
+        self.KE_cut = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
         self.E = []
-        self.KE_cut = [20, 40]
-        self.k = [3]
-        self.R = [300]
+        self.k = kwargs.get("k", [2])
+        # self.R = kwargs.get("R", [300])
         self.calc = f"scf"
         d = f"^"  # Here you can set the desired delimiter
         equals = f"="
         self.structure = None
+
+    def get_number_of_calculations(self):
+        return (self.KE_cut.len()*self.a0.len().self.k.len()*self.R.len())
 
     def create(self):
         """This is more Doc strings"""
@@ -47,7 +49,7 @@ class Runscriptcreator:
                                             calculation     = f"{calc}",
                                             lspinorb        = True,
                                             noncolin        = True,
-                                            ecutrho         = R_i,
+                                            # ecutrho         = KE_cut_i*4,
                                             occupations     = 'smearing',
                                             smearing        = 'gaussian',
                                             degauss         = 0.01,
