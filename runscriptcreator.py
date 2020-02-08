@@ -23,7 +23,8 @@ class Runscriptcreator:
         self.k = [3]
         self.R = [300]
         self.calc = f"scf"
-        self.d = f"_"  # Here you can set the desired delimiter
+        d = f"^"  # Here you can set the desired delimiter
+        equals = f"="
         self.structure = None
 
     def create(self):
