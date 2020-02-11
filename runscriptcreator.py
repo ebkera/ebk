@@ -5,6 +5,12 @@ from ase.build import bulk
 from ase import Atoms
 import ase.io
 
+pseudo_database_path = {"cluster":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        "carbon":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase"
+                        "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        "home_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        }
+
 class Runscriptcreator:
     """Doc string goes here"""
     def __init__(*args, **kwargs):
