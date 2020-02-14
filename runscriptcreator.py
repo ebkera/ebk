@@ -1,4 +1,11 @@
-"""This file creates bash scripts for running on CARBON. This can be used to run multiple jobs for example"""
+"""
+This file creates:
+SIRSTAinput files
+QE input files
+bash scripts for running on CARBON.
+bash scripts for running on local machines
+This can be used to run multiple jobs for example
+"""
 
 import os
 from ase.build import bulk
@@ -15,25 +22,40 @@ class Runscriptcreator:
     """Doc string goes here"""
     def __init__(*args, **kwargs):
         """Doc string goes here"""
+        self.d = f"^"  # Here you can set the desired delimiter
+        self.equals = f"="  # Here you can set the desired symbol for value assigner
+
+        # Gettings args here
+
+        # Getting kwargs here
+        self.a0 = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
+        self.KE_cut = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
+        self.k = kwargs.get("k", [2])
+        self.pseudopotentials = kwargs.get("pseudos", {'Sn': 'Sn_ONCV_PBE_FR-1.1.upf'})
+
         # Here goes the PBS init stuff
         self.walltime_mins = 30
         self.nodes = 2
         self.procs = 8
-        # Here goes the other stuff
+
+        # Here goes the input file parameters stuff
         self.PP = "Sn_ONCV_PBE_FR-1.1.upf"
-        self.pseudopotentials = {'Sn': 'Sn_ONCV_PBE_FR-1.1.upf'}
-        self.a0 = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
-        self.KE_cut = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
-        self.E = []
-        self.k = kwargs.get("k", [2])
+
         # self.R = kwargs.get("R", [300])
         self.calc = f"scf"
         d = f"^"  # Here you can set the desired delimiter
         equals = f"="
         self.structure = None
 
+        # Initializations
+        self.E = []
+
+
     def get_number_of_calculations(self):
         return (self.KE_cut.len()*self.a0.len().self.k.len()*self.R.len())
+
+    def create_bash():
+        pass
 
     def create(self):
         """This is more Doc strings"""
@@ -44,11 +66,11 @@ class Runscriptcreator:
                 for a0_i in self.a0:
                     for k_i in self.k:
                         for R_i in self.R:
-                            run_name = f"QE{d}KE{KE_cut_i}{d}K{k_i}{d}R{R_i}{d}a{a0_i}{d}PP={PP}{d}calc={calc}"
+                            run_name = f"QE{d}KE{KE_cut_i}{d}K{k_i}{d}R{R_i}{d}a{a0_i}{d}PP={self.PP}{d}calc={calc}"
                             self.structure.set_cell([(b, 0, 0), (0, b, 0), (0, 0, b)], scale_atoms=True)
                             ase.io.write(f"{run_name}.in", bulk, format = "espresso-in", 
                                             label           = f"{run_name}",
-                                            pseudopotentials= pseudopotentials,
+                                            pseudopotentials= self.pseudopotentials,
                                             pseudo_dir      = "/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                                             kpts            = (k_i, k_i, k_i),
                                             ecutwfc         = KE_cut_i,
