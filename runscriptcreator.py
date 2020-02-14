@@ -1,4 +1,11 @@
-"""This file creates bash scripts for running on CARBON. This can be used to run multiple jobs for example"""
+"""
+This file creates:
+SIRSTAinput files
+QE input files
+bash scripts for running on CARBON.
+bash scripts for running on local machines
+This can be used to run multiple jobs for example
+"""
 
 import os
 from ase.build import bulk
@@ -15,6 +22,9 @@ class Runscriptcreator:
     """Doc string goes here"""
     def __init__(*args, **kwargs):
         """Doc string goes here"""
+        self.d = f"^"  # Here you can set the desired delimiter
+        self.equals = f"="  # Here you can set the desired symbol for value assigner
+
         # Here goes the PBS init stuff
         self.walltime_mins = 30
         self.nodes = 2
@@ -34,6 +44,9 @@ class Runscriptcreator:
 
     def get_number_of_calculations(self):
         return (self.KE_cut.len()*self.a0.len().self.k.len()*self.R.len())
+
+    def create_bash():
+        pass
 
     def create(self):
         """This is more Doc strings"""
