@@ -66,9 +66,12 @@ class Runscriptcreator:
                 for a0_i in self.a0:
                     for k_i in self.k:
                         for R_i in self.R:
-                            run_name = f"QE{d}KE{KE_cut_i}{d}K{k_i}{d}R{R_i}{d}a{a0_i}{d}PP={self.PP}{d}calc={calc}"
-                            self.structure.set_cell([(b, 0, 0), (0, b, 0), (0, 0, b)], scale_atoms=True)
-                            ase.io.write(f"{run_name}.in", bulk, format = "espresso-in", 
+                            run_name = f"QE{d}KE{KE_cut_i}{self.d}K{k_i}{d}R{R_i}{self.d}a{a0_i}{self.d}PP={self.PP}{self.d}calc={calc}"
+                            self.atoms_object = Atoms('Sn2', [(0, 0, 0), (0.25, 0.25, 0.25)],  pbc=True)
+                            b = a0_i/2.0
+                            if self.structure[1].len() == 1:
+                                self.atoms_object.set_cell([(0, b, b), (b, 0, b), (b, b, 0)], scale_atoms=True)
+                            ase.io.write(f"{run_name}.in", self.atoms_object, format = "espresso-in", 
                                             label           = f"{run_name}",
                                             pseudopotentials= self.pseudopotentials,
                                             pseudo_dir      = "/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
