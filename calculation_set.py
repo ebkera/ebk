@@ -58,6 +58,10 @@ class Calculation_set():
                 for k_i in self.k:
                     if self.R == None:
                         self.run_name = f"{self.description}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calc}"
+
+                        # Creating the run
+                        
+
                         self.atoms_object = Atoms('Sn2', [(0, 0, 0), (0.25, 0.25, 0.25)],  pbc=True)
                         b = a0_i/2.0
                         if self.structure[1].len() == 1:
