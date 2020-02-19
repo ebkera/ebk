@@ -15,6 +15,7 @@ import ase.io
 from ebk.QE import QErunfilecreator  # So that we can see how we did it last time
 from ebk.SIESTA import SIESTARunFileCreator  # So that we can see how we did it last time
 from ebk.calculation_set import Calculation_set
+import shutil
 
 
 class RunScriptHandler():
@@ -35,7 +36,7 @@ class RunScriptHandler():
 
         """
         self.d = f"^"  # Here you can set the desired delimiter
-        self.equals = f"+"  # Here you can set the desired symbol for value assigner
+        self.equals = f"="  # Here you can set the desired symbol for value assigner
 
         # Gettings args here
             # No args to get currently
@@ -47,7 +48,9 @@ class RunScriptHandler():
         self.a0 = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
         self.KE_cut = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
         self.k = kwargs.get("k", [2])
-        self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn': 'Sn_ONCV_PBE_FR-1.1.upf'})
+        test = {'Sn':'Sn_ONCV_PBE_FR-1.1.upf','B':'B_ONCV_PBE_FR-1.1.upf'}
+        print(test)
+        self.pseudopotentials = kwargs.get("pseudopotentials", test)
         self.pseudo_dir = kwargs.get("pseudo_dir", None)
         self.calculator = kwargs.get("calculator", "espresso")
         # self.R = kwargs.get("R", [300])
@@ -62,6 +65,8 @@ class RunScriptHandler():
         self.smearing        = 'gaussian'
         self.degauss         = 0.01
         self.mixing_beta     = 0.7
+        self.xc              = "pbe"
+        self.structure_type  = "bulk"
 
         # Here goes the job init stuff
         self.walltime_days = 0
@@ -172,24 +177,29 @@ class RunScriptHandler():
         """This is more Doc strings"""
         # Here the name version for the pseudopotentials is created since we have to have a form that can go on the folder names
         self.PP = ""
-        for key,val in self.pseudopotentials:
-            self.PP = f"{self.PP}-{val}"
-        print(f"PP; {self.PP}")
+        self.specie = ""
+        for key, val in self.pseudopotentials.items():
+            self.PP = f"{val}-{self.PP}"
+            self.specie = f"{key}-{self.specie}"
+
         if self.structure == None:
             print(f"make_runs: Warning! No structure set. Cannot create run.")
         else:
             for KE_cut_i in self.KE_cut:
                 for a0_i in self.a0:
                     for k_i in self.k:
-                        # for R_i in self.R:
+                        # for R_i in self.R:  # This has been disables for now
                         R_i = KE_cut_i*4
-                        run_name = f"{self.identifier}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calc}"
+                        run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calc}"
                         if self.structure == 1:
                             b = a0_i/2.0
                             self.atoms_object.set_cell([(0, b, b), (b, 0, b), (b, b, 0)], scale_atoms=True)
                         else:
                             print("make_runs: Warning! Cannot set cell. Structrue not supported")
                         self.write_QE_inputfile(run_name, KE_cut_i, a0_i, k_i)
+                        if os.path.exists(run_name):
+                            shutil.rmtree(run_name)
+                            print("make_runs: Warning! Path exists!! Overwriting")
                         os.mkdir(f"{run_name}")
                         os.rename(f"{self.identifier}.in", f"./{run_name}/{self.identifier}.in")
                         self.all_runs_list.append(run_name)
@@ -201,6 +211,12 @@ class RunScriptHandler():
                             self.create_slurm_job(run_name)
                         else:
                             print(f"make_runs: Unrecognized job_handler! Job files not created")
+
+
+    def create_bash_file():
+        """This script creates bash files so that you can run a batch of the runs that need to be done"""
+        pass
+
 
 class Read_outfiles():
     """This method should read all out files of a given type (sesta/qe) and read the vlaues like total energies"""
@@ -239,4 +255,4 @@ class Read_outfiles():
 
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
-    pass    
+    pass
