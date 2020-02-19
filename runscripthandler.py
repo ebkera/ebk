@@ -23,7 +23,7 @@ class RunScriptHandler:
     def __init__(*args, **kwargs):
         """Doc string goes here"""
         self.d = f"^"  # Here you can set the desired delimiter
-        self.equals = f"="  # Here you can set the desired symbol for value assigner
+        self.equals = f"+"  # Here you can set the desired symbol for value assigner
 
         # Gettings args here
 
@@ -111,4 +111,35 @@ class RunScriptHandler:
                             os.mkdir(f"{run_name}")
                             os.rename(f"{run_name}.in", f"./{run_name}/{run_name}.in")
                             os.rename(f"{run_name}.job", f"./{run_name}/{run_name}.job")
-                        
+
+class Read_outfiles():
+    """This method should read all out files of a given type (sesta/qe) and read the vlaues like total energies"""
+    def __init__(*args, **kwargs):
+        """Doc string goes here"""
+        self.d = f"^"  # Here you can set the desired delimiter
+        self.equals = ["+", "="]  # Here you can set the desired symbol for value assigner it can also be a list of all possible values
+
+        # Gettings args here
+
+        # Getting kwargs here
+        self.a0 = kwargs.get("a0", None)
+        self.KE_cut = kwargs.get("KE_cut", None)
+        self.k = kwargs.get("k", None)
+        self.pseudopotentials = kwargs.get("pseudos", None})
+
+        # Here goes the input file parameters stuff
+        self.PP = "Sn_ONCV_PBE_FR-1.1.upf"
+
+        # self.R = kwargs.get("R", [300])
+        self.calc = f"scf"
+        d = f"^"  # Here you can set the desired delimiter
+        equals = f"="
+        self.structure = None
+
+        # Initializations
+        self.E = []
+
+
+    def read_outfiles(self):
+        """This method reads the out files from the requried directories
+        pass
