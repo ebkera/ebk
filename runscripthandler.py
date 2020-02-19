@@ -21,7 +21,10 @@ pseudo_database_path = {"cluster":"/usr/local/share/espresso/pseudo",
 class RunScriptHandler:
     """All handling of files and script for creating and executing runs is the functionality of this class"""
     def __init__(*args, **kwargs):
-        """Doc string goes here"""
+        """
+        kwargs:
+            "calc": scf, relax, bands
+        """
         self.d = f"^"  # Here you can set the desired delimiter
         self.equals = f"+"  # Here you can set the desired symbol for value assigner
 
