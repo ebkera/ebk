@@ -5,22 +5,25 @@ QE input files
 bash scripts for running on CARBON.
 bash scripts for running on local machines
 This can be used to run multiple jobs for example
+As of now this code can only do runs with similar job schedular parameters
 """
 
 import os
 from ase.build import bulk
 from ase import Atoms
 import ase.io
+from ebk.QE import QErunfilecreator  # So that we can see how we did it last time
+from ebk.SIESTA import SIESTARunFileCreator  # So that we can see how we did it last time
 
 pseudo_database_path = {"cluster":"/usr/local/share/espresso/pseudo",
                         "carbon":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
-                        "home_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        "home_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase"
                         }
 
 class RunScriptHandler:
     """All handling of files and script for creating and executing runs is the functionality of this class"""
-    def __init__(*args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """
         kwargs:
             "calc": scf, relax, bands
@@ -106,8 +109,7 @@ class RunScriptHandler:
             file.write(f"# start MPI job over default interconnect; count allocated cores on the fly.\n")
             file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {run_name}.in -out {run_name}.out\n")
 
-
-    def create(self):
+    def make_runs(self):
         """This is more Doc strings"""
         if self.structure == None:
             print(f"No structure set")
@@ -140,7 +142,7 @@ class Read_outfiles():
         self.a0 = kwargs.get("a0", None)
         self.KE_cut = kwargs.get("KE_cut", None)
         self.k = kwargs.get("k", None)
-        self.pseudopotentials = kwargs.get("pseudopotentials", None})
+        self.pseudopotentials = kwargs.get("pseudopotentials", None)
         self.calc = kwargs.get("calc", None)
         # self.R = kwargs.get("R", None)
 
@@ -157,5 +159,7 @@ class Read_outfiles():
         self.a0_val = []
 
     def read_outfiles(self):
-        """This method reads the out files from the requried directories
+        """
+        This method reads the out files from the requried directories
+        """
         pass
