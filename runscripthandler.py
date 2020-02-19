@@ -33,6 +33,10 @@ class RunScriptHandler:
             "a0" (list): The lattice constant
             "k" (list of lists whith length 3): The k grid
             "pseudopotentials" (string):
+            "atoms_object" (atoms object): This should be without setting the cell since that will be done with every iteration
+            "structure" (int): vlaue will determine the cell
+                1: diamond strcture with a0 as the lattice constant
+
         """
         self.d = f"^"  # Here you can set the desired delimiter
         self.equals = f"+"  # Here you can set the desired symbol for value assigner
@@ -85,7 +89,7 @@ class RunScriptHandler:
                         pseudo_dir      = "/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         kpts            = (k_i, k_i, k_i),
                         ecutwfc         = KE_cut_i,
-                        calculation     = f"{calc}",
+                        calculation     = f"{self.calc}",
                         lspinorb        = self.lspinorb,
                         noncolin        = self.noncolin,
                         # ecutrho         = KE_cut_i*4,
@@ -118,7 +122,7 @@ class RunScriptHandler:
         return (len(self.KE_cut)*len(self.a0)*len(self.k))
 
     def create_torque_job(self, run_name):
-        with open (f"{run_name}.job", "w") as file:
+        with open (f"{self.identifier}.job", "w") as file:
             file.write(f"#!/bin/bash\n")
             file.write(f"#\n")
             file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
@@ -140,16 +144,18 @@ class RunScriptHandler:
             file.write("\n")
             file.write(f"# start MPI job over default interconnect; count allocated cores on the fly.\n")
             file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {run_name}.in -out {run_name}.out\n")
+        os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def create_slurm_job(self, run_name):
             with open (f"{file_name}.job", "w") as file:
                 file.write(f"#!/bin/bash\n")
-                file.write(f"#SBATCH --job-name={file_name}\n")
+                file.write(f"#SBATCH --job-name={run_name}\n")
                 file.write(f"#SBATCH --partition={self.partition}\n")
                 file.write(f"#SBATCH --time={self.walltime_days}-{self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
                 file.write(f"#SBATCH --nodes={self.nodes}\n")
                 file.write(f"#SBATCH --ntasks={self.ntasks}\n")
-                file.write(f"mpirun -np {self.ntasks} pw.x -in {file_name}.in > {file_name}.out\n")            
+                file.write(f"mpirun -np {self.ntasks} pw.x -in {file_name}.in > {file_name}.out\n")
+            os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def make_runs(self):
         """This is more Doc strings"""
@@ -165,7 +171,8 @@ class RunScriptHandler:
                 for a0_i in self.a0:
                     for k_i in self.k:
                         # for R_i in self.R:
-                        run_name = f"{run_name}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{PP}{self.d}type{self.equals}{calc}"
+                        R_i = KE_cut_i*4
+                        run_name = f"{self.identifier}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calc}"
                         if self.structure == 1:
                             b = a0_i/2.0
                             self.atoms_object.set_cell([(0, b, b), (b, 0, b), (b, b, 0)], scale_atoms=True)
@@ -173,8 +180,7 @@ class RunScriptHandler:
                             print("make_runs: Warning! Cannot set cell. Structrue not supported")
                         self.write_QE_inputfile(run_name, KE_cut_i, a0_i, k_i)
                         os.mkdir(f"{run_name}")
-                        os.rename(f"{run_name}.in", f"./{run_name}/{run_name}.in")
-                        os.rename(f"{run_name}.job", f"./{run_name}/{run_name}.job")
+                        os.rename(f"{self.identifier}.in", f"./{run_name}/{self.identifier}.in")
                         self.all_runs_list.append(run_name)
 
 class Read_outfiles():
