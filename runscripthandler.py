@@ -28,7 +28,11 @@ class RunScriptHandler:
         kwargs:
             "calc" (string): scf, relax, bands
             "KE_cut" (list): The kinetic energy cutoff
-
+            "identifier" (string): Description of run will be used in file names
+            "job_handler" (string): ("slurm", "torque") This is required and will print the right job files for "slurm" or "torque" job handles
+            "a0" (list): The lattice constant
+            "k" (list of lists whith length 3): The k grid
+            "pseudopotentials" (string):
         """
         self.d = f"^"  # Here you can set the desired delimiter
         self.equals = f"+"  # Here you can set the desired symbol for value assigner
@@ -38,6 +42,7 @@ class RunScriptHandler:
 
         # Getting kwargs here
         self.identifier = kwargs.get("identifier", "run")
+        self.job_handler = kwargs.get("job_handler", "torque")
         self.a0 = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
         self.KE_cut = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
         self.k = kwargs.get("k", [2])
@@ -85,10 +90,54 @@ class RunScriptHandler:
                         degauss         = self.degauss,
                         mixing_beta     = self.mixing_beta)
 
+    def write_SIESTA_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
+        """
+        This method creates SIESTA input files
+        """
+        pass
+        # ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", 
+        #                 label           = f"{run_name}",
+        #                 pseudopotentials= self.pseudopotentials,
+        #                 pseudo_dir      = "/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+        #                 kpts            = (k_i, k_i, k_i),
+        #                 ecutwfc         = KE_cut_i,
+        #                 calculation     = f"{calc}",
+        #                 lspinorb        = self.lspinorb,
+        #                 noncolin        = self.noncolin,
+        #                 # ecutrho         = KE_cut_i*4,
+        #                 occupations     = self.occupations,
+        #                 smearing        = self.smearing,
+        #                 degauss         = self.degauss,
+        #                 mixing_beta     = self.mixing_beta)
+
     def get_number_of_calculations(self):
         return (len(self.KE_cut)*len(self.a0)*len(self.k))
 
-    def create_pbs_job(self, run_name):
+    def create_torque_job(self, run_name):
+        with open (f"{run_name}.job", "w") as file:
+            file.write(f"#!/bin/bash\n")
+            file.write(f"#\n")
+            file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
+            file.write(f"#PBS -l nodes={self.nodes}:ppn={self.procs}\n")
+            file.write(f"#PBS -l walltime=0:{self.walltime_mins}:00\n")
+            file.write(f"#PBS -N {run_name}\n")
+            file.write(f"#PBS -A cnm66441\n")
+            file.write(f"#\n")
+            file.write(f"#  File names for stdout and stderr.  If not set here, the defaults\n")
+            file.write(f"#  are <JOBNAME>.o<JOBNUM> and <JOBNAME>.e<JOBNUM>\n")
+            file.write(f"#PBS -o job.out\n")
+            file.write(f"#PBS -e job.err\n")
+            file.write("\n")
+            file.write(f"# Send mail at begin, end, abort, or never (b, e, a, n). Default is 'a'.\n")
+            file.write(f"#PBS -m bea erathnayake@sivananthanlabs.us\n")
+            file.write("\n")
+            file.write(f"# change into the directory where qsub will be executed\n")
+            file.write(f"cd $PBS_O_WORKDIR\n")
+            file.write("\n")
+            file.write(f"# start MPI job over default interconnect; count allocated cores on the fly.\n")
+            file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {run_name}.in -out {run_name}.out\n")
+
+    def create_slurm_job(self, run_name):
         with open (f"{run_name}.job", "w") as file:
             file.write(f"#!/bin/bash\n")
             file.write(f"#\n")
