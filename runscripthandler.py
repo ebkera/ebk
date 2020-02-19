@@ -40,7 +40,10 @@ class RunScriptHandler:
         # self.R = kwargs.get("R", [300])
 
         # Here goes the PBS init stuff
-        self.walltime_mins = 30
+        self.walltime_days = 0
+        self.walltime_mins = 0
+        self.walltime_hrs = 0
+        self.walltime_secs = 0
         self.nodes = 2
         self.procs = 8
 
@@ -79,13 +82,13 @@ class RunScriptHandler:
     def get_number_of_calculations(self):
         return (self.KE_cut.len()*self.a0.len().self.k.len()*self.R.len())
 
-    def create_bash(self, run_name):
-        with open (f"{self.run_name}.job", "w") as file:
+    def create_pbs_job(self, run_name):
+        with open (f"run.job", "w") as file:
             file.write(f"#!/bin/bash\n")
             file.write(f"#\n")
             file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
-            file.write(f"#PBS -l nodes={nodes}:ppn={procs}\n")
-            file.write(f"#PBS -l walltime=0:{walltime_mins}:00\n")
+            file.write(f"#PBS -l nodes={self.nodes}:ppn={self.procs}\n")
+            file.write(f"#PBS -l walltime=0:{self.walltime_mins}:00\n")
             file.write(f"#PBS -N {run_name}\n")
             file.write(f"#PBS -A cnm66441\n")
             file.write(f"#\n")
@@ -101,7 +104,7 @@ class RunScriptHandler:
             file.write(f"cd $PBS_O_WORKDIR\n")
             file.write("\n")
             file.write(f"# start MPI job over default interconnect; count allocated cores on the fly.\n")
-            file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {run_name}.in > {run_name}.out\n")
+            file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {run_name}.in -out {run_name}.out\n")
 
 
     def create(self):
