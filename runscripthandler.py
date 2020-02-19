@@ -15,13 +15,7 @@ import ase.io
 from ebk.QE import QErunfilecreator  # So that we can see how we did it last time
 from ebk.SIESTA import SIESTARunFileCreator  # So that we can see how we did it last time
 
-pseudo_database_path = {"cluster":"/usr/local/share/espresso/pseudo",
-                        "carbon":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
-                        "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
-                        "home_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase"
-                        }
-
-class RunScriptHandler:
+class RunScriptHandler():
     """All handling of files and script for creating and executing runs is the functionality of this class"""
     def __init__(self, *args, **kwargs):
         """
@@ -52,17 +46,18 @@ class RunScriptHandler:
         self.KE_cut = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
         self.k = kwargs.get("k", [2])
         self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn': 'Sn_ONCV_PBE_FR-1.1.upf'})
+        self.pseudo_dir = kwargs.get("pseudo_dir", None)
         # self.R = kwargs.get("R", [300])
 
         # Quantum espresso inits
         self.ntasks = kwargs.get("ntasks", 1)
         self.calc = kwargs.get("calc", "scf")
-        self.lspinorb        = True,
-        self.noncolin        = True,
+        self.lspinorb        = True
+        self.noncolin        = True
         # self.ecutrho         = KE_cut_i*4,
-        self.occupations     = 'smearing',
-        self.smearing        = 'gaussian',
-        self.degauss         = 0.01,
+        self.occupations     = 'smearing'
+        self.smearing        = 'gaussian'
+        self.degauss         = 0.01
         self.mixing_beta     = 0.7
 
         # Here goes the job init stuff
@@ -79,6 +74,17 @@ class RunScriptHandler:
         self.atoms_object = kwargs.get("atoms_object", default)
         self.all_runs_list = []
 
+    def set_pseudo_dir(self, machine):
+        """
+        Sets the pseudo_dir according to the machine
+        """
+        pseudo_database_path = {"cluster":"/usr/local/share/espresso/pseudo",
+                        "carbon":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        "home_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase"
+                        }
+        self.pseudo_dir = pseudo_database_path[machine]
+
     def write_QE_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
         """
         This method creates Quantum espresso input files
@@ -86,7 +92,8 @@ class RunScriptHandler:
         ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", 
                         label           = f"{run_name}",
                         pseudopotentials= self.pseudopotentials,
-                        pseudo_dir      = "/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        # if self.pseudo_dir == None
+                        # pseudo_dir      = "/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         kpts            = (k_i, k_i, k_i),
                         ecutwfc         = KE_cut_i,
                         calculation     = f"{self.calc}",
@@ -96,7 +103,8 @@ class RunScriptHandler:
                         occupations     = self.occupations,
                         smearing        = self.smearing,
                         degauss         = self.degauss,
-                        mixing_beta     = self.mixing_beta)
+                        mixing_beta     = self.mixing_beta
+                        )
 
     def write_SIESTA_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
         """
