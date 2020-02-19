@@ -217,7 +217,8 @@ class RunScriptHandler():
         """
         This script creates bash files so that you can run a batch of the runs that need to be done
         """
-        print("This is inside the bash file")
+        print("This is inside the bash file method")
+        print(f"Job handler is set to {self.job_handler}")
         bash_file = open("run.sh", "w+")
         bash_file.write(f"#!/bin/bash\n\n")
         bash_file.write(f"dir_list=(")
