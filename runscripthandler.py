@@ -49,7 +49,6 @@ class RunScriptHandler():
         self.KE_cut = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
         self.k = kwargs.get("k", [2])
         test = {'Sn':'Sn_ONCV_PBE_FR-1.1.upf','B':'B_ONCV_PBE_FR-1.1.upf'}
-        print(test)
         self.pseudopotentials = kwargs.get("pseudopotentials", test)
         self.pseudo_dir = kwargs.get("pseudo_dir", None)
         self.calculator = kwargs.get("calculator", "espresso")
@@ -67,6 +66,15 @@ class RunScriptHandler():
         self.mixing_beta     = 0.7
         self.xc              = "pbe"
         self.structure_type  = "bulk"
+        self.Title           = 'EthaneDithiol'
+        self.prefix          = 'E2D'
+        self.restart_mode    = 'from_scratch'
+        self.disk_io         = 'default'
+        self.verbosity       = 'high'
+        self.lkpoint_dir     = False,
+        self.etot_conv_thr   = 1.0e-6,
+        self.forc_conv_thr   = 1.0e-4,
+        self.outdir          = './'
 
         # Here goes the job init stuff
         self.walltime_days = 0
@@ -75,6 +83,7 @@ class RunScriptHandler():
         self.walltime_secs = 0
         self.nodes = 2
         self.procs = 8
+        self.partition = "cluster"
 
         # Other Initializations
         self.structure = kwargs.get("structure", 1)
@@ -112,6 +121,15 @@ class RunScriptHandler():
                         smearing        = self.smearing,
                         degauss         = self.degauss,
                         mixing_beta     = self.mixing_beta
+                        Title           = self.Title
+                        prefix          = self.prefix,
+                        restart_mode    = self.restart_mode,
+                        disk_io         = self.disk_io,
+                        verbosity       = self.verbosity,
+                        lkpoint_dir     = self.lkpoint_dir,
+                        etot_conv_thr   = self.etot_conv_thr,
+                        forc_conv_thr   = self.forc_conv_thr,
+                        outdir          = self.outdir,
                         )
 
     def write_SIESTA_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
@@ -163,15 +181,15 @@ class RunScriptHandler():
         os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def create_slurm_job(self, run_name):
-            with open (f"{file_name}.job", "w") as file:
-                file.write(f"#!/bin/bash\n")
-                file.write(f"#SBATCH --job-name={run_name}\n")
-                file.write(f"#SBATCH --partition={self.partition}\n")
-                file.write(f"#SBATCH --time={self.walltime_days}-{self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
-                file.write(f"#SBATCH --nodes={self.nodes}\n")
-                file.write(f"#SBATCH --ntasks={self.ntasks}\n")
-                file.write(f"mpirun -np {self.ntasks} pw.x -in {file_name}.in > {file_name}.out\n")
-            os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
+        with open (f"{self.identifier}.job", "w") as file:
+            file.write(f"#!/bin/bash\n")
+            file.write(f"#SBATCH --job-name={run_name}\n")
+            file.write(f"#SBATCH --partition={self.partition}\n")
+            file.write(f"#SBATCH --time={self.walltime_days}-{self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
+            file.write(f"#SBATCH --nodes={self.nodes}\n")
+            file.write(f"#SBATCH --ntasks={self.ntasks}\n")
+            file.write(f"mpirun -np {self.ntasks} pw.x -in {self.identifier}.in -out {self.identifier}.out\n")
+        os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def make_runs(self):
         """This is more Doc strings"""
@@ -191,7 +209,11 @@ class RunScriptHandler():
                         # for R_i in self.R:  # This has been disables for now
                         R_i = KE_cut_i*4
                         run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calc}"
-                        if self.structure == 1:
+                        if self.structure == 0:
+                            # cell has been set from outside
+                            pass
+                        elif self.structure == 1:
+                            # An fcc cell that scales with the lattice constant
                             b = a0_i/2.0
                             self.atoms_object.set_cell([(0, b, b), (b, 0, b), (b, b, 0)], scale_atoms=True)
                         else:
@@ -212,7 +234,6 @@ class RunScriptHandler():
                         else:
                             print(f"make_runs: Unrecognized job_handler! Job files not created")
 
-
     def create_bash_file(self):
         """
         This script creates bash files so that you can run a batch of the runs that need to be done
@@ -228,11 +249,11 @@ class RunScriptHandler():
         bash_file.write('for dir in "${dir_list[@]}"\n')
         bash_file.write(f"do\n")
         bash_file.write(f'  cd $dir\n')
+
         if self.job_handler == "torque":
             bash_file.write(f'  qsub *job\n')
-        elif self.job_handler == "slurm":
+        if self.job_handler == "slurm":
             bash_file.write(f'  sbatch *job\n')
-        bash_file.write(f'  sbatch *job\n')
         bash_file.write(f'  cd ..\n')
         bash_file.write(f'done\n')
         bash_file.close()
