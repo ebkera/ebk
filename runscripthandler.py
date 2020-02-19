@@ -248,6 +248,7 @@ class RunScriptHandler():
         bash_file.write('for dir in "${dir_list[@]}"\n')
         bash_file.write(f"do\n")
         bash_file.write(f'  cd $dir\n')
+        bash_file.write(f'  dos2unix *job\n')
 
         if self.job_handler == "torque":
             bash_file.write(f'  qsub *job\n')
@@ -291,7 +292,6 @@ class Read_outfiles():
         This method reads the out files from the requried directories
         """
         pass
-
 
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
