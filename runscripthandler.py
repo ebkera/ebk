@@ -26,7 +26,9 @@ class RunScriptHandler:
     def __init__(self, *args, **kwargs):
         """
         kwargs:
-            "calc": scf, relax, bands
+            "calc" (string): scf, relax, bands
+            "KE_cut" (list): The kinetic energy cutoff
+
         """
         self.d = f"^"  # Here you can set the desired delimiter
         self.equals = f"+"  # Here you can set the desired symbol for value assigner
@@ -35,6 +37,7 @@ class RunScriptHandler:
             # No args to get currently
 
         # Getting kwargs here
+        self.identifier = kwargs.get("identifier", "run")
         self.a0 = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
         self.KE_cut = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
         self.k = kwargs.get("k", [2])
@@ -67,7 +70,7 @@ class RunScriptHandler:
         """
         This method creates Quantum espresso input files
         """
-        ase.io.write(f"{run_name}.in", self.atoms_object, format = "espresso-in", 
+        ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", 
                         label           = f"{run_name}",
                         pseudopotentials= self.pseudopotentials,
                         pseudo_dir      = "/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
@@ -83,10 +86,11 @@ class RunScriptHandler:
                         mixing_beta     = self.mixing_beta)
 
     def get_number_of_calculations(self):
-        return (self.KE_cut.len()*self.a0.len().self.k.len()*self.R.len())
+        # return (self.KE_cut.len()*self.a0.len().self.k.len()*self.R.len())
+        return (len(self.KE_cut)*len(self.a0)*len(self.k))
 
     def create_pbs_job(self, run_name):
-        with open (f"run.job", "w") as file:
+        with open (f"{run_name}.job", "w") as file:
             file.write(f"#!/bin/bash\n")
             file.write(f"#\n")
             file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
@@ -118,7 +122,7 @@ class RunScriptHandler:
                 for a0_i in self.a0:
                     for k_i in self.k:
                         # for R_i in self.R:
-                        run_name = f"QE{d}KE{KE_cut_i}{self.d}K{k_i}{d}R{R_i}{self.d}a{a0_i}{self.d}PP={self.PP}{self.d}calc={self.calc}"
+                        run_name = f"{run_name}KE{equals}{KE_cut_i}{d}K{equals}{k_i}{d}R{equals}{R_i}{d}a{equals}{a0_i}{d}PP{equals}{PP}{d}type{equals}{calc}"
                         self.atoms_object = Atoms('Sn2', [(0, 0, 0), (0.25, 0.25, 0.25)],  pbc=True)
                         b = a0_i/2.0
                         if self.structure[1].len() == 1:
@@ -148,7 +152,6 @@ class Read_outfiles():
 
         # Here goes the input file parameters stuff
         self.PP = "Sn_ONCV_PBE_FR-1.1.upf"
-
         self.structure = None
 
         # Initializations
