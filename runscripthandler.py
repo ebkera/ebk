@@ -57,8 +57,8 @@ class RunScriptHandler():
         # Quantum espresso inits
         self.ntasks = kwargs.get("ntasks", 1)
         self.calc = kwargs.get("calc", "scf")
-        self.lspinorb        = True
-        self.noncolin        = True
+        self.lspinorb        = False
+        self.noncolin        = False
         # self.ecutrho         = KE_cut_i*4,
         self.occupations     = 'smearing'
         self.smearing        = 'gaussian'
@@ -71,9 +71,9 @@ class RunScriptHandler():
         self.restart_mode    = 'from_scratch'
         self.disk_io         = 'default'
         self.verbosity       = 'high'
-        self.lkpoint_dir     = False,
-        self.etot_conv_thr   = 1.0e-6,
-        self.forc_conv_thr   = 1.0e-4,
+        self.lkpoint_dir     = False
+        self.etot_conv_thr   = 1.0e-6
+        self.forc_conv_thr   = 1.0e-4
         self.outdir          = './'
 
         # Here goes the job init stuff
@@ -120,8 +120,8 @@ class RunScriptHandler():
                         occupations     = self.occupations,
                         smearing        = self.smearing,
                         degauss         = self.degauss,
-                        mixing_beta     = self.mixing_beta
-                        Title           = self.Title
+                        mixing_beta     = self.mixing_beta,
+                        Title           = self.Title,
                         prefix          = self.prefix,
                         restart_mode    = self.restart_mode,
                         disk_io         = self.disk_io,
@@ -238,8 +238,7 @@ class RunScriptHandler():
         """
         This script creates bash files so that you can run a batch of the runs that need to be done
         """
-        print("This is inside the bash file method")
-        print(f"Job handler is set to {self.job_handler}")
+        print(f"create_bash_file: job_handler is set to: {self.job_handler}")
         bash_file = open("run.sh", "w+")
         bash_file.write(f"#!/bin/bash\n\n")
         bash_file.write(f"dir_list=(")
