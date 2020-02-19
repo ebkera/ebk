@@ -76,8 +76,8 @@ class RunScriptHandler:
     def get_number_of_calculations(self):
         return (self.KE_cut.len()*self.a0.len().self.k.len()*self.R.len())
 
-    def create_bash(self):
-        with open (f"{run_name}.job", "w") as file:
+    def create_bash(self, run_name):
+        with open (f"{self.run_name}.job", "w") as file:
             file.write(f"#!/bin/bash\n")
             file.write(f"#\n")
             file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
@@ -119,6 +119,7 @@ class RunScriptHandler:
                         os.mkdir(f"{run_name}")
                         os.rename(f"{run_name}.in", f"./{run_name}/{run_name}.in")
                         os.rename(f"{run_name}.job", f"./{run_name}/{run_name}.job")
+                        self.all_runs_list.append(run_name)
 
 class Read_outfiles():
     """This method should read all out files of a given type (sesta/qe) and read the vlaues like total energies"""
