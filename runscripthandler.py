@@ -19,7 +19,7 @@ pseudo_database_path = {"cluster":"/usr/local/share/espresso/pseudo",
                         }
 
 class RunScriptHandler:
-    """Doc string goes here"""
+    """All handling of files and script for creating and executing runs is the functionality of this class"""
     def __init__(*args, **kwargs):
         """Doc string goes here"""
         self.d = f"^"  # Here you can set the desired delimiter
