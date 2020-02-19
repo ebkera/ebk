@@ -26,14 +26,15 @@ class RunScriptHandler:
         self.equals = f"+"  # Here you can set the desired symbol for value assigner
 
         # Gettings args here
+            # No args to get currently
 
         # Getting kwargs here
         self.a0 = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
         self.KE_cut = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
         self.k = kwargs.get("k", [2])
-        self.pseudopotentials = kwargs.get("pseudos", {'Sn': 'Sn_ONCV_PBE_FR-1.1.upf'})
+        self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn': 'Sn_ONCV_PBE_FR-1.1.upf'})
         self.calc = kwargs.get("calc", "scf")
-
+        # self.R = kwargs.get("R", [300])
 
         # Here goes the PBS init stuff
         self.walltime_mins = 30
@@ -41,19 +42,40 @@ class RunScriptHandler:
         self.procs = 8
 
         # Here goes the input file parameters stuff
-        self.PP = "Sn_ONCV_PBE_FR-1.1.upf"
-
-        # self.R = kwargs.get("R", [300])
-        d = f"^"  # Here you can set the desired delimiter
-        equals = f"="
-        self.structure = None
+        self.lspinorb        = True,
+        self.noncolin        = True,
+        # self.ecutrho         = KE_cut_i*4,
+        self.occupations     = 'smearing',
+        self.smearing        = 'gaussian',
+        self.degauss         = 0.01,
+        self.mixing_beta     = 0.7
 
         # Initializations
-        self.E = []
+        self.structure = None
 
+    def write_QE_inputfile(self, *args):
+        """
+        This method creates Quantum espresso input files
+        """
+        ase.io.write(f"{run_name}.in", self.atoms_object, format = "espresso-in", 
+                        label           = f"{run_name}",
+                        pseudopotentials= self.pseudopotentials,
+                        pseudo_dir      = "/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        kpts            = (k_i, k_i, k_i),
+                        ecutwfc         = KE_cut_i,
+                        calculation     = f"{calc}",
+                        lspinorb        = True,
+                        noncolin        = True,
+                        # ecutrho         = KE_cut_i*4,
+                        occupations     = 'smearing',
+                        smearing        = 'gaussian',
+                        degauss         = 0.01,
+                        mixing_beta     = 0.7)
 
     def get_number_of_calculations(self):
         return (self.KE_cut.len()*self.a0.len().self.k.len()*self.R.len())
+
+
 
     def create_bash():
         pass
@@ -66,26 +88,14 @@ class RunScriptHandler:
             for KE_cut_i in self.KE_cut:
                 for a0_i in self.a0:
                     for k_i in self.k:
-                        for R_i in self.R:
-                            run_name = f"QE{d}KE{KE_cut_i}{self.d}K{k_i}{d}R{R_i}{self.d}a{a0_i}{self.d}PP={self.PP}{self.d}calc={self.calc}"
-                            self.atoms_object = Atoms('Sn2', [(0, 0, 0), (0.25, 0.25, 0.25)],  pbc=True)
-                            b = a0_i/2.0
-                            if self.structure[1].len() == 1:
-                                self.atoms_object.set_cell([(0, b, b), (b, 0, b), (b, b, 0)], scale_atoms=True)
-                            ase.io.write(f"{run_name}.in", self.atoms_object, format = "espresso-in", 
-                                            label           = f"{run_name}",
-                                            pseudopotentials= self.pseudopotentials,
-                                            pseudo_dir      = "/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
-                                            kpts            = (k_i, k_i, k_i),
-                                            ecutwfc         = KE_cut_i,
-                                            calculation     = f"{calc}",
-                                            lspinorb        = True,
-                                            noncolin        = True,
-                                            # ecutrho         = KE_cut_i*4,
-                                            occupations     = 'smearing',
-                                            smearing        = 'gaussian',
-                                            degauss         = 0.01,
-                                            mixing_beta     = 0.7)
+                        # for R_i in self.R:
+                        run_name = f"QE{d}KE{KE_cut_i}{self.d}K{k_i}{d}R{R_i}{self.d}a{a0_i}{self.d}PP={self.PP}{self.d}calc={self.calc}"
+                        self.atoms_object = Atoms('Sn2', [(0, 0, 0), (0.25, 0.25, 0.25)],  pbc=True)
+                        b = a0_i/2.0
+                        if self.structure[1].len() == 1:
+                            self.atoms_object.set_cell([(0, b, b), (b, 0, b), (b, b, 0)], scale_atoms=True)
+                        self.write_QE_inputfile(KE_cut_i, a0_i, k_i)
+
 
                             with open (f"{run_name}.job", "w") as file:
                                 file.write(f"#!/bin/bash\n")
@@ -126,19 +136,21 @@ class Read_outfiles():
         self.a0 = kwargs.get("a0", None)
         self.KE_cut = kwargs.get("KE_cut", None)
         self.k = kwargs.get("k", None)
-        self.pseudopotentials = kwargs.get("pseudos", None})
+        self.pseudopotentials = kwargs.get("pseudopotentials", None})
+        self.calc = kwargs.get("calc", None)
+        # self.R = kwargs.get("R", None)
 
         # Here goes the input file parameters stuff
         self.PP = "Sn_ONCV_PBE_FR-1.1.upf"
 
-        # self.R = kwargs.get("R", [300])
-        self.calc = f"scf"
-        d = f"^"  # Here you can set the desired delimiter
-        equals = f"="
         self.structure = None
 
         # Initializations
-        self.E = []
+        self.E_val = []
+        self.E_f_val = []
+        self.k_val = []
+        self.KE_val = []
+        self.a0_val = []
 
 
     def read_outfiles(self):
