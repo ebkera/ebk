@@ -188,7 +188,8 @@ class RunScriptHandler():
             file.write(f"#SBATCH --time={self.walltime_days}-{self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
             file.write(f"#SBATCH --nodes={self.nodes}\n")
             file.write(f"#SBATCH --ntasks={self.ntasks}\n")
-            file.write(f"mpirun -np {self.ntasks} pw.x -in {self.identifier}.in -out {self.identifier}.out\n")
+            file.write(f"#SBATCH --mail-type= ALL\n")
+            file.write(f"mpirun -np {self.ntasks} pw.x < {self.identifier}.in > {self.identifier}.out\n")
         os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def make_runs(self):
