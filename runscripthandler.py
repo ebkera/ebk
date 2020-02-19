@@ -32,6 +32,8 @@ class RunScriptHandler:
         self.KE_cut = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
         self.k = kwargs.get("k", [2])
         self.pseudopotentials = kwargs.get("pseudos", {'Sn': 'Sn_ONCV_PBE_FR-1.1.upf'})
+        self.calc = kwargs.get("calc", "scf")
+
 
         # Here goes the PBS init stuff
         self.walltime_mins = 30
@@ -42,7 +44,6 @@ class RunScriptHandler:
         self.PP = "Sn_ONCV_PBE_FR-1.1.upf"
 
         # self.R = kwargs.get("R", [300])
-        self.calc = f"scf"
         d = f"^"  # Here you can set the desired delimiter
         equals = f"="
         self.structure = None
@@ -66,7 +67,7 @@ class RunScriptHandler:
                 for a0_i in self.a0:
                     for k_i in self.k:
                         for R_i in self.R:
-                            run_name = f"QE{d}KE{KE_cut_i}{self.d}K{k_i}{d}R{R_i}{self.d}a{a0_i}{self.d}PP={self.PP}{self.d}calc={calc}"
+                            run_name = f"QE{d}KE{KE_cut_i}{self.d}K{k_i}{d}R{R_i}{self.d}a{a0_i}{self.d}PP={self.PP}{self.d}calc={self.calc}"
                             self.atoms_object = Atoms('Sn2', [(0, 0, 0), (0.25, 0.25, 0.25)],  pbc=True)
                             b = a0_i/2.0
                             if self.structure[1].len() == 1:
