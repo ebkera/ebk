@@ -213,9 +213,28 @@ class RunScriptHandler():
                             print(f"make_runs: Unrecognized job_handler! Job files not created")
 
 
-    def create_bash_file():
-        """This script creates bash files so that you can run a batch of the runs that need to be done"""
-        pass
+    def create_bash_file(self):
+        """
+        This script creates bash files so that you can run a batch of the runs that need to be done
+        """
+        print("This is inside the bash file")
+        bash_file = open("run.sh", "w+")
+        bash_file.write(f"#!/bin/bash\n\n")
+        bash_file.write(f"dir_list=(")
+        for x in self.all_runs_list:
+            bash_file.write(f" {x}")
+        bash_file.write(")\n")
+        bash_file.write('for dir in "${dir_list[@]}"\n')
+        bash_file.write(f"do\n")
+        bash_file.write(f'  cd $dir\n')
+        if self.job_handler == "torque":
+            bash_file.write(f'  qsub *job\n')
+        elif self.job_handler == "slurm":
+            bash_file.write(f'  sbatch *job\n')
+        bash_file.write(f'  sbatch *job\n')
+        bash_file.write(f'  cd ..\n')
+        bash_file.write(f'done\n')
+        bash_file.close()
 
 
 class Read_outfiles():
