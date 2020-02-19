@@ -14,6 +14,8 @@ from ase import Atoms
 import ase.io
 from ebk.QE import QErunfilecreator  # So that we can see how we did it last time
 from ebk.SIESTA import SIESTARunFileCreator  # So that we can see how we did it last time
+from ebk.calculation_set import Calculation_set
+
 
 class RunScriptHandler():
     """All handling of files and script for creating and executing runs is the functionality of this class"""
@@ -29,7 +31,7 @@ class RunScriptHandler():
             "pseudopotentials" (string):
             "atoms_object" (atoms object): This should be without setting the cell since that will be done with every iteration
             "structure" (int): vlaue will determine the cell
-                1: diamond strcture with a0 as the lattice constant
+                1: fcc structure with a0 as the lattice constant
 
         """
         self.d = f"^"  # Here you can set the desired delimiter
@@ -47,6 +49,7 @@ class RunScriptHandler():
         self.k = kwargs.get("k", [2])
         self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn': 'Sn_ONCV_PBE_FR-1.1.upf'})
         self.pseudo_dir = kwargs.get("pseudo_dir", None)
+        self.calculator = kwargs.get("calculator", "espresso")
         # self.R = kwargs.get("R", [300])
 
         # Quantum espresso inits
@@ -190,6 +193,14 @@ class RunScriptHandler():
                         os.mkdir(f"{run_name}")
                         os.rename(f"{self.identifier}.in", f"./{run_name}/{self.identifier}.in")
                         self.all_runs_list.append(run_name)
+                        
+                        # Creating jobs
+                        if self.job_handler == "torque":
+                            self.create_torque_job(run_name)
+                        elif self.job_handler == "slurm":
+                            self.create_slurm_job(run_name)
+                        else:
+                            print(f"make_runs: Unrecognized job_handler! Job files not created")
 
 class Read_outfiles():
     """This method should read all out files of a given type (sesta/qe) and read the vlaues like total energies"""
@@ -224,3 +235,8 @@ class Read_outfiles():
         This method reads the out files from the requried directories
         """
         pass
+
+
+if __name__ == "__main__":
+    """This is used as an example as to how we use this file."""
+    pass    
