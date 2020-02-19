@@ -77,7 +77,29 @@ class RunScriptHandler:
         return (self.KE_cut.len()*self.a0.len().self.k.len()*self.R.len())
 
     def create_bash(self):
-        pass
+        with open (f"{run_name}.job", "w") as file:
+            file.write(f"#!/bin/bash\n")
+            file.write(f"#\n")
+            file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
+            file.write(f"#PBS -l nodes={nodes}:ppn={procs}\n")
+            file.write(f"#PBS -l walltime=0:{walltime_mins}:00\n")
+            file.write(f"#PBS -N {run_name}\n")
+            file.write(f"#PBS -A cnm66441\n")
+            file.write(f"#\n")
+            file.write(f"#  File names for stdout and stderr.  If not set here, the defaults\n")
+            file.write(f"#  are <JOBNAME>.o<JOBNUM> and <JOBNAME>.e<JOBNUM>\n")
+            file.write(f"#PBS -o job.out\n")
+            file.write(f"#PBS -e job.err\n")
+            file.write("\n")
+            file.write(f"# Send mail at begin, end, abort, or never (b, e, a, n). Default is 'a'.\n")
+            file.write(f"#PBS -m bea erathnayake@sivananthanlabs.us\n")
+            file.write("\n")
+            file.write(f"# change into the directory where qsub will be executed\n")
+            file.write(f"cd $PBS_O_WORKDIR\n")
+            file.write("\n")
+            file.write(f"# start MPI job over default interconnect; count allocated cores on the fly.\n")
+            file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {run_name}.in > {run_name}.out\n")
+
 
     def create(self):
         """This is more Doc strings"""
@@ -94,29 +116,6 @@ class RunScriptHandler:
                         if self.structure[1].len() == 1:
                             self.atoms_object.set_cell([(0, b, b), (b, 0, b), (b, b, 0)], scale_atoms=True)
                         self.write_QE_inputfile(run_name, KE_cut_i, a0_i, k_i)
-
-                        with open (f"{run_name}.job", "w") as file:
-                            file.write(f"#!/bin/bash\n")
-                            file.write(f"#\n")
-                            file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
-                            file.write(f"#PBS -l nodes={nodes}:ppn={procs}\n")
-                            file.write(f"#PBS -l walltime=0:{walltime_mins}:00\n")
-                            file.write(f"#PBS -N {run_name}\n")
-                            file.write(f"#PBS -A cnm66441\n")
-                            file.write(f"#\n")
-                            file.write(f"#  File names for stdout and stderr.  If not set here, the defaults\n")
-                            file.write(f"#  are <JOBNAME>.o<JOBNUM> and <JOBNAME>.e<JOBNUM>\n")
-                            file.write(f"#PBS -o job.out\n")
-                            file.write(f"#PBS -e job.err\n")
-                            file.write("\n")
-                            file.write(f"# Send mail at begin, end, abort, or never (b, e, a, n). Default is 'a'.\n")
-                            file.write(f"#PBS -m bea erathnayake@sivananthanlabs.us\n")
-                            file.write("\n")
-                            file.write(f"# change into the directory where qsub will be executed\n")
-                            file.write(f"cd $PBS_O_WORKDIR\n")
-                            file.write("\n")
-                            file.write(f"# start MPI job over default interconnect; count allocated cores on the fly.\n")
-                            file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {run_name}.in > {run_name}.out\n")
                         os.mkdir(f"{run_name}")
                         os.rename(f"{run_name}.in", f"./{run_name}/{run_name}.in")
                         os.rename(f"{run_name}.job", f"./{run_name}/{run_name}.job")
@@ -149,7 +148,6 @@ class Read_outfiles():
         self.k_val = []
         self.KE_val = []
         self.a0_val = []
-
 
     def read_outfiles(self):
         """This method reads the out files from the requried directories
