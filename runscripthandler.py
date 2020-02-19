@@ -86,7 +86,6 @@ class RunScriptHandler:
                         mixing_beta     = self.mixing_beta)
 
     def get_number_of_calculations(self):
-        # return (self.KE_cut.len()*self.a0.len().self.k.len()*self.R.len())
         return (len(self.KE_cut)*len(self.a0)*len(self.k))
 
     def create_pbs_job(self, run_name):
