@@ -111,6 +111,4 @@ class RunScriptHandler:
                             os.mkdir(f"{run_name}")
                             os.rename(f"{run_name}.in", f"./{run_name}/{run_name}.in")
                             os.rename(f"{run_name}.job", f"./{run_name}/{run_name}.job")
-
-
-class runsc                            
+                        
