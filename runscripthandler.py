@@ -17,7 +17,6 @@ from ebk.SIESTA import SIESTARunFileCreator  # So that we can see how we did it 
 from ebk.calculation_set import Calculation_set
 import shutil
 
-
 class RunScriptHandler():
     """All handling of files and script for creating and executing runs is the functionality of this class"""
     def __init__(self, *args, **kwargs):
@@ -53,6 +52,7 @@ class RunScriptHandler():
         self.calculator       = kwargs.get("calculator", "espresso")
         self.structure_type   = kwargs.get("structure_type", "bulk")
         self.xc               = kwargs.get("xc", "pbe")
+        self.type             = kwargs.get("type", "scf")
 
         # self.R = kwargs.get("R", [300])
 
@@ -156,7 +156,7 @@ class RunScriptHandler():
             file.write(f"cd $PBS_O_WORKDIR\n")
             file.write("\n")
             file.write(f"# start MPI job over default interconnect; count allocated cores on the fly.\n")
-            file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x -in {run_name}.in -out {run_name}.out\n")
+            file.write(f"mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
         os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def create_slurm_job(self, run_name):
@@ -189,7 +189,7 @@ class RunScriptHandler():
                     for k_i in self.k:
                         # for R_i in self.R:  # This has been disables for now
                         R_i = KE_cut_i*4
-                        run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calc}"
+                        run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.type}"
                         if self.structure == 0:
                             # cell has been set from outside
                             pass
