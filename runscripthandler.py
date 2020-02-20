@@ -57,8 +57,8 @@ class RunScriptHandler():
         # Quantum espresso inits
         self.ntasks = kwargs.get("ntasks", 20)
         self.calc = kwargs.get("calc", "scf")
-        self.lspinorb        = kwargs.get("False
-        self.noncolin        = kwargs.get("False
+        self.lspinorb        = kwargs.get("lspinorbit", False)
+        self.noncolin        = kwargs.get("noncolin", False)
         # self.ecutrho         = kwargs.get("KE_cut_i*4,
         self.occupations     = kwargs.get("occupations",'smearing')
         self.smearing        = kwargs.get("smearing",'gaussian')
