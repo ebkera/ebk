@@ -139,6 +139,18 @@ class RunScriptHandler():
     def create_torque_job(self, run_name):
         with open (f"{self.identifier}.job", "w") as file:
             file.write(f"#!/bin/bash\n")
+            file.write(f"# Submit jobs from explicitly specified directories;\n")
+            file.write(f"# stern, 2020-02-18 - Edited Eranjan\n")
+            file.write(f"\n")
+            file.write(f"shopt -s extglob	# handle "+()" patterns\n")
+            file.write(f"\n")
+            file.write(f"# Let's use a shell loop to read a list of tasks from a "Here-Document" (at the\n")
+            file.write(f"# end of the loop).  See also: http://www.tldp.org/LDP/abs/html/here-docs.html\n")
+            file.write(f"#!/bin/bash\n")
+            file.write(f"#!/bin/bash\n")
+            file.write(f"#!/bin/bash\n")
+            file.write(f"#!/bin/bash\n")
+
             file.write(f"#\n")
             file.write(f"#  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
             file.write(f"#PBS -l nodes={self.nodes}:ppn={self.procs}\n")
