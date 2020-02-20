@@ -113,6 +113,7 @@ class RunScriptHandler():
         """
         Sets the pseudopotentials
         """
+        self.pseudopotentials = pseudos
         self.espresso_inputs.update({"pseudopotentials": pseudos})
 
     def write_QE_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
@@ -273,11 +274,23 @@ class Read_outfiles():
         This method reads the out files from the requried directories
         """
         directory_list = list()
-
         for root, dirs, files in os.walk(os.getcwd(), topdown=False):
             for name in dirs:
                 directory_list.append(name)
-        print(dirs)            
+
+        folder_data = []
+        for dir in directory_list:
+            x = dir.split("^")
+            run_parameters = {}
+            run_parameters.update({"identifier":x[0]})
+            for i in range(1,len(x)):
+                y = x[i].split("=")
+                run_parameters.update({y[0]:y[1]})
+            folder_data.append(run_parameters)
+
+        print(folder_data)
+
+
 
     def read_outfiles(self):
         """
