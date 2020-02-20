@@ -171,7 +171,7 @@ class RunScriptHandler():
             file.write(f"#SBATCH --ntasks={self.procs}\n")
             # file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
             # file.write(f"#SBATCH --mail-type=ALL\n")
-            file.write(f"mpirun -np {self.ntasks} pw.x < -npool {self.npool} {self.identifier}.in > {self.identifier}.out\n")
+            file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
         os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def make_runs(self):
