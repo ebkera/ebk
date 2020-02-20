@@ -48,15 +48,14 @@ class RunScriptHandler():
         self.a0               = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
         self.KE_cut           = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
         self.k                = kwargs.get("k", [2])
-        test = {'Sn':'Sn_ONCV_PBE_FR-1.1.upf','B':'B_ONCV_PBE_FR-1.1.upf'}
-        self.pseudopotentials = kwargs.get("pseudopotentials", test)
+        self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn':'Sn_ONCV_PBE_FR-1.1.upf'})
         self.pseudo_dir       = kwargs.get("pseudo_dir", None)
         self.calculator       = kwargs.get("calculator", "espresso")
         # self.R = kwargs.get("R", [300])
 
         # Quantum espresso inits
-        self.ntasks = kwargs.get("ntasks", 20)
-        self.calc = kwargs.get("calc", "scf")
+        self.ntasks          = kwargs.get("ntasks", 20)
+        self.calc            = kwargs.get("calc", "scf")
         self.lspinorb        = kwargs.get("lspinorbit", False)
         self.noncolin        = kwargs.get("noncolin", False)
         # self.ecutrho         = kwargs.get("KE_cut_i*4,
@@ -97,7 +96,7 @@ class RunScriptHandler():
         Sets the pseudo_dir according to the machine
         """
         pseudo_database_path = {"cluster":"/usr/local/share/espresso/pseudo",
-                        "carbon":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        "carbon":"../PseudopotentialDatabase",
                         "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         "home_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase"
                         }
