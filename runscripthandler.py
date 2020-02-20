@@ -272,17 +272,12 @@ class Read_outfiles():
         """
         This method reads the out files from the requried directories
         """
-        # pass
-        # directory_list = list()
-
-        # for root, dirs, files in os.walk(os.getcwd(), topdown=False):
-        #     pass
-        # for name in dirs:
-            # directory_list.append(name)
-        # print(dirs)
+        directory_list = list()
 
         for root, dirs, files in os.walk(os.getcwd(), topdown=False):
-            
+            for name in dirs:
+                directory_list.append(name)
+        print(dirs)            
 
     def read_outfiles(self):
         """
