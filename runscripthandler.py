@@ -138,7 +138,7 @@ class RunScriptHandler():
         return (len(self.KE_cut)*len(self.a0)*len(self.k))
 
     def create_torque_job(self):
-        with open (f"{self.identifier}.job", "w") as file:
+        with open (f"{self.identifier}.job1", "w+") as file:
             file.write(f"#!/bin/bash\n")
             file.write(f"# Submit jobs from explicitly specified directories;\n")
             file.write(f"# stern, 2020-02-18 - Edited Eranjan\n")
@@ -203,7 +203,7 @@ class RunScriptHandler():
         # os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def create_slurm_job(self, run_name):
-        with open (f"{self.identifier}.job", "w") as file:
+        with open (f"{self.identifier}.job", "w+") as file:
             file.write(f"#!/bin/bash\n")
             file.write(f"#SBATCH --job-name={run_name}\n")
             file.write(f"#SBATCH --partition={self.partition}\n")
@@ -313,7 +313,7 @@ class Read_outfiles():
         self.KE_val = []
         self.a0_val = []
 
-    def read_folder_names(self):
+    def read_folder_data(self):
         """
         This method reads the out files from the requried directories
         """
@@ -344,7 +344,6 @@ class Read_outfiles():
             run_parameters["PP"] = x
 
             folder_data.append(run_parameters)
-        print(folder_data)
 
     def read_outfiles(self):
         """
