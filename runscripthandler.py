@@ -57,25 +57,25 @@ class RunScriptHandler():
         # Quantum espresso inits
         self.ntasks = kwargs.get("ntasks", 20)
         self.calc = kwargs.get("calc", "scf")
-        self.lspinorb        = False
-        self.noncolin        = False
-        # self.ecutrho         = KE_cut_i*4,
-        self.occupations     = 'smearing'
-        self.smearing        = 'gaussian'
-        self.degauss         = 0.01
-        self.mixing_beta     = 0.7
-        self.xc              = "pbe"
-        self.structure_type  = "bulk"
-        self.Title           = 'EthaneDithiol'
-        self.prefix          = 'E2D'
-        self.restart_mode    = 'from_scratch'
-        self.disk_io         = 'default'
-        self.verbosity       = 'high'
-        self.lkpoint_dir     = False
-        self.etot_conv_thr   = 1.0e-6
-        self.forc_conv_thr   = 1.0e-4
-        self.outdir          = './'
-        self.pseudo_dir      = ""
+        self.lspinorb        = kwargs.get("False
+        self.noncolin        = kwargs.get("False
+        # self.ecutrho         = kwargs.get("KE_cut_i*4,
+        self.occupations     = kwargs.get("occupations",'smearing')
+        self.smearing        = kwargs.get("smearing",'gaussian')
+        self.degauss         = kwargs.get("degauss", 0.01)
+        self.mixing_beta     = kwargs.get("mixing_beta", 0.7)
+        self.xc              = kwargs.get("xc", "pbe")
+        self.structure_type  = kwargs.get("structure_type", "bulk")
+        self.Title           = kwargs.get("Title",'EthaneDithiol')
+        self.prefix          = kwargs.get("prefix",'E2D')
+        self.restart_mode    = kwargs.get("restart_mode",'from_scratch')
+        self.disk_io         = kwargs.get("disk_io",'default')
+        self.verbosity       = kwargs.get("verbosity",'high')
+        self.lkpoint_dir     = kwargs.get("lkpoint_dir", False)
+        self.etot_conv_thr   = kwargs.get("etot_conv_thr", 1.0e-6)
+        self.forc_conv_thr   = kwargs.get("forc_conv_thr", 1.0e-4)
+        self.outdir          = kwargs.get("outdir", './')
+        self.pseudo_dir      = kwargs.get("pseudo_dir", False)
 
         # Here goes the job init stuff
         self.walltime_days = kwargs.get("walltime_days", 2)
