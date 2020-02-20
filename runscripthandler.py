@@ -49,7 +49,7 @@ class RunScriptHandler():
         self.k                = kwargs.get("k", [2])
         self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn':'Sn_ONCV_PBE_FR-1.1.upf'})
         self.pseudo_dir       = kwargs.get("pseudo_dir", False)
-        self.calculator       = kwargs.get("calculator", "espresso")
+        self.calculator       = kwargs.get("calculator", "QE")
         self.structure_type   = kwargs.get("structure_type", "bulk")
         self.xc               = kwargs.get("xc", "pbe")
         self.type             = kwargs.get("type", "scf")
@@ -68,8 +68,8 @@ class RunScriptHandler():
                                 "smearing"        : kwargs.get("smearing",'gaussian'),
                                 "degauss"         : kwargs.get("degauss", 0.01),
                                 "mixing_beta"     : kwargs.get("mixing_beta", 0.7),
-                                "Title"           : kwargs.get("Title",'EthaneDithiol'),
-                                "prefix"          : kwargs.get("prefix",'E2D'),
+                                "Title"           : kwargs.get("Title",'Sn'),
+                                "prefix"          : kwargs.get("prefix",'Sn'),
                                 "restart_mode"    : kwargs.get("restart_mode",'from_scratch'),
                                 "disk_io"         : kwargs.get("disk_io",'default'),
                                 "verbosity"       : kwargs.get("verbosity",'high'),
@@ -94,6 +94,7 @@ class RunScriptHandler():
         self.partition       = kwargs.get("partition", "cluster")
 
         # Other Initializations
+            # For structure: An fcc cell that scales with the lattice constant = 1
         self.structure = kwargs.get("structure", 1)
         default = Atoms('Sn2', [(0, 0, 0), (0.25, 0.25, 0.25)],  pbc=True)
         self.atoms_object = kwargs.get("atoms_object", default)
@@ -220,7 +221,7 @@ class RunScriptHandler():
         self.PP = ""
         self.specie = ""
         for key, val in self.pseudopotentials.items():
-            self.PP = f"{val}-{self.PP}"
+            self.PP = f"{val}{self.PP}"
             self.specie = f"{key}-{self.specie}"
 
         if self.structure == None:
@@ -329,6 +330,19 @@ class Read_outfiles():
             for i in range(1,len(x)):
                 y = x[i].split("=")
                 run_parameters.update({y[0]:y[1]})
+            # Splitting up multiple values in Specie
+            x = run_parameters["Specie"]
+            x = x.split("-")
+            x = [i for i in x if i is not ""]
+            run_parameters["Specie"] = x
+
+            # Splitting up multiple values in PP
+            x = run_parameters["PP"]
+            x = x.split(".upf")
+            # x = x.split(".UPF")
+            x = [i for i in x if i is not "-" and i is not ""]
+            run_parameters["PP"] = x
+
             folder_data.append(run_parameters)
         print(folder_data)
 
