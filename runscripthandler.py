@@ -43,15 +43,15 @@ class RunScriptHandler():
 
         # Setting kwargs here
         # Base Run inits
-        self.identifier = kwargs.get("identifier", "run")
-        self.job_handler = kwargs.get("job_handler", "torque")
-        self.a0 = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
-        self.KE_cut = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
-        self.k = kwargs.get("k", [2])
+        self.identifier       = kwargs.get("identifier", "run")
+        self.job_handler      = kwargs.get("job_handler", "torque")
+        self.a0               = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
+        self.KE_cut           = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
+        self.k                = kwargs.get("k", [2])
         test = {'Sn':'Sn_ONCV_PBE_FR-1.1.upf','B':'B_ONCV_PBE_FR-1.1.upf'}
         self.pseudopotentials = kwargs.get("pseudopotentials", test)
-        self.pseudo_dir = kwargs.get("pseudo_dir", None)
-        self.calculator = kwargs.get("calculator", "espresso")
+        self.pseudo_dir       = kwargs.get("pseudo_dir", None)
+        self.calculator       = kwargs.get("calculator", "espresso")
         # self.R = kwargs.get("R", [300])
 
         # Quantum espresso inits
@@ -78,13 +78,13 @@ class RunScriptHandler():
         self.pseudo_dir      = kwargs.get("pseudo_dir", False)
 
         # Here goes the job init stuff
-        self.walltime_days = kwargs.get("walltime_days", 2)
-        self.walltime_mins = kwargs.get("walltime_mins", 0)
-        self.walltime_hours = kwargs.get("walltime_hours", 2)
-        self.walltime_secs = kwargs.get("walltime_secs", 0)
-        self.nodes = kwargs.get("nodes", 2)
-        self.procs = kwargs.get("procs", 20)
-        self.partition = kwargs.get("partition", "cluster")
+        self.walltime_days   = kwargs.get("walltime_days", 2)
+        self.walltime_mins   = kwargs.get("walltime_mins", 0)
+        self.walltime_hours  = kwargs.get("walltime_hours", 2)
+        self.walltime_secs   = kwargs.get("walltime_secs", 0)
+        self.nodes           = kwargs.get("nodes", 2)
+        self.procs           = kwargs.get("procs", 20)
+        self.partition       = kwargs.get("partition", "cluster")
 
         # Other Initializations
         self.structure = kwargs.get("structure", 1)
