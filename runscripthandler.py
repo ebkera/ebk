@@ -60,7 +60,7 @@ class RunScriptHandler():
         self.ntasks          = kwargs.get("ntasks", 20)
         self.npool           = kwargs.get("npool", 1)
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
-                                "calculation"     : kwargs.get("calc", "scf"),
+                                "calculation"     : self.type,
                                 "lspinorb"        : kwargs.get("lspinorbit", False),
                                 "noncolin"        : kwargs.get("noncolin", False),
                                 # "ecutrho"         : KE_cut_i*4,
@@ -171,7 +171,7 @@ class RunScriptHandler():
             file.write(f"#SBATCH --ntasks={self.procs}\n")
             # file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
             # file.write(f"#SBATCH --mail-type=ALL\n")
-            file.write(f"mpirun -np {self.ntasks} -npool {self.npool} pw.x < {self.identifier}.in > {self.identifier}.out\n")
+            file.write(f"mpirun -np {self.ntasks} pw.x < -npool {self.npool} {self.identifier}.in > {self.identifier}.out\n")
         os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def make_runs(self):
