@@ -242,7 +242,7 @@ class RunScriptHandler():
 
 class Read_outfiles():
     """This method should read all out files of a given type (sesta/qe) and read the vlaues like total energies"""
-    def __init__(*args, **kwargs):
+    def __init__(self, *args, **kwargs):
         """Doc string goes here"""
         self.d = f"^"  # Here you can set the desired delimiter
         self.equals = ["+", "="]  # Here you can set the desired symbol for value assigner it can also be a list of all possible values
@@ -267,6 +267,13 @@ class Read_outfiles():
         self.k_val = []
         self.KE_val = []
         self.a0_val = []
+
+    def read_folder_names(self):
+        directory_list = list()
+        for root, dirs, files in os.walk(os.getcwd(), topdown=False):
+            for name in dirs:
+                directory_list.append(dirs)
+        print(directory_list)
 
     def read_outfiles(self):
         """
