@@ -55,7 +55,7 @@ class RunScriptHandler():
         # self.R = kwargs.get("R", [300])
 
         # Quantum espresso inits
-        self.ntasks = kwargs.get("ntasks", 1)
+        self.ntasks = kwargs.get("ntasks", 20)
         self.calc = kwargs.get("calc", "scf")
         self.lspinorb        = False
         self.noncolin        = False
@@ -75,15 +75,16 @@ class RunScriptHandler():
         self.etot_conv_thr   = 1.0e-6
         self.forc_conv_thr   = 1.0e-4
         self.outdir          = './'
+        self.pseudo_dir      = ""
 
         # Here goes the job init stuff
-        self.walltime_days = 0
-        self.walltime_mins = 0
-        self.walltime_hours = 2
-        self.walltime_secs = 0
-        self.nodes = 2
-        self.procs = 8
-        self.partition = "cluster"
+        self.walltime_days = kwargs.get("walltime_days", 2)
+        self.walltime_mins = kwargs.get("walltime_mins", 0)
+        self.walltime_hours = kwargs.get("walltime_hours", 2)
+        self.walltime_secs = kwargs.get("walltime_secs", 0)
+        self.nodes = kwargs.get("nodes", 2)
+        self.procs = kwargs.get("procs", 20)
+        self.partition = kwargs.get("partition", "cluster")
 
         # Other Initializations
         self.structure = kwargs.get("structure", 1)
@@ -110,7 +111,7 @@ class RunScriptHandler():
                         label           = f"{run_name}",
                         pseudopotentials= self.pseudopotentials,
                         # if self.pseudo_dir == None
-                        # pseudo_dir      = "/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        pseudo_dir      = self.pseudo_dir,
                         kpts            = (k_i, k_i, k_i),
                         ecutwfc         = KE_cut_i,
                         calculation     = f"{self.calc}",
@@ -187,7 +188,7 @@ class RunScriptHandler():
             file.write(f"#SBATCH --partition={self.partition}\n")
             file.write(f"#SBATCH --time={self.walltime_days}-{self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
             file.write(f"#SBATCH --nodes={self.nodes}\n")
-            file.write(f"#SBATCH --ntasks={self.ntasks}\n")
+            file.write(f"#SBATCH --ntasks={self.procs}\n")
             # file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
             # file.write(f"#SBATCH --mail-type=ALL\n")
             file.write(f"mpirun -np {self.ntasks} pw.x < {self.identifier}.in > {self.identifier}.out\n")
