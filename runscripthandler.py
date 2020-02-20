@@ -288,10 +288,7 @@ class Read_outfiles():
                 y = x[i].split("=")
                 run_parameters.update({y[0]:y[1]})
             folder_data.append(run_parameters)
-
         print(folder_data)
-
-
 
     def read_outfiles(self):
         """
