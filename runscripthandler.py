@@ -49,32 +49,39 @@ class RunScriptHandler():
         self.KE_cut           = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
         self.k                = kwargs.get("k", [2])
         self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn':'Sn_ONCV_PBE_FR-1.1.upf'})
-        self.pseudo_dir       = kwargs.get("pseudo_dir", None)
+        self.pseudo_dir       = kwargs.get("pseudo_dir", False)
         self.calculator       = kwargs.get("calculator", "espresso")
+        self.structure_type   = kwargs.get("structure_type", "bulk")
+        self.xc               = kwargs.get("xc", "pbe")
+
         # self.R = kwargs.get("R", [300])
 
         # Quantum espresso inits
         self.ntasks          = kwargs.get("ntasks", 20)
-        self.calc            = kwargs.get("calc", "scf")
-        self.lspinorb        = kwargs.get("lspinorbit", False)
-        self.noncolin        = kwargs.get("noncolin", False)
-        # self.ecutrho         = kwargs.get("KE_cut_i*4,
-        self.occupations     = kwargs.get("occupations",'smearing')
-        self.smearing        = kwargs.get("smearing",'gaussian')
-        self.degauss         = kwargs.get("degauss", 0.01)
-        self.mixing_beta     = kwargs.get("mixing_beta", 0.7)
-        self.xc              = kwargs.get("xc", "pbe")
-        self.structure_type  = kwargs.get("structure_type", "bulk")
-        self.Title           = kwargs.get("Title",'EthaneDithiol')
-        self.prefix          = kwargs.get("prefix",'E2D')
-        self.restart_mode    = kwargs.get("restart_mode",'from_scratch')
-        self.disk_io         = kwargs.get("disk_io",'default')
-        self.verbosity       = kwargs.get("verbosity",'high')
-        self.lkpoint_dir     = kwargs.get("lkpoint_dir", False)
-        self.etot_conv_thr   = kwargs.get("etot_conv_thr", 1.0e-6)
-        self.forc_conv_thr   = kwargs.get("forc_conv_thr", 1.0e-4)
-        self.outdir          = kwargs.get("outdir", './')
-        self.pseudo_dir      = kwargs.get("pseudo_dir", False)
+        self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
+                                "calculation"     : kwargs.get("calc", "scf"),
+                                "lspinorb"        : kwargs.get("lspinorbit", False),
+                                "noncolin"        : kwargs.get("noncolin", False),
+                                # "ecutrho"         : KE_cut_i*4,
+                                "occupations"     : kwargs.get("occupations",'smearing'),
+                                "smearing"        : kwargs.get("smearing",'gaussian'),
+                                "degauss"         : kwargs.get("degauss", 0.01),
+                                "mixing_beta"     : kwargs.get("mixing_beta", 0.7),
+                                "Title"           : kwargs.get("Title",'EthaneDithiol'),
+                                "prefix"          : kwargs.get("prefix",'E2D'),
+                                "restart_mode"    : kwargs.get("restart_mode",'from_scratch'),
+                                "disk_io"         : kwargs.get("disk_io",'default'),
+                                "verbosity"       : kwargs.get("verbosity",'high'),
+                                "lkpoint_dir"     : kwargs.get("lkpoint_dir", False),
+                                "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-6),
+                                "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-4),
+                                "outdir"          : kwargs.get("outdir", './')
+                                }
+
+        if self.pseudo_dir != False:
+            # Since if not set we want the value to be the default value
+            # pseduo_dir is initialized in the base run init section
+            self.espresso_inputs.update({"pseudo_dir" : self.pseudo_dir})
 
         # Here goes the job init stuff
         self.walltime_days   = kwargs.get("walltime_days", 2)
@@ -100,57 +107,29 @@ class RunScriptHandler():
                         "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         "home_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase"
                         }
-        self.pseudo_dir = pseudo_database_path[machine]
+        self.espresso_inputs.update({"pseudo_dir" : pseudo_database_path[machine]})
+
+    def set_pseudopotentials(self, pseudos):
+        """
+        Sets the pseudopotentials
+        """
+        self.espresso_inputs.update({"pseudopotentials": pseudos})
 
     def write_QE_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
         """
         This method creates Quantum espresso input files
         """
-        ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", 
-                        label           = f"{run_name}",
-                        pseudopotentials= self.pseudopotentials,
-                        # if self.pseudo_dir == None
-                        pseudo_dir      = self.pseudo_dir,
-                        kpts            = (k_i, k_i, k_i),
-                        ecutwfc         = KE_cut_i,
-                        calculation     = f"{self.calc}",
-                        lspinorb        = self.lspinorb,
-                        noncolin        = self.noncolin,
-                        # ecutrho         = KE_cut_i*4,
-                        occupations     = self.occupations,
-                        smearing        = self.smearing,
-                        degauss         = self.degauss,
-                        mixing_beta     = self.mixing_beta,
-                        Title           = self.Title,
-                        prefix          = self.prefix,
-                        restart_mode    = self.restart_mode,
-                        disk_io         = self.disk_io,
-                        verbosity       = self.verbosity,
-                        lkpoint_dir     = self.lkpoint_dir,
-                        etot_conv_thr   = self.etot_conv_thr,
-                        forc_conv_thr   = self.forc_conv_thr,
-                        outdir          = self.outdir,
-                        )
+        # Here we update aditional run specific stuff
+        self.espresso_inputs.update({"label" : f"{run_name}"})
+        self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
+        self.espresso_inputs.update({"ecutwfc" : KE_cut_i})
+        ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
 
     def write_SIESTA_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
         """
         This method creates SIESTA input files
         """
         pass
-        # ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", 
-        #                 label           = f"{run_name}",
-        #                 pseudopotentials= self.pseudopotentials,
-        #                 pseudo_dir      = "/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
-        #                 kpts            = (k_i, k_i, k_i),
-        #                 ecutwfc         = KE_cut_i,
-        #                 calculation     = f"{calc}",
-        #                 lspinorb        = self.lspinorb,
-        #                 noncolin        = self.noncolin,
-        #                 # ecutrho         = KE_cut_i*4,
-        #                 occupations     = self.occupations,
-        #                 smearing        = self.smearing,
-        #                 degauss         = self.degauss,
-        #                 mixing_beta     = self.mixing_beta)
 
     def get_number_of_calculations(self):
         return (len(self.KE_cut)*len(self.a0)*len(self.k))
