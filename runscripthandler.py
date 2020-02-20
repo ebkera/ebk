@@ -269,11 +269,20 @@ class Read_outfiles():
         self.a0_val = []
 
     def read_folder_names(self):
-        directory_list = list()
+        """
+        This method reads the out files from the requried directories
+        """
+        # pass
+        # directory_list = list()
+
+        # for root, dirs, files in os.walk(os.getcwd(), topdown=False):
+        #     pass
+        # for name in dirs:
+            # directory_list.append(name)
+        # print(dirs)
+
         for root, dirs, files in os.walk(os.getcwd(), topdown=False):
-            for name in dirs:
-                directory_list.append(dirs)
-        print(directory_list)
+            
 
     def read_outfiles(self):
         """
