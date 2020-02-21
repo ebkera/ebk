@@ -333,7 +333,7 @@ class Read_outfiles():
             # Splitting up multiple values in Specie
             x = run_parameters["Specie"]
             x = x.split("-")
-            x = [i for i in x if i is not ""]
+            x = [i for i in x if i != ""]
             run_parameters["Specie"] = x
 
             # Splitting up multiple values in PP
