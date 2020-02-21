@@ -138,7 +138,7 @@ class RunScriptHandler():
         return (len(self.KE_cut)*len(self.a0)*len(self.k))
 
     def create_torque_job(self):
-        with open (f"{self.identifier}.job2", "w+") as file_torque:
+        with open (f"{self.identifier}.job", "w+") as file_torque:
             file_torque.write(f"#!/bin/bash\n")
             file_torque.write(f"# Submit jobs from explicitly specified directories;\n")
             file_torque.write(f"# stern, 2020-02-18 - Edited Eranjan\n")
@@ -191,7 +191,7 @@ class RunScriptHandler():
             file_torque.write(f"    module list\n\n")
             # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
             # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
-            file_torque.write(f"    mpirun pw.x < run.in > run.out\n")
+            file_torque.write(f"    mpirun pw.x < {self.identifier}.in > {self.identifier}.out\n")
             file_torque.write(f"END_JOB_SCRIPT\n")
             file_torque.write(f"\n")
             file_torque.write(f"done <<'END_TASKLIST'\n")
@@ -340,7 +340,7 @@ class Read_outfiles():
             x = run_parameters["PP"]
             x = x.split(".upf")
             # x = x.split(".UPF")
-            x = [i for i in x if i is not "-" and i is not ""]
+            x = [i for i in x if i != "-" and i != ""]
             run_parameters["PP"] = x
 
             folder_data.append(run_parameters)
