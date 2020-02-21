@@ -32,8 +32,8 @@ class RunScriptHandler():
             "atoms_object" (atoms object): This should be without setting the cell since that will be done with every iteration
             "structure" (int): vlaue will determine the cell
                 1: fcc structure with a0 as the lattice constant
-
         """
+        
         self.d = f"^"  # Here you can set the desired delimiter
         self.equals = f"="  # Here you can set the desired symbol for value assigner
 
@@ -52,7 +52,7 @@ class RunScriptHandler():
         self.calculator       = kwargs.get("calculator", "QE")
         self.structure_type   = kwargs.get("structure_type", "bulk")
         self.xc               = kwargs.get("xc", "pbe")
-        self.type             = kwargs.get("type", "scf")
+        self.calculation      = kwargs.get("calculation", "scf")
 
         # self.R = kwargs.get("R", [300])
 
@@ -60,7 +60,7 @@ class RunScriptHandler():
         self.ntasks          = kwargs.get("ntasks", 20)
         self.npool           = kwargs.get("npool", 1)
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
-                                "calculation"     : self.type,
+                                "calculation"     : self.calculation,
                                 "lspinorb"        : kwargs.get("lspinorbit", False),
                                 "noncolin"        : kwargs.get("noncolin", False),
                                 # "ecutrho"         : KE_cut_i*4,
@@ -232,7 +232,7 @@ class RunScriptHandler():
                     for k_i in self.k:
                         # for R_i in self.R:  # This has been disables for now
                         R_i = KE_cut_i*4
-                        run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.type}"
+                        run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calculation}"
                         if self.structure == 0:
                             # cell has been set from outside
                             pass
