@@ -389,10 +389,11 @@ class ReadOutfiles():
         """
         This method reads the out file from a single run / single folder 
         """
-        print(self.required_folder_data[0]["identifier"])
-        path = print(os.path.join(self.required_folders_list[0],self.required_folder_data[0]["identifier"]))
+        self.make_required_folders_list()
+        os.path.join(os.getcwd(),)
         for x in range(0,len(self.required_folders_list)):
-            file = ase.io.read(f"EDT.out", format = "espresso-out")
+            path = os.path.join(os.getcwd(),self.required_folders_list[x],self.identifier[0])
+            file = ase.io.read(f"{path}.out", format = "espresso-out")
             self.atoms_objects.append(file)
 
 if __name__ == "__main__":
