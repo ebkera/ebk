@@ -17,6 +17,19 @@ from ebk.SIESTA import SIESTARunFileCreator  # So that we can see how we did it 
 from ebk.calculation_set import Calculation_set
 import shutil
 
+# Here stored are all the possible values for these variables. They are common for both RunScriptHandler and Read_outfiles classes
+identifier       = []
+job_handler      = []
+a0               = []
+KE_cut           = []
+k                = []
+pseudopotentials = []
+pseudo_dir       = []
+calculator       = []
+structure_type   = []
+xc               = []
+calculation      = []
+
 class RunScriptHandler():
     """All handling of files and script for creating and executing runs is the functionality of this class"""
     def __init__(self, *args, **kwargs):
@@ -221,7 +234,7 @@ class RunScriptHandler():
         self.PP = ""
         self.specie = ""
         for key, val in self.pseudopotentials.items():
-            self.PP = f"{val}{self.PP}"
+            self.PP = f"{val}-{self.PP}"
             self.specie = f"{key}-{self.specie}"
 
         if self.structure == None:
@@ -284,8 +297,7 @@ class RunScriptHandler():
         bash_file.write(f'done\n')
         bash_file.close()
 
-
-class Read_outfiles():
+class ReadOutfiles():
     """This method should read all out files of a given type (sesta/qe) and read the vlaues like total energies"""
     def __init__(self, *args, **kwargs):
         """Doc string goes here"""
@@ -295,62 +307,102 @@ class Read_outfiles():
         # Gettings args here
 
         # Getting kwargs here
-        self.identifier       = kwargs.get("identifier")
-        self.job_handler      = kwargs.get("job_handler")
-        self.a0               = kwargs.get("a0")
-        self.KE_cut           = kwargs.get("KE_cut")
-        self.k                = kwargs.get("k")
-        self.pseudopotentials = kwargs.get("pseudopotentials")
-        self.pseudo_dir       = kwargs.get("pseudo_dir")
-        self.calculator       = kwargs.get("calculator")
-        self.structure_type   = kwargs.get("structure_type")
-        self.xc               = kwargs.get("xc")
-        self.calculation      = kwargs.get("calculation")
+        self.identifier       = kwargs.get("identifier", [])
+        self.job_handler      = kwargs.get("job_handler", [])
+        self.a0               = kwargs.get("a0", [])
+        self.KE_cut           = kwargs.get("KE_cut", [])
+        self.k                = kwargs.get("k", [])
+        self.pseudopotentials = kwargs.get("pseudopotentials", [])
+        self.pseudo_dir       = kwargs.get("pseudo_dir", [])
+        self.calculator       = kwargs.get("calculator", [])
+        self.structure_type   = kwargs.get("structure_type", [])
+        self.xc               = kwargs.get("xc", [])
+        self.calculation      = kwargs.get("calculation", [])
+        self.species          = kwargs.get("species", [])
 
-        # Initializations
-        self.E_val = []
-        self.E_f_val = []
-        self.k_val = []
-        self.KE_val = []
-        self.a0_val = []
+        # # Initializations
+        # self.E_val = []
+        # self.E_f_val = []
+        # self.k_val = []
+        # self.KE_val = []
+        # self.a0_val = []
 
     def read_folder_data(self):
         """
         This method reads the out files from the requried directories
         """
-        directory_list = list()
+        self.directory_list = list()
         for root, dirs, files in os.walk(os.getcwd(), topdown=False):
             for name in dirs:
-                directory_list.append(name)
+                self.directory_list.append(name)
 
-        folder_data = []
-        for dir in directory_list:
+        self.folder_data = []
+        for dir in self.directory_list:
             x = dir.split("^")
-            self.run_parameters = {}
-            self.run_parameters.update({"identifier":x[0]})  #Done seperately due to "identifier" not being present as a word in the folder name
+            run_parameters = {}
+            run_parameters.update({"identifier":x[0]})  #Done seperately due to "identifier" not being present as a word in the folder name
             for i in range(1,len(x)):
                 y = x[i].split("=")
-                self.run_parameters.update({y[0]:y[1]})
+                run_parameters.update({y[0]:y[1]})
+
             # Splitting up multiple values in Specie
-            x = self.run_parameters["Specie"]
+            x = run_parameters["Specie"]
             x = x.split("-")
             x = [i for i in x if i != ""]
-            self.run_parameters["Specie"] = x
+            run_parameters["Specie"] = x
 
             # Splitting up multiple values in PP
-            x = self.run_parameters["PP"]
-            x = x.split(".upf")
-            # x = x.split(".UPF")
-            x = [i for i in x if i != "-" and i != ""]
-            self.run_parameters["PP"] = x
+            x = run_parameters["PP"]
+            x = x.split("-")
+            x = [i for i in x if i != ""]
+            run_parameters["PP"] = x
+            self.folder_data.append(run_parameters)
 
-            folder_data.append(self.run_parameters)
+            ## here we need to flush out other directries that are not run directories
 
-    def read_outfiles(self, directory, file_name):
+    def make_required_folders_list(self):
         """
-        This method reads the out files from the requried
+        This method reads the out file from the selected run files properties.
+        Prerequisits:
+            read_folder_data should be run before this
         """
-        pass
+
+        self.required_folders_list = []
+        self.required_folder_data = []
+        for folder in self.folder_data:
+            if folder["identifier"] in self.identifier or self.identifier == []:
+                # print(self.identifier)  # for debugging purposes
+                if folder["Calc"] in self.calculator or self.calculator == []:
+                    if folder["a"] in self.a0 or self.a0 == []:
+                        # if folder["Struct"] in self.structure_type or self.structure_type == []:
+                        #     # for x in folder["PP"]:
+                        #     #     count = 0
+                        #     #     if x in self.pseudopotentials or self.pseudopotentials == []:
+                        #     #         count+=1
+                        #     # if count == len(folder["PP"]):
+                        #     if folder["KE"] in self.KE_cut or self.KE_cut == []:
+                        #         print(folder["KE"])
+                        #         if folder["K"] in self.k or self.k == []:
+                        #             if folder["type"] in self.calculation or self.calculation == []:
+                        self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
+
+
+        # self.identifier       = kwargs.get("identifier", "run")
+        # self.job_handler      = kwargs.get("job_handler", "torque")
+        # self.a0               = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
+        # self.KE_cut           = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
+        # self.k                = kwargs.get("k", [2])
+        # self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn':'Sn_ONCV_PBE_FR-1.1.upf'})
+        # self.pseudo_dir       = kwargs.get("pseudo_dir", False)
+        # self.calculator       = kwargs.get("calculator", "QE")
+        # self.structure_type   = kwargs.get("structure_type", "bulk")
+        # self.xc               = kwargs.get("xc", "pbe")
+        # self.calculation      = kwargs.get("calculation", "scf")
+
+    def read_outfile(self, directory, file_name):
+        """
+        This method reads the out file from a single run / single folder 
+        """
 
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
