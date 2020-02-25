@@ -300,7 +300,7 @@ class RunScriptHandler():
 class ReadOutfiles():
     """This method should read all out files of a given type (sesta/qe) and read the vlaues like total energies"""
     def __init__(self, *args, **kwargs):
-        """Doc string goes here"""
+        """All Kwargs should be set as strings"""
         self.d = f"^"  # Here you can set the desired delimiter
         self.equals = ["+", "="]  # Here you can set the desired symbol for value assigner it can also be a list of all possible values
 
@@ -321,11 +321,7 @@ class ReadOutfiles():
         self.species          = kwargs.get("species", [])
 
         # # Initializations
-        # self.E_val = []
-        # self.E_f_val = []
-        # self.k_val = []
-        # self.KE_val = []
-        # self.a0_val = []
+        self.atoms_objects = []
 
     def read_folder_data(self):
         """
@@ -374,35 +370,30 @@ class ReadOutfiles():
                 # print(self.identifier)  # for debugging purposes
                 if folder["Calc"] in self.calculator or self.calculator == []:
                     if folder["a"] in self.a0 or self.a0 == []:
-                        # if folder["Struct"] in self.structure_type or self.structure_type == []:
-                        #     # for x in folder["PP"]:
-                        #     #     count = 0
-                        #     #     if x in self.pseudopotentials or self.pseudopotentials == []:
-                        #     #         count+=1
-                        #     # if count == len(folder["PP"]):
-                        #     if folder["KE"] in self.KE_cut or self.KE_cut == []:
-                        #         print(folder["KE"])
-                        #         if folder["K"] in self.k or self.k == []:
-                        #             if folder["type"] in self.calculation or self.calculation == []:
-                        self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
+                        if folder["Struct"] in self.structure_type or self.structure_type == []:
+                            count = 0
+                            for x in folder["PP"]:
+                                if x in self.pseudopotentials or self.pseudopotentials == []:
+                                    count+=1
+                            # print(count)
+                            if count == len(folder["PP"]):
+                                if folder["KE"] in self.KE_cut or self.KE_cut == []:
+                                    if folder["K"] in self.k or self.k == []:
+                                        if folder["type"] in self.calculation or self.calculation == []:
+                                            self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
+                                            self.required_folder_data.append(self.folder_data[self.folder_data.index(folder)])
 
+    # def read_outfiles(self, directory, file_name):
 
-        # self.identifier       = kwargs.get("identifier", "run")
-        # self.job_handler      = kwargs.get("job_handler", "torque")
-        # self.a0               = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
-        # self.KE_cut           = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
-        # self.k                = kwargs.get("k", [2])
-        # self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn':'Sn_ONCV_PBE_FR-1.1.upf'})
-        # self.pseudo_dir       = kwargs.get("pseudo_dir", False)
-        # self.calculator       = kwargs.get("calculator", "QE")
-        # self.structure_type   = kwargs.get("structure_type", "bulk")
-        # self.xc               = kwargs.get("xc", "pbe")
-        # self.calculation      = kwargs.get("calculation", "scf")
-
-    def read_outfile(self, directory, file_name):
+    def read_outfiles(self):
         """
         This method reads the out file from a single run / single folder 
         """
+        print(self.required_folder_data[0]["identifier"])
+        path = print(os.path.join(self.required_folders_list[0],self.required_folder_data[0]["identifier"]))
+        for x in range(0,len(self.required_folders_list)):
+            file = ase.io.read(f"EDT.out", format = "espresso-out")
+            self.atoms_objects.append(file)
 
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
