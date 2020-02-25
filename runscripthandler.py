@@ -307,10 +307,6 @@ class Read_outfiles():
         self.xc               = kwargs.get("xc")
         self.calculation      = kwargs.get("calculation")
 
-        # Here goes the input file parameters stuff
-        self.PP = "Sn_ONCV_PBE_FR-1.1.upf"
-        self.structure = None
-
         # Initializations
         self.E_val = []
         self.E_f_val = []
@@ -330,29 +326,29 @@ class Read_outfiles():
         folder_data = []
         for dir in directory_list:
             x = dir.split("^")
-            run_parameters = {}
-            run_parameters.update({"identifier":x[0]})
+            self.run_parameters = {}
+            self.run_parameters.update({"identifier":x[0]})  #Done seperately due to "identifier" not being present as a word in the folder name
             for i in range(1,len(x)):
                 y = x[i].split("=")
-                run_parameters.update({y[0]:y[1]})
+                self.run_parameters.update({y[0]:y[1]})
             # Splitting up multiple values in Specie
-            x = run_parameters["Specie"]
+            x = self.run_parameters["Specie"]
             x = x.split("-")
             x = [i for i in x if i != ""]
-            run_parameters["Specie"] = x
+            self.run_parameters["Specie"] = x
 
             # Splitting up multiple values in PP
-            x = run_parameters["PP"]
+            x = self.run_parameters["PP"]
             x = x.split(".upf")
             # x = x.split(".UPF")
             x = [i for i in x if i != "-" and i != ""]
-            run_parameters["PP"] = x
+            self.run_parameters["PP"] = x
 
-            folder_data.append(run_parameters)
+            folder_data.append(self.run_parameters)
 
-    def read_outfiles(self):
+    def read_outfiles(self, directory, file_name):
         """
-        This method reads the out files from the requried directories
+        This method reads the out files from the requried
         """
         pass
 
