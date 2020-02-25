@@ -327,32 +327,39 @@ class ReadOutfiles():
         """
         This method reads the out files from the requried directories
         """
-        self.directory_list = list()
-        for root, dirs, files in os.walk(os.getcwd(), topdown=False):
-            for name in dirs:
-                self.directory_list.append(name)
-
+        # print(f"list dir method {os.listdir()}")
+        # for root, dirs, files in os.walk(os.getcwd(), topdown=False):
+        #     for name in dirs:
+        self.directory_list = os.listdir()
         self.folder_data = []
         for dir in self.directory_list:
-            x = dir.split("^")
-            run_parameters = {}
-            run_parameters.update({"identifier":x[0]})  #Done seperately due to "identifier" not being present as a word in the folder name
-            for i in range(1,len(x)):
-                y = x[i].split("=")
-                run_parameters.update({y[0]:y[1]})
+            print(f"this is the dir:{dir}")
+            try:
+                x = dir.split("^")
+                run_parameters = {}
+                run_parameters.update({"identifier":x[0]})  #Done seperately due to "identifier" not being present as a word in the folder name
+                for i in range(1,len(x)):
+                    y = x[i].split("=")
+                    run_parameters.update({y[0]:y[1]})
+                # print(run_parameters)
+                # Splitting up multiple values in Specie
+                x = run_parameters["Specie"]
+                x = x.split("-")
+                x = [i for i in x if i != ""]
+                run_parameters["Specie"] = x
 
-            # Splitting up multiple values in Specie
-            x = run_parameters["Specie"]
-            x = x.split("-")
-            x = [i for i in x if i != ""]
-            run_parameters["Specie"] = x
-
-            # Splitting up multiple values in PP
-            x = run_parameters["PP"]
-            x = x.split("-")
-            x = [i for i in x if i != ""]
-            run_parameters["PP"] = x
-            self.folder_data.append(run_parameters)
+                # Splitting up multiple values in PP
+                x = run_parameters["PP"]
+                x = x.split("-")
+                x = [i for i in x if i != ""]
+                run_parameters["PP"] = x
+                self.folder_data.append(run_parameters)
+                # print(f"read_folder_data: Logging folder: {dir}")
+            except:
+                print(f"read_folder_data: Ignoring folder/file: {self.directory_list.pop(self.directory_list.index(dir))}")
+            self.directory_list.pop(self.directory_list.index("make_ligands.py"))
+        # print(self.directory_list)
+        # print(self.folder_data)
 
             ## here we need to flush out other directries that are not run directories
 
@@ -390,9 +397,16 @@ class ReadOutfiles():
         This method reads the out file from a single run / single folder 
         """
         self.make_required_folders_list()
-        os.path.join(os.getcwd(),)
+        print("folders detected")
+        for x in self.directory_list:
+            print(x)
+        print("folders to open")
+        for x in self.required_folders_list:
+            print(x)
+
         for x in range(0,len(self.required_folders_list)):
-            path = os.path.join(os.getcwd(),self.required_folders_list[x],self.identifier[0])
+            path = os.path.join(os.getcwd, self.required_folders_list[x], self.identifier[0])
+            print(f"Opening file: {path}.out")
             file = ase.io.read(f"{path}.out", format = "espresso-out")
             self.atoms_objects.append(file)
 
