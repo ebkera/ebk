@@ -295,12 +295,17 @@ class Read_outfiles():
         # Gettings args here
 
         # Getting kwargs here
-        self.a0 = kwargs.get("a0", None)
-        self.KE_cut = kwargs.get("KE_cut", None)
-        self.k = kwargs.get("k", None)
-        self.pseudopotentials = kwargs.get("pseudopotentials", None)
-        self.calc = kwargs.get("calc", None)
-        # self.R = kwargs.get("R", None)
+        self.identifier       = kwargs.get("identifier")
+        self.job_handler      = kwargs.get("job_handler")
+        self.a0               = kwargs.get("a0")
+        self.KE_cut           = kwargs.get("KE_cut")
+        self.k                = kwargs.get("k")
+        self.pseudopotentials = kwargs.get("pseudopotentials")
+        self.pseudo_dir       = kwargs.get("pseudo_dir")
+        self.calculator       = kwargs.get("calculator")
+        self.structure_type   = kwargs.get("structure_type")
+        self.xc               = kwargs.get("xc")
+        self.calculation      = kwargs.get("calculation")
 
         # Here goes the input file parameters stuff
         self.PP = "Sn_ONCV_PBE_FR-1.1.upf"
