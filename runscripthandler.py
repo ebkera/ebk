@@ -332,8 +332,9 @@ class ReadOutfiles():
         #     for name in dirs:
         self.directory_list = os.listdir()
         self.folder_data = []
+        # print("Right now we are in the read_folder_data method")  # For Debugging
         for dir in self.directory_list:
-            print(f"this is the dir:{dir}")
+            print(f"This is the dir: {dir}")  # For debugging
             try:
                 x = dir.split("^")
                 run_parameters = {}
@@ -354,10 +355,10 @@ class ReadOutfiles():
                 x = [i for i in x if i != ""]
                 run_parameters["PP"] = x
                 self.folder_data.append(run_parameters)
-                # print(f"read_folder_data: Logging folder: {dir}")
+                # print(f"read_folder_data: Logging folder: {dir}")   #For debugging purposes
             except:
                 print(f"read_folder_data: Ignoring folder/file: {self.directory_list.pop(self.directory_list.index(dir))}")
-            self.directory_list.pop(self.directory_list.index("make_ligands.py"))
+            # self.directory_list.pop(self.directory_list.index("make_ligands.py"))
         # print(self.directory_list)
         # print(self.folder_data)
 
@@ -397,18 +398,27 @@ class ReadOutfiles():
         This method reads the out file from a single run / single folder 
         """
         self.make_required_folders_list()
-        print("folders detected")
-        for x in self.directory_list:
-            print(x)
-        print("folders to open")
-        for x in self.required_folders_list:
-            print(x)
+
+        # For debugging purposses below lines will be helpful
+        # print("folders detected")
+        # for x in self.directory_list:
+        #     print(x)
+        # print("folders to open")
+        # for x in self.required_folders_list:
+        #     print(x)
 
         for x in range(0,len(self.required_folders_list)):
-            path = os.path.join(os.getcwd, self.required_folders_list[x], self.identifier[0])
+            path = os.path.join(os.getcwd(), self.required_folders_list[x], self.identifier[0])
             print(f"Opening file: {path}.out")
-            file = ase.io.read(f"{path}.out", format = "espresso-out")
-            self.atoms_objects.append(file)
+            # file = ase.io.read(f"{path}.out", format = "espresso-out")
+            # self.atoms_objects.append(file)
+
+            try:
+                file = ase.io.read(f"{path}.out", format = "espresso-out")
+                self.atoms_objects.append(file)
+            except:
+                print(f"read_folder_data: Ignoring folder/file: { self.required_folders_list.pop(x)}")
+                print(f"Probably no out file")
 
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
