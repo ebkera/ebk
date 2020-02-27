@@ -66,6 +66,9 @@ class LatticeConstantOptimize():
 
 class E_cut_Optimize():
     def __init__(self, E_cut, E, name="", num_of_atoms = 2):
+        """
+        This initializes the E_cut optimization
+        """
         self.cut_off = E_cut
         self.final_energies = [x/num_of_atoms for x in E]
         self.name = name  # This part will be added to the file name
