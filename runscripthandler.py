@@ -354,8 +354,11 @@ class ReadOutfiles():
                 run_parameters.update({"identifier":x[0]})  #Done seperately due to "identifier" not being present as a word in the folder name
                 for i in range(1,len(x)):
                     y = x[i].split("=")
-                    run_parameters.update({y[0]:y[1]})
-                # print(run_parameters)
+                    try:  # Any numerical values are tried to be converted float. If cannot just set as is.
+                        run_parameters.update({y[0]:float(y[1])})
+                    except:
+                        run_parameters.update({y[0]:y[1]})
+
                 # Splitting up multiple values in Specie
                 x = run_parameters["Specie"]
                 x = x.split("-")
@@ -368,6 +371,7 @@ class ReadOutfiles():
                 x = [i for i in x if i != ""]
                 run_parameters["PP"] = x
                 self.folder_data.append(run_parameters)
+
                 # print(f"read_folder_data: Logging folder: {dir}")   #For debugging purposes
             except:
                 print(f"read_folder_data: Warning!! Something wrong with {dir}. Cannot recognize patterns.")
@@ -421,7 +425,6 @@ class ReadOutfiles():
         #     print(x)
 
         from pathlib import Path
-        # from ebk.convergence import E_cut_Optimize
 
         cur_dir = Path(os.getcwd())
         runs_dir = cur_dir.parent.parent
@@ -449,7 +452,7 @@ class ReadOutfiles():
             except:
                 print(f"read_outdirs: ** Warning Fatal Error. Cannot read file. File might not be present or might not have finished Recommended to set parameters to specifically exclude this file.\n{path}.out")
 
-        self.data = list(zip(self.required_folders_list, self.requied_folder_data, self.atoms_objects))
+        self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects))
 
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
