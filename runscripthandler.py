@@ -323,14 +323,14 @@ class ReadOutfiles():
         # # Initializations
         self.atoms_objects = []
 
-    def read_folder_data(self):
+    def read_folder_data(self, dir):
         """
         This method reads the out files from the requried directories
         """
         # print(f"list dir method {os.listdir()}")
         # for root, dirs, files in os.walk(os.getcwd(), topdown=False):
         #     for name in dirs:
-        self.directory_list = os.listdir()
+        self.directory_list = os.listdir(dir)
         self.folder_data = []
         # print("Right now we are in the read_folder_data method")  # For Debugging
         for dir in self.directory_list:
@@ -393,11 +393,10 @@ class ReadOutfiles():
 
     # def read_outfiles(self, directory, file_name):
 
-    def read_outfiles(self):
+    def read_outfiles(self, dir):
         """
         This method reads the out file from a single run / single folder 
         """
-        self.make_required_folders_list()
 
         # For debugging purposses below lines will be helpful
         # print("folders detected")
@@ -407,18 +406,33 @@ class ReadOutfiles():
         # for x in self.required_folders_list:
         #     print(x)
 
-        for x in range(0,len(self.required_folders_list)):
-            path = os.path.join(os.getcwd(), self.required_folders_list[x], self.identifier[0])
-            print(f"Opening file: {path}.out")
-            # file = ase.io.read(f"{path}.out", format = "espresso-out")
-            # self.atoms_objects.append(file)
+        from pathlib import Path
+        # from ebk.convergence import E_cut_Optimize
 
-            try:
-                file = ase.io.read(f"{path}.out", format = "espresso-out")
-                self.atoms_objects.append(file)
-            except:
-                print(f"read_folder_data: Ignoring folder/file: { self.required_folders_list.pop(x)}")
-                print(f"Probably no out file")
+        cur_dir = Path(os.getcwd())
+        runs_dir = cur_dir.parent.parent
+        if dir == "thesis":
+            mydir = Path(runs_dir, "Run_files")
+        elif dir == "sivalabs":
+            mydir = Path(runs_dir, "Run_files_SL", "Synced")
+        print(f"The Runs directory is: {mydir}")
+
+        self.read_folder_data(mydir)
+        self.make_required_folders_list()
+
+        for x in range(0,len(self.required_folders_list)):
+            path = os.path.join(mydir, self.required_folders_list[x], self.identifier[0])
+            print(f"Opening file: {path}.out")
+            file = ase.io.read(f"{path}.out", format = "espresso-out")
+            self.atoms_objects.append(file)
+        print(self.atoms_objects)
+
+            # try:
+            #     file = ase.io.read(f"{path}.out", format = "espresso-out")
+            #     self.atoms_objects.append(file)
+            # except:
+            #     print(f"read_folder_data: Ignoring folder/file: { self.required_folders_list.pop(x)}")
+            #     print(f"Probably no out file")
 
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
