@@ -65,9 +65,9 @@ class LatticeConstantOptimize():
         plt.show()
 
 class E_cut_Optimize():
-    def __init__(self, E_cut, E, name="", per_atoms = 2):
+    def __init__(self, E_cut, E, name="", num_of_atoms = 2):
         self.cut_off = E_cut
-        self.final_energies = [x/per_atoms for x in E]
+        self.final_energies = [x/num_of_atoms for x in E]
         self.name = name  # This part will be added to the file name
         self.final_energies = np.array(self.final_energies)#*13.6056980659 # Converting to eV
         E0 = np.amin(self.final_energies)
