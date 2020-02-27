@@ -385,7 +385,6 @@ class ReadOutfiles():
         self.required_folder_data = []
         for folder in self.folder_data:
             if folder["identifier"] in self.identifier or self.identifier == []:
-                # print(self.identifier)  # for debugging purposes
                 if folder["Calc"] in self.calculator or self.calculator == []:
                     if folder["a"] in self.a0 or self.a0 == []:
                         if folder["Struct"] in self.structure_type or self.structure_type == []:
@@ -393,19 +392,24 @@ class ReadOutfiles():
                             for x in folder["PP"]:
                                 if x in self.pseudopotentials or self.pseudopotentials == []:
                                     count+=1
-                            # print(count)
                             if count == len(folder["PP"]):
-                                if folder["KE"] in self.KE_cut or self.KE_cut == []:
-                                    if folder["K"] in self.k or self.k == []:
+                                if float(folder["KE"]) in self.KE_cut or self.KE_cut == []:
+                                    if float(folder["K"]) in self.k or self.k == []:
                                         if folder["type"] in self.calculation or self.calculation == []:
                                             self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
                                             self.required_folder_data.append(self.folder_data[self.folder_data.index(folder)])
 
+        print("Loaded folders:")
+        for folder in self.required_folders_list:
+            print(folder)
     # def read_outfiles(self, directory, file_name):
 
     def read_outfiles(self, dir):
         """
-        This method reads the out file from a single run / single folder 
+        This method will handle the opening of all the files and then also put them together. 
+        Inputs:
+            dir (string): Can be "thesis", "sivalabs", or here"here"
+            This will determine which folders to open. some folders default locations are hard coded.
         """
 
         # For debugging purposses below lines will be helpful
@@ -435,19 +439,15 @@ class ReadOutfiles():
         for x in range(0,len(self.required_folders_list)):
             path = os.path.join(mydir, self.required_folders_list[x], self.identifier[0])
             # print(f"Opening file: {path}.out")
+
             try:
-                file = ase.io.read(f"{path}.out", format = "espresso-out")
+                if self.folder_data[x]["Calc"].lower() == "qe":
+                    file = ase.io.read(f"{path}.out", format = "espresso-out")
+                elif self.folder_data[x]["Calc"].lower() == "siesta":
+                    file = ase.io.read(f"{path}.out", format = "espresso-out")
                 self.atoms_objects.append(file)
             except:
-                print(f"read_outdirs: ** Warning Fatal Error. Cannot read file. Recommended to set parameters to specifically exclude this file.\n{path}.out ")
-        # print(self.atoms_objects)
-
-            # try:
-            #     file = ase.io.read(f"{path}.out", format = "espresso-out")
-            #     self.atoms_objects.append(file)
-            # except:
-            #     print(f"read_folder_data: Ignoring folder/file: { self.required_folders_list.pop(x)}")
-            #     print(f"Probably no out file")
+                print(f"read_outdirs: ** Warning Fatal Error. Cannot read file. File might not be present or might not have finished Recommended to set parameters to specifically exclude this file.\n{path}.out")
 
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
