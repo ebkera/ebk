@@ -449,6 +449,8 @@ class ReadOutfiles():
             except:
                 print(f"read_outdirs: ** Warning Fatal Error. Cannot read file. File might not be present or might not have finished Recommended to set parameters to specifically exclude this file.\n{path}.out")
 
+        self.data = list(zip(self.required_folders_list, self.requied_folder_data, self.atoms_objects))
+
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
     pass
