@@ -331,10 +331,23 @@ class ReadOutfiles():
         # for root, dirs, files in os.walk(os.getcwd(), topdown=False):
         #     for name in dirs:
         self.directory_list = os.listdir(dir)
+        # print(f"Printing Directory list: {self.directory_list}")
+
+        # Removing all the non relevant folders
+        directoriestopop = []
+        for dir in self.directory_list:
+            if "^" not in dir:
+                # print(f"read_folder_data: Ignoring folder or file (set to be removed): {dir}")
+                directoriestopop.append(dir)
+        # print(f"THis is the list of directories (before):\n{self.directory_list}")
+        for x in directoriestopop:
+            print(f"read_folder_data: Ignoring folder or file: {self.directory_list.pop(self.directory_list.index(x))}")
+        # print(f"THis is the list of directories(after):\n{self.directory_list}")
+
         self.folder_data = []
         # print("Right now we are in the read_folder_data method")  # For Debugging
         for dir in self.directory_list:
-            print(f"This is the dir: {dir}")  # For debugging
+            # print(f"This is the dir: {dir}")  # For debugging
             try:
                 x = dir.split("^")
                 run_parameters = {}
@@ -357,12 +370,10 @@ class ReadOutfiles():
                 self.folder_data.append(run_parameters)
                 # print(f"read_folder_data: Logging folder: {dir}")   #For debugging purposes
             except:
-                print(f"read_folder_data: Ignoring folder/file: {self.directory_list.pop(self.directory_list.index(dir))}")
+                print(f"read_folder_data: Warning!! Something wrong with {dir}. Cannot recognize patterns.")
+                # print(f"read_folder_data: Ignoring folder/file: {self.directory_list.pop(self.directory_list.index(dir))}")
             # self.directory_list.pop(self.directory_list.index("make_ligands.py"))
-        # print(self.directory_list)
-        # print(self.folder_data)
-
-            ## here we need to flush out other directries that are not run directories
+        # print(self.folder_data)  For debugging purposes
 
     def make_required_folders_list(self):
         """
@@ -370,7 +381,6 @@ class ReadOutfiles():
         Prerequisits:
             read_folder_data should be run before this
         """
-
         self.required_folders_list = []
         self.required_folder_data = []
         for folder in self.folder_data:
@@ -415,6 +425,8 @@ class ReadOutfiles():
             mydir = Path(runs_dir, "Run_files")
         elif dir == "sivalabs":
             mydir = Path(runs_dir, "Run_files_SL", "Synced")
+        elif dir== "here":
+            mydir = Path(cur_dir)
         print(f"The Runs directory is: {mydir}")
 
         self.read_folder_data(mydir)
@@ -422,10 +434,13 @@ class ReadOutfiles():
 
         for x in range(0,len(self.required_folders_list)):
             path = os.path.join(mydir, self.required_folders_list[x], self.identifier[0])
-            print(f"Opening file: {path}.out")
-            file = ase.io.read(f"{path}.out", format = "espresso-out")
-            self.atoms_objects.append(file)
-        print(self.atoms_objects)
+            # print(f"Opening file: {path}.out")
+            try:
+                file = ase.io.read(f"{path}.out", format = "espresso-out")
+                self.atoms_objects.append(file)
+            except:
+                print(f"read_outdirs: ** Warning Fatal Error. Cannot read file. Recommended to set parameters to specifically exclude this file.\n{path}.out ")
+        # print(self.atoms_objects)
 
             # try:
             #     file = ase.io.read(f"{path}.out", format = "espresso-out")
