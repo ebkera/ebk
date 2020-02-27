@@ -451,8 +451,17 @@ class ReadOutfiles():
                 self.atoms_objects.append(file)
             except:
                 print(f"read_outdirs: ** Warning Fatal Error. Cannot read file. File might not be present or might not have finished Recommended to set parameters to specifically exclude this file.\n{path}.out")
-
         self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects))
+
+    def get_sorted_energies(self, sort_for = "KE"):
+        """
+        Returns two lists sorted according to sort_for
+        """
+        self.data = sorted(self.data, key=lambda x: x[1][sort_for])
+        x = [self[1][sort_for] for self in self.data]
+        E = [self[2].get_total_energy() for self in self.data]
+
+        return x, E
 
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
