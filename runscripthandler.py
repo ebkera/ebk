@@ -431,12 +431,14 @@ class ReadOutfiles():
         cur_dir = Path(os.getcwd())
         runs_dir = cur_dir.parent.parent
         if dir == "thesis":
-            mydir = Path(runs_dir, "Run_files")
+            mydir = Path(runs_dir, "Run_files_git", "Run_files")
         elif dir == "sivalabs":
             mydir = Path(runs_dir, "Run_files_SL", "Synced")
         elif dir== "here":
             mydir = Path(cur_dir)
-        print(f"The Runs directory is: {mydir}")
+        
+        if self.high_verbosity:
+            print(f"The Runs directory is: {mydir}")
 
         self.read_folder_data(mydir)
         self.make_required_folders_list()
