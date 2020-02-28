@@ -14,7 +14,6 @@ from ase import Atoms
 import ase.io
 from ebk.QE import QErunfilecreator  # So that we can see how we did it last time
 from ebk.SIESTA import SIESTARunFileCreator  # So that we can see how we did it last time
-from ebk.calculation_set import Calculation_set
 import shutil
 
 # Here stored are all the possible values for these variables. They are common for both RunScriptHandler and Read_outfiles classes
@@ -319,6 +318,7 @@ class ReadOutfiles():
         self.xc               = kwargs.get("xc", [])
         self.calculation      = kwargs.get("calculation", [])
         self.species          = kwargs.get("species", [])
+        self.high_verbosity   = kwargs.get("high_verbosity", False)
 
         # # Initializations
         self.atoms_objects = []
@@ -341,7 +341,9 @@ class ReadOutfiles():
                 directoriestopop.append(dir)
         # print(f"THis is the list of directories (before):\n{self.directory_list}")
         for x in directoriestopop:
-            print(f"read_folder_data: Ignoring folder or file: {self.directory_list.pop(self.directory_list.index(x))}")
+            printable = self.directory_list.pop(self.directory_list.index(x))
+            if self.high_verbosity == True:
+                print(f"read_folder_data: Ignoring folder or file: {printable}")
         # print(f"THis is the list of directories(after):\n{self.directory_list}")
 
         self.folder_data = []
@@ -402,10 +404,10 @@ class ReadOutfiles():
                                         if folder["type"] in self.calculation or self.calculation == []:
                                             self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
                                             self.required_folder_data.append(self.folder_data[self.folder_data.index(folder)])
-
-        print("Loaded folders:")
-        for folder in self.required_folders_list:
-            print(folder)
+        if self.high_verbosity == True:
+            print("Loaded folders:")
+            for folder in self.required_folders_list:
+                print(folder)
     # def read_outfiles(self, directory, file_name):
 
     def read_outfiles(self, dir):

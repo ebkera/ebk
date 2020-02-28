@@ -101,6 +101,7 @@ class E_cut_Optimize():
         for x in range(0, len(self.cut_off)):
             plt.plot(self.cut_off[x], E_to_plot[x], 'x-', label = self.labels[x])
 
+        plt.legend()
         # plt.xlim(28, 40)
         # plt.ylim(-3176.5, -3175.5)
         if MP == True:
