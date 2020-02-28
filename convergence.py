@@ -65,27 +65,42 @@ class LatticeConstantOptimize():
         plt.show()
 
 class E_cut_Optimize():
-    def __init__(self, E_cut, E, name="", num_of_atoms = 2):
+    def __init__(self, E_cut, Energies, labels, name="", num_of_atoms = 2):
         """
         This initializes the E_cut optimization
+        Inputs
+        E_cut  # List of lists
+        Energies  # List of lists
+        label: List of strings
         """
-        self.cut_off = E_cut
-        self.final_energies = [x/num_of_atoms for x in E]
+        self.cut_off = E_cut  # This should be an array of arrays
+        self.final_energies = []
+        self.labels = labels
+        for E in Energies:
+            self.final_energies.append(np.array([x/num_of_atoms for x in E])) # Converting to per energies per atom
         self.name = name  # This part will be added to the file name
-        self.final_energies = np.array(self.final_energies)#*13.6056980659 # Converting to eV
-        E0 = np.amin(self.final_energies)
-        self.final_DEs = [E - E0 for E in self.final_energies]
+        self.final_DEs = []
+
+        for E in self.final_energies:
+            E0 = np.amin(E)
+            self.final_DEs.append([(E1 - E0)*1000 for E1 in E])  # Converting in to meV
         self.graph_title = ""
 
     def plot(self, diff = True, MP = False):
         plt.rcParams["figure.figsize"] = (14,9)
         if diff == True:
-            self.final_DEs = [x*1000 for x in self.final_DEs]   # Converting in to meV
-            plt.plot(self.cut_off, self.final_DEs, 'x-')
+            # self.final_DEs = [x*1000 for x in self.final_DEs]   # Converting in to meV
+            E_to_plot = self.final_DEs
+            # plt.plot(self.cut_off, self.final_DEs, 'x-')
             plt.ylabel("$\Delta$ E (meV/atom)")
         else:
-            plt.plot(self.cut_off, self.final_energies, 'x-')
+            E_to_plot = self.final_energies
+            # plt.plot(self.cut_off, self.final_energies, 'x-')
             plt.ylabel("Total Energy (eV/atom)")
+        
+        for x in range(0, len(self.cut_off)):
+            plt.plot(self.cut_off[x], E_to_plot[x], 'x-', label = self.labels[x])
+
         # plt.xlim(28, 40)
         # plt.ylim(-3176.5, -3175.5)
         if MP == True:
