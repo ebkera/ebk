@@ -138,7 +138,6 @@ class RunScriptHandler():
         self.espresso_inputs.update({"label" : f"{run_name}"})
 
         self.espresso_inputs.update({"ecutwfc" : KE_cut_i})
-        self.espresso_inputs.update({"path" : self.k_path})
         if k_i == "path":
             self.espresso_inputs.update({"kpts" : self.k_path})
         else:
@@ -155,7 +154,7 @@ class RunScriptHandler():
         return (len(self.KE_cut)*len(self.a0)*len(self.k))
 
     def create_torque_job(self):
-        with open (f"{self.identifier}.job", "w+") as file_torque:
+        with open (f"{self.identifier}.{self.calculation}.job", "w+") as file_torque:
             file_torque.write(f"#!/bin/bash\n")
             file_torque.write(f"# Submit jobs from explicitly specified directories;\n")
             file_torque.write(f"# stern, 2020-02-18 - Edited Eranjan\n")
