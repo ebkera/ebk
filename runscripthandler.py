@@ -143,7 +143,6 @@ class RunScriptHandler():
             self.espresso_inputs.update({"kpts" : self.k_path})
         else:
             self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
-
         ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
 
     def write_SIESTA_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
