@@ -8,6 +8,8 @@ U = [1/4, 1., 1/4, "U"]
 K = [3/4, 3/4, 0., "K"]
 G = [0., 0., 0., "$\\Gamma$"]
 
+all_HSP = [X, L, W, U, K, G]
+
 class kPathCreator():
     def __init__(self):
         self.k_path = []
@@ -40,7 +42,7 @@ class kPathCreator():
         #     print("Start point probably not set!")
 
     def out_kpath_QE(self, name="kpath"):
-        """Prints the kpath in the required format"""
+        """Prints the kpath in a QE compatible format"""
         f = open(f"{name}.kpath","w+")
         f.write(f"#  This file contains the k_path in Quantum Espresso compatible format.\n")
         f.write(f"#  This path contains {len(self.k_distance)} k points.\n")
@@ -50,6 +52,21 @@ class kPathCreator():
         for x in range(0,len(self.k_path)):
             f.write(f"{self.k_path[x][0]:.2f}  {self.k_path[x][1]:.2f}  {self.k_path[x][2]:.2f}  {self.k_distance[x]}\n")
         f.close()
+
+    def make_kpath_dict(self):
+        """Makes a dict out of the k path"""
+        self.k_path_dict={}
+        reqstring = ""
+        for x in self.highSymPoints_symbols:
+            for y in all_HSP:
+                if x==y[3]:
+                    if x == "$\\Gamma$":
+                        reqstring = (f"{reqstring}G")
+                    else:
+                        reqstring = (f"{reqstring}{x}")
+        print(f"make_kpath_dict: req string is :{reqstring}")
+        self.k_path_dict.update({"path":reqstring})
+        self.k_path_dict.update({"density": 10})
 
 if __name__ == "__main__":
     path = kPathCreator()
