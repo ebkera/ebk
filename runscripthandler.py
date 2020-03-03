@@ -136,8 +136,12 @@ class RunScriptHandler():
         """
         # Here we update aditional run specific stuff
         self.espresso_inputs.update({"label" : f"{run_name}"})
-        self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
+
         self.espresso_inputs.update({"ecutwfc" : KE_cut_i})
+        if k_i == "path":
+            self.espresso_inputs.update({"kpts" : self.k_path})
+        else:
+            self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
         ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
 
     def write_SIESTA_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
@@ -150,7 +154,7 @@ class RunScriptHandler():
         return (len(self.KE_cut)*len(self.a0)*len(self.k))
 
     def create_torque_job(self):
-        with open (f"{self.identifier}.job", "w+") as file_torque:
+        with open (f"{self.identifier}.{self.calculation}.job", "w+") as file_torque:
             file_torque.write(f"#!/bin/bash\n")
             file_torque.write(f"# Submit jobs from explicitly specified directories;\n")
             file_torque.write(f"# stern, 2020-02-18 - Edited Eranjan\n")
@@ -241,6 +245,12 @@ class RunScriptHandler():
         else:
             for KE_cut_i in self.KE_cut:
                 for a0_i in self.a0:
+                    if type(self.k) is dict:
+                        # Here we see if the input is a dict which means that the it is actually a k path.
+                        # If is is a k.path, the kpath is save in self.k_path and the self.k variable is set to ["path"]
+                        # This is because then it will appear in the file name as path.
+                        self.k_path = self.k
+                        self.k = ["path"]
                     for k_i in self.k:
                         # for R_i in self.R:  # This has been disables for now
                         R_i = KE_cut_i*4
