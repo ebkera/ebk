@@ -86,8 +86,8 @@ class RunScriptHandler():
                                 "disk_io"         : kwargs.get("disk_io",'default'),
                                 "verbosity"       : kwargs.get("verbosity",'high'),
                                 "lkpoint_dir"     : kwargs.get("lkpoint_dir", False),
-                                "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-6),
-                                "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-4),
+                                "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-3),
+                                "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-3),
                                 "outdir"          : kwargs.get("outdir", './')
                                 }
 
