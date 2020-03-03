@@ -76,7 +76,7 @@ class RunScriptHandler():
                                 "noncolin"        : kwargs.get("noncolin", False),
                                 # "ecutrho"         : KE_cut_i*4,
                                 "occupations"     : kwargs.get("occupations",'smearing'),
-                                "diagonalization"     : kwargs.get("diagonalization",'david'),
+                                "diagonalization" : kwargs.get("diagonalization",'david'),
                                 "smearing"        : kwargs.get("smearing",'gaussian'),
                                 "degauss"         : kwargs.get("degauss", 0.01),
                                 "mixing_beta"     : kwargs.get("mixing_beta", 0.7),
