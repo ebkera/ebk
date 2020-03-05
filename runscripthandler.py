@@ -45,7 +45,6 @@ class RunScriptHandler():
             "structure" (int): vlaue will determine the cell
                 1: fcc structure with a0 as the lattice constant
         """
-        
         self.d = f"^"  # Here you can set the desired delimiter
         self.equals = f"="  # Here you can set the desired symbol for value assigner
 
@@ -77,6 +76,7 @@ class RunScriptHandler():
                                 "noncolin"        : kwargs.get("noncolin", False),
                                 # "ecutrho"         : KE_cut_i*4,
                                 "occupations"     : kwargs.get("occupations",'smearing'),
+                                "diagonalization" : kwargs.get("diagonalization",'david'),
                                 "smearing"        : kwargs.get("smearing",'gaussian'),
                                 "degauss"         : kwargs.get("degauss", 0.01),
                                 "mixing_beta"     : kwargs.get("mixing_beta", 0.7),
@@ -86,8 +86,8 @@ class RunScriptHandler():
                                 "disk_io"         : kwargs.get("disk_io",'default'),
                                 "verbosity"       : kwargs.get("verbosity",'high'),
                                 "lkpoint_dir"     : kwargs.get("lkpoint_dir", False),
-                                "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-6),
-                                "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-4),
+                                "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-3),
+                                "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-3),
                                 "outdir"          : kwargs.get("outdir", './')
                                 }
 
