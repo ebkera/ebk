@@ -407,6 +407,8 @@ class ReadOutfiles():
         for folder in self.folder_data:
             if folder["identifier"] in self.identifier or self.identifier == []:
                 if folder["Calc"] in self.calculator or self.calculator == []:
+                    # since you can mistakenly set a0 in strings lets try to convert them to floats
+                    self.a0 = [float(x) for x in self.a0]
                     if folder["a"] in self.a0 or self.a0 == []:
                         if folder["Struct"] in self.structure_type or self.structure_type == []:
                             count = 0
