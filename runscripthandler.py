@@ -456,14 +456,12 @@ class ReadOutfiles():
         
         if self.high_verbosity:
             print(f"The Runs directory is: {mydir}")
-
         self.read_folder_data(mydir)
         self.make_required_folders_list()
 
         for x in range(0,len(self.required_folders_list)):
             path = os.path.join(mydir, self.required_folders_list[x], self.identifier[0])
             # print(f"Opening file: {path}.out")
-
             try:
                 if self.folder_data[x]["Calc"].lower() == "qe":
                     file = ase.io.read(f"{path}.out", format = "espresso-out")
@@ -481,7 +479,6 @@ class ReadOutfiles():
         self.data = sorted(self.data, key=lambda x: x[1][sort_for])
         x = [self[1][sort_for] for self in self.data]
         E = [self[2].get_total_energy() for self in self.data]
-
         return x, E
 
 if __name__ == "__main__":
