@@ -384,6 +384,11 @@ class ReadOutfiles():
                 run_parameters["PP"] = x
                 self.folder_data.append(run_parameters)
 
+                # If the calculation was a band calculation then K would be set to "bands". 
+                # Here we set the K value to 0 for such cases so that it will not break code further down
+                if run_parameters["K"] == "path":
+                    run_parameters["K"] = 0
+
                 # print(f"read_folder_data: Logging folder: {dir}")   #For debugging purposes
             except:
                 print(f"read_folder_data: Warning!! Something wrong with {dir}. Cannot recognize patterns.")
