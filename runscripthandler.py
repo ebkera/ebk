@@ -266,8 +266,7 @@ class RunScriptHandler():
             for KE_cut_i in self.KE_cut:
                 for a0_i in self.a0:
                     for k_i in self.k:
-                        print(f"make_runs: Current ki is: {k_i}")  # can be left for diagnosing
-                        # for R_i in self.R:  # This has been disables for now
+                        # for R_i in self.R:  # This has been disabled for now
                         R_i = KE_cut_i*4
                         run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calculation}"
                         if self.structure == 0:
