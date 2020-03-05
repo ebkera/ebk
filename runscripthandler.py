@@ -314,6 +314,7 @@ class ReadOutfiles():
         self.equals = ["+", "="]  # Here you can set the desired symbol for value assigner it can also be a list of all possible values
 
         # Gettings args here
+            # No args to get right now
 
         # Getting kwargs here
         self.identifier       = kwargs.get("identifier", [])
