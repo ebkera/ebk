@@ -64,7 +64,9 @@ class RunScriptHandler():
         self.structure_type   = kwargs.get("structure_type", "bulk")
         self.xc               = kwargs.get("xc", "pbe")
         self.calculation      = kwargs.get("calculation", "scf")
-
+        self.path             = kwargs.get("path", "GXWLGKL")
+        self.density          = kwargs.get("density", 15)
+        self.k_path           = {"path":self.path, "density": self.density}
         # self.R = kwargs.get("R", [300])
 
         # Quantum espresso inits
@@ -88,7 +90,9 @@ class RunScriptHandler():
                                 "lkpoint_dir"     : kwargs.get("lkpoint_dir", False),
                                 "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-3),
                                 "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-3),
-                                "outdir"          : kwargs.get("outdir", './')
+                                "outdir"          : kwargs.get("outdir", './'),
+                                "path"            : self.path,
+                                "density"         : self.density
                                 }
 
         if self.pseudo_dir != False:
@@ -136,13 +140,21 @@ class RunScriptHandler():
         """
         # Here we update aditional run specific stuff
         self.espresso_inputs.update({"label" : f"{run_name}"})
-
         self.espresso_inputs.update({"ecutwfc" : KE_cut_i})
-        if k_i == "path":
+        self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
+        if self.calculation == "bands":
+            # First we deal with the scf run
+            self.espresso_inputs.update({"calculation" : "scf"})
+            ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            # Then here we take care of the bands run
+            self.espresso_inputs.update({"calculation" : "bands"})
             self.espresso_inputs.update({"kpts" : self.k_path})
+            ase.io.write(f"{self.identifier}.bands.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            os.rename(f"{self.identifier}.bands.in", f"./{run_name}/{self.identifier}.bands.in")
+            os.rename(f"{self.identifier}.in", f"./{run_name}/{self.identifier}.in")
         else:
-            self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
-        ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            os.rename(f"{self.identifier}.in", f"./{run_name}/{self.identifier}.in")
 
     def write_SIESTA_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
         """
@@ -154,6 +166,12 @@ class RunScriptHandler():
         return (len(self.KE_cut)*len(self.a0)*len(self.k))
 
     def create_torque_job(self):
+        # Creating the scf run for bands runs if self.calculation bands
+        if self.calculation == "bands":
+            self.calculation = "scf"
+            self.create_torque_job()
+            self.calculation = "bands"
+
         with open (f"{self.identifier}.{self.calculation}.job", "w+") as file_torque:
             file_torque.write(f"#!/bin/bash\n")
             file_torque.write(f"# Submit jobs from explicitly specified directories;\n")
@@ -207,7 +225,10 @@ class RunScriptHandler():
             file_torque.write(f"    module list\n\n")
             # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
             # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
-            file_torque.write(f"    mpirun pw.x < {self.identifier}.in > {self.identifier}.out\n")
+            if self.calculation == "bands":
+                file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
+            else:
+                file_torque.write(f"    mpirun pw.x < {self.identifier}.in > {self.identifier}.out\n")
             file_torque.write(f"END_JOB_SCRIPT\n")
             file_torque.write(f"\n")
             file_torque.write(f"done <<'END_TASKLIST'\n")
@@ -239,19 +260,13 @@ class RunScriptHandler():
         for key, val in self.pseudopotentials.items():
             self.PP = f"{val}-{self.PP}"
             self.specie = f"{key}-{self.specie}"
-
         if self.structure == None:
             print(f"make_runs: Warning! No structure set. Cannot create run.")
         else:
             for KE_cut_i in self.KE_cut:
                 for a0_i in self.a0:
-                    if type(self.k) is dict:
-                        # Here we see if the input is a dict which means that the it is actually a k path.
-                        # If is is a k.path, the kpath is save in self.k_path and the self.k variable is set to ["path"]
-                        # This is because then it will appear in the file name as path.
-                        self.k_path = self.k
-                        self.k = ["path"]
                     for k_i in self.k:
+                        print(f"make_runs: Current ki is: {k_i}")  # can be left for diagnosing
                         # for R_i in self.R:  # This has been disables for now
                         R_i = KE_cut_i*4
                         run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calculation}"
@@ -264,15 +279,15 @@ class RunScriptHandler():
                             self.atoms_object.set_cell([(0, b, b), (b, 0, b), (b, b, 0)], scale_atoms=True)
                         else:
                             print("make_runs: Warning! Cannot set cell. Structrue not supported")
-                        self.write_QE_inputfile(run_name, KE_cut_i, a0_i, k_i)
                         if os.path.exists(run_name):
                             shutil.rmtree(run_name)
                             print("make_runs: Warning! Path exists!! Overwriting")
                         os.mkdir(f"{run_name}")
-                        os.rename(f"{self.identifier}.in", f"./{run_name}/{self.identifier}.in")
+                        self.write_QE_inputfile(run_name, KE_cut_i, a0_i, k_i)
                         self.all_runs_list.append(run_name)
-                        
+
                         # Creating jobs
+                        # This if else block is pending deletion upon making a seperate method for slurm jobs.
                         if self.job_handler == "torque":
                             # we do nothing here for now since torque jobs will have specific script to run
                             pass
