@@ -296,6 +296,10 @@ class RunScriptHandler():
                         else:
                             print(f"make_runs: Unrecognized job_handler! Job files not created")
 
+        bat_file = open("rsyn_out.bat", "w+")
+        bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" ./ rathnayake@localhost:~/Run_files')
+        bat_file.close()
+
     def create_bash_file(self):
         """
         This script creates bash files so that you can run a batch of the runs that need to be done
@@ -346,7 +350,8 @@ class ReadOutfiles():
         self.high_verbosity   = kwargs.get("high_verbosity", False)
 
         # # Initializations
-        self.atoms_objects = []
+        self.atoms_objects = []  # Where all data read from file will be stored for a scf type file.
+        self.atoms_bands_objects = []  #Where all data read from file will be stored for a bands type file.
 
     def read_folder_data(self, dir):
         """
@@ -399,17 +404,9 @@ class ReadOutfiles():
                 run_parameters["PP"] = x
                 self.folder_data.append(run_parameters)
 
-                # If the calculation was a band calculation then K would be set to "bands". 
-                # Here we set the K value to 0 for such cases so that it will not break code further down
-                if run_parameters["K"] == "path":
-                    run_parameters["K"] = 0
-
                 # print(f"read_folder_data: Logging folder: {dir}")   #For debugging purposes
             except:
                 print(f"read_folder_data: Warning!! Something wrong with {dir}. Cannot recognize patterns.")
-                # print(f"read_folder_data: Ignoring folder/file: {self.directory_list.pop(self.directory_list.index(dir))}")
-            # self.directory_list.pop(self.directory_list.index("make_ligands.py"))
-        # print(self.folder_data)  For debugging purposes
 
     def make_required_folders_list(self):
         """
@@ -480,12 +477,27 @@ class ReadOutfiles():
             try:
                 if self.folder_data[x]["Calc"].lower() == "qe":
                     file = ase.io.read(f"{path}.out", format = "espresso-out")
+                    if self.calculation == "bands":
+                        bands_file = ase.io.read(f"{path}.bands.out", format = "espresso-out")
                 elif self.folder_data[x]["Calc"].lower() == "siesta":
                     file = ase.io.read(f"{path}.out", format = "espresso-out")
                 self.atoms_objects.append(file)
+                try:
+                    self.atoms_bands_objects.append(bands_file)
+                except:
+                    pass
             except:
                 print(f"read_outdirs: ** Warning Fatal Error. Cannot read file. File might not be present or might not have finished Recommended to set parameters to specifically exclude this file.\n{path}.out")
-        self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects))
+        try:
+            # Trying to zip bands files here
+            self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects, self.atoms_bands_objects))
+            if self.high_verbosity:
+                print(f"read_outfiles: Sucessfully read bands files. Zipping done")
+        except:
+            # No bands files have been read
+            self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects))
+            if self.high_verbosity:
+                print(f"read_outfiles: Sucessfully read scf files. Zipping done")
 
     def get_sorted_energies(self, sort_for = "KE"):
         """
