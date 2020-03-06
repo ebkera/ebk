@@ -65,7 +65,7 @@ class RunScriptHandler():
         self.xc               = kwargs.get("xc", "pbe")
         self.calculation      = kwargs.get("calculation", "scf")
         self.path             = kwargs.get("path", "GXWLGKL")
-        self.density          = kwargs.get("density", 15)
+        self.density          = kwargs.get("density", 20)
         self.k_path           = {"path":self.path, "density": self.density}
         # self.R = kwargs.get("R", [300])
 
@@ -507,6 +507,15 @@ class ReadOutfiles():
         x = [self[1][sort_for] for self in self.data]
         E = [self[2].get_total_energy() for self in self.data]
         return x, E
+
+    def get_band_path(self):
+        if self.calculation == "scf":
+            print("This is a scf calculation and therefore no band path.")
+        elif self.calculation == "bands":
+        # try:
+            return self.atoms_bands_objects[0].cell.get_band_path()
+        # except:
+        #     print("Error returning band path")
 
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
