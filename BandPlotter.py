@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib
+import numpy as np
 # matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 
 
@@ -93,7 +94,7 @@ class BandPlotterASE():
         self.ylim_high = 5
         self.xlim_low = 0
         self.xlim_high = 0
-        self.Ef_shift = 0
+        self.Ef_shift = True
         self.y_to_plot = []
         self.same_band_colour = False
         self.band_colour = "b"
@@ -135,42 +136,26 @@ class BandPlotterASE():
         plt.savefig(f"Bands_{self.file_name}.pdf")
         plt.show()
 
-    def prepare_plot(self, readoutfilesobj):
+    def add_to_plot(self, readoutfilesobj):
         """
-        |All the features of the band plot are set here
-        |Inputs: None
+        |Here you add individual plots that need to be plot
         """
-        for i in range(0,len(self.y)):
-            self.y_to_plot.append([x - self.Ef_shift for x in self.y[i]])
-        
-        # To get multiple band diagrams together just plot them on the same figure (with the same file name) and when ever you want a new figure with just the new plots
-        #  just do new_fig = True. If you want to save individual figures just give a new file name (with new_fig = True).
-        if self.new_fig == True:
-            plt.figure()
-        
-        # Setting vertical lines
-        if self.vlines == True:
-            for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
-                plt.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
-
-        # Setting y ranges
-        if self.set_y_range == True:
-            plt.ylim([self.ylim_low,self.ylim_high])
-
-        # We plot the figure here
-        for band in range(0,len(self.y)):
-            if self.same_band_colour == True:
-                plt.plot(self.x, self.y_to_plot[band], self.band_colour)
-            else:
-                plt.plot(self.x, self.y_to_plot[band])
-
-        plt.xticks(self.k_locations, self.k_symbols)
-        plt.xlabel("K path")
-        plt.ylabel("Energy (eV)")
-        plt.title(f"{self.title}")
-        plt.savefig(f"Bands_{self.file_name}.pdf")
-        plt.show()
-
+        Ef = readoutfilesobj.atoms_objects[0].calc.get_fermi_level()
+        kpts = readoutfilesobj.atoms_bands_objects[0].calc.get_ibz_k_points()
+        energies = []
+        for s in range(readoutfilesobj.atoms_bands_objects[0].calc.get_number_of_spins()):
+            energies.append([readoutfilesobj.atoms_bands_objects[0].calc.get_eigenvalues(kpt=k, spin=s) for k in range(len(kpts))])
+        # print(energies)
+        # for s in energies[0]:
+        #     print(s)
+        #     print()
+        Energy_to_plot = []
+        if self.Ef_shift == True:
+            for band in energies[0]:
+                band = [E - Ef for E in band]
+                Energy_to_plot.append(band)
+        energies = np.array(energies)
+        print(Energy_to_plot)
 
 if __name__ == "__main__":
     # You dont really need this. For testing we have left this block here.
