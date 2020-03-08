@@ -96,8 +96,10 @@ class BandPlotterASE():
         self.xlim_high = 0
         self.Ef_shift = True
         self.y_to_plot = []
+        self.x_to_plot = []
+        self.labels = []
         self.same_band_colour = False
-        self.band_colour = "b"
+        self.band_colour = ["b", "g", "r", "k"]
         self.new_fig = False
 
     def plot(self):
@@ -105,13 +107,13 @@ class BandPlotterASE():
         |All the features of the band plot are set here
         |Inputs: None
         """
-        for i in range(0,len(self.y)):
-            self.y_to_plot.append([x - self.Ef_shift for x in self.y[i]])
-        
+        # for i in range(0,len(self.y)):
+        #     self.y_to_plot.append([x - self.Ef_shift for x in self.y[i]])
+
         # To get multiple band diagrams together just plot them on the same figure (with the same file name) and when ever you want a new figure with just the new plots
         #  just do new_fig = True. If you want to save individual figures just give a new file name (with new_fig = True).
-        if self.new_fig == True:
-            plt.figure()
+        # if self.new_fig == True:
+        #     plt.figure()
         
         # Setting vertical lines
         if self.vlines == True:
@@ -123,28 +125,43 @@ class BandPlotterASE():
             plt.ylim([self.ylim_low,self.ylim_high])
 
         # We plot the figure here
-        for band in range(0,len(self.y)):
-            if self.same_band_colour == True:
-                plt.plot(self.x, self.y_to_plot[band], self.band_colour)
-            else:
-                plt.plot(self.x, self.y_to_plot[band])
+        for structure in range(0,len(self.y_to_plot)):
+            # print(f"structure: {}")
+            for band in range(0,len(self.y_to_plot[structure])):
+                if self.same_band_colour == True:
+                    if self.labels[structure] != None:
+                        plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], self.band_colour[structure], label = self.labels[structure])
+                        self.labels[structure] = None
+                    else:
+                        plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], self.band_colour[structure], label = self.labels[structure])
+                else:
+                    plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band])
 
-        plt.xticks(self.k_locations, self.k_symbols)
+        # plt.xticks(self.k_locations, self.k_symbols)
         plt.xlabel("K path")
         plt.ylabel("Energy (eV)")
         plt.title(f"{self.title}")
         plt.savefig(f"Bands_{self.file_name}.pdf")
+        plt.legend()
         plt.show()
 
-    def add_to_plot(self, readoutfilesobj):
+    def add_to_plot(self, readoutfilesobj, label = None):
         """
-        |Here you add individual plots that need to be plot
+        |Here you add individual plots that need to be plot and then just plot them with the plot command
         """
-        Ef = readoutfilesobj.atoms_objects[0].calc.get_fermi_level()
-        kpts = readoutfilesobj.atoms_bands_objects[0].calc.get_ibz_k_points()
+        try:
+            Ef = readoutfilesobj.atoms_objects[0].calc.get_fermi_level()
+        except:
+            print(f"add_to_plot: Could not read fermi level")
+        try:
+            kpts = readoutfilesobj.atoms_bands_objects[0].calc.get_ibz_k_points()
+        except:
+            print(f"add_to_plot: Could not read k points")
+
         energies = []
         for s in range(readoutfilesobj.atoms_bands_objects[0].calc.get_number_of_spins()):
             energies.append([readoutfilesobj.atoms_bands_objects[0].calc.get_eigenvalues(kpt=k, spin=s) for k in range(len(kpts))])
+        print(f"lenght of kpoints: {range(len(kpts))}")
         # print(energies)
         # for s in energies[0]:
         #     print(s)
@@ -152,10 +169,19 @@ class BandPlotterASE():
         Energy_to_plot = []
         if self.Ef_shift == True:
             for band in energies[0]:
-                band = [E - Ef for E in band]
-                Energy_to_plot.append(band)
-        energies = np.array(energies)
-        print(Energy_to_plot)
+                Energy_to_plot.append([E - Ef for E in band])
+        tempMain = []
+        temp = []
+        for x in range(len(Energy_to_plot[0])):
+            for kpoint in Energy_to_plot:
+                temp.append(kpoint[x])
+            tempMain.append(temp)
+            temp = []
+        self.y_to_plot.append(tempMain)
+        self.x_to_plot.append(range(len(kpts)))
+        self.labels.append(label)
+
+        
 
 if __name__ == "__main__":
     # You dont really need this. For testing we have left this block here.
