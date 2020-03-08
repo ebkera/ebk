@@ -106,22 +106,22 @@ class BandPlotterASE():
         |All the features of the band plot are set here
         |Inputs: None
         """
-        # for i in range(0,len(self.y)):
-        #     self.y_to_plot.append([x - self.Ef_shift for x in self.y[i]])
 
-        # To get multiple band diagrams together just plot them on the same figure (with the same file name) and when ever you want a new figure with just the new plots
-        #  just do new_fig = True. If you want to save individual figures just give a new file name (with new_fig = True).
-        # if self.new_fig == True:
-        #     plt.figure()
-        
+        # Setting the dimensions of the saved image
+        plt.rcParams["figure.figsize"] = (14,9)
+
         # Setting vertical lines
         if self.vlines == True:
             for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
                 plt.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
 
+        # Setting horizontal line on the fermi energy
+        if self.hlines == True:
+            plt.axhline(linewidth=0.1, color='k')
+
         # Setting y ranges
         if self.set_y_range == True:
-            plt.ylim([self.ylim_low,self.ylim_high])
+            plt.ylim([self.ylim_low, self.ylim_high])
 
         # We plot the figure here
         for structure in range(0,len(self.y_to_plot)):
@@ -160,11 +160,9 @@ class BandPlotterASE():
         # Test space for k path and k high symmetry points
         # print(kpts)
         path = readoutfilesobj.atoms_bands_objects[0].cell.bandpath(npoints=0)
-        kinks = find_bandpath_kinks(readoutfilesobj.atoms_bands_objects[0].cell, kpts, eps=1e-5)
-        pathspec = resolve_custom_points(kpts[kinks], path.special_points, eps=1e-5)        
-        print(kinks)
+        kinks = find_bandpath_kinks(readoutfilesobj.atoms_bands_objects[0].cell, kpts, eps=1e-5)  # These are the high symmetry points in use 
+        pathspec = resolve_custom_points(kpts[kinks], path.special_points, eps=1e-5) # This gives the postions for the relevant high symmetry points
         path.kpts = kpts
-        print(pathspec)
         path.path = pathspec
 
         klengths = []
@@ -175,9 +173,6 @@ class BandPlotterASE():
             else:
                 kdist = np.sqrt((kpts[x-1][0] - kpts[x][0])**2 + (kpts[x-1][1] - kpts[x][1])**2 + (kpts[x-1][2]- kpts[x][2])**2)
                 klengths.append(kdist+klengths[x-1])
-
-        print(len(klengths))
-        print(len(kpts))
         self.k_locations = []
 
         for x in range(len(kinks)):
@@ -193,11 +188,7 @@ class BandPlotterASE():
         energies = []
         for s in range(readoutfilesobj.atoms_bands_objects[0].calc.get_number_of_spins()):
             energies.append([readoutfilesobj.atoms_bands_objects[0].calc.get_eigenvalues(kpt=k, spin=s) for k in range(len(kpts))])
-        print(f"lenght of kpoints: {range(len(kpts))}")
-        # print(energies)
-        # for s in energies[0]:
-        #     print(s)
-        #     print()
+        # print(f"lenght of kpoints: {range(len(kpts))}")
         Energy_to_plot = []
         if self.Ef_shift == True:
             for band in energies[0]:
