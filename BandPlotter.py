@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
+from ase.dft.kpoints import resolve_custom_points, find_bandpath_kinks
+
 # matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 
 
@@ -76,12 +78,7 @@ class BandPlotterASE():
     # Under costruction!!
     def __init__(self):
         """
-        |All the inputs needed for a band plot are set here
-        |Inputs:
-        |   x          : The k path distance as floats
-        |   y          : This should be a list of lists with the lists being the individual bands
-        |   k_locations: The locations of the High symmetry points as a list
-        |   k_symbols  : The Latexified version of the K path High symmetry point symbols
+        If plotting multiple band plots here can do only same path.
         """
         self.file_name = "band_diagram"
         self.number_of_bands_to_plot = 30
@@ -99,8 +96,10 @@ class BandPlotterASE():
         self.x_to_plot = []
         self.labels = []
         self.same_band_colour = False
-        self.band_colour = ["b", "g", "r", "k"]
+        self.band_colour = ["b", "g", "r", "c", "m", "y", "k"]
         self.new_fig = False
+        self.k_locations = None
+        self.k_symbols = None
 
     def plot(self):
         """
@@ -137,12 +136,12 @@ class BandPlotterASE():
                 else:
                     plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band])
 
-        # plt.xticks(self.k_locations, self.k_symbols)
+        plt.xticks(self.k_locations, self.k_symbols)
         plt.xlabel("K path")
         plt.ylabel("Energy (eV)")
         plt.title(f"{self.title}")
-        plt.savefig(f"Bands_{self.file_name}.pdf")
         plt.legend()
+        plt.savefig(f"Bands_{self.file_name}.pdf")
         plt.show()
 
     def add_to_plot(self, readoutfilesobj, label = None):
@@ -157,6 +156,39 @@ class BandPlotterASE():
             kpts = readoutfilesobj.atoms_bands_objects[0].calc.get_ibz_k_points()
         except:
             print(f"add_to_plot: Could not read k points")
+
+        # Test space for k path and k high symmetry points
+        # print(kpts)
+        path = readoutfilesobj.atoms_bands_objects[0].cell.bandpath(npoints=0)
+        kinks = find_bandpath_kinks(readoutfilesobj.atoms_bands_objects[0].cell, kpts, eps=1e-5)
+        pathspec = resolve_custom_points(kpts[kinks], path.special_points, eps=1e-5)        
+        print(kinks)
+        path.kpts = kpts
+        print(pathspec)
+        path.path = pathspec
+
+        klengths = []
+        for x in range(0, len(kpts)):
+            if x == 0:
+                kdist = np.sqrt((0.0 - kpts[x][0])**2 + (0.0 - kpts[x][1])**2 +(0.0 - kpts[x][2])**2)
+                klengths.append(kdist)
+            else:
+                kdist = np.sqrt((kpts[x-1][0] - kpts[x][0])**2 + (kpts[x-1][1] - kpts[x][1])**2 + (kpts[x-1][2]- kpts[x][2])**2)
+                klengths.append(kdist+klengths[x-1])
+
+        print(len(klengths))
+        print(len(kpts))
+        self.k_locations = []
+
+        for x in range(len(kinks)):
+            self.k_locations.append(klengths[kinks[x]])
+
+        self.k_symbols = []
+        for x in pathspec:
+            if x == "G":
+                self.k_symbols.append("$\Gamma$")
+            else:
+                self.k_symbols.append(x)
 
         energies = []
         for s in range(readoutfilesobj.atoms_bands_objects[0].calc.get_number_of_spins()):
@@ -178,10 +210,9 @@ class BandPlotterASE():
             tempMain.append(temp)
             temp = []
         self.y_to_plot.append(tempMain)
-        self.x_to_plot.append(range(len(kpts)))
+        self.x_to_plot.append(klengths)
         self.labels.append(label)
 
-        
 
 if __name__ == "__main__":
     # You dont really need this. For testing we have left this block here.
