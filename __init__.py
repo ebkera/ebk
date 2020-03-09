@@ -79,3 +79,18 @@ def J2Rydberg(J):
 def eVA32GPa(e):
     """Takes eV/Angstroms^3 and converts it into GPa. This is useful when calculating the bulk modulus especially."""
     return e*160.21766208
+
+
+def get_pseudopotential("identifier"):
+    if identifier == "ONCV_PBE_FR1.1":
+            pseudopotential = {'Sn': f"Sn_ONCV_PBE_FR-1.1.upf"}
+    elif identifier == "ONCV_PBE_SR1.0":
+            pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.0.upf"}
+    elif identifier == "ONCV_PBE_SR1.1":
+            pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.1.upf"}
+    elif identifier == "ONCV_PBE_SR1.2":
+            pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.2.upf"}
+    elif identifier == "QE_PBE_FR_NLCC_1":
+            pseudopotential = {'Sn': f"Sn.rel-pbe-dn-kjpaw_psl.1.0.0.UPF"}
+
+    return pseudopotential
