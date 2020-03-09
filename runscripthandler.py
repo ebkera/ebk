@@ -141,7 +141,7 @@ class RunScriptHandler():
         self.espresso_inputs.update({"label" : f"{run_name}"})
         self.espresso_inputs.update({"ecutwfc" : KE_cut_i})
         self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
-        if R_i != None: self.espresso_inputs.update({"ecutrho" : self.R})
+        if R_i != None: self.espresso_inputs.update({"ecutrho" : R_i})
 
         if self.calculation == "bands":
             # First we deal with the scf run
