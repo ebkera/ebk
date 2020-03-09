@@ -86,7 +86,7 @@ class E_cut_Optimize():
             self.final_DEs.append([(E1 - E0)*1000 for E1 in E])  # Converting in to meV
         self.graph_title = ""
 
-    def plot(self, diff = True, MP = False):
+    def plot(self, diff = True, MP = False, R = False):
         plt.rcParams["figure.figsize"] = (14,9)
         if diff == True:
             # self.final_DEs = [x*1000 for x in self.final_DEs]   # Converting in to meV
@@ -97,7 +97,7 @@ class E_cut_Optimize():
             E_to_plot = self.final_energies
             # plt.plot(self.cut_off, self.final_energies, 'x-')
             plt.ylabel("Total Energy (eV/atom)")
-        
+
         for x in range(0, len(self.cut_off)):
             plt.plot(self.cut_off[x], E_to_plot[x], 'x-', label = self.labels[x])
 
@@ -107,10 +107,15 @@ class E_cut_Optimize():
         if MP == True:
             plt.title(f"Convergence SCF for wavefunction K-Grid cutoff {self.graph_title}")
             plt.xlabel("Monkhorst-Pack grid (3D)")
+            plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_MPGrid.pdf")
+        elif R ==  True:
+            plt.title(f"Convergence SCF for $\rho$ cutoff {self.graph_title}")
+            plt.xlabel("$\rho$ cutoff (Kinetic energy cutoff for charge density) (Ry)")
+            plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_Rho.pdf")
         else:
             plt.title(f"Convergence SCF for wavefunction Kinetic Energy cutoff {self.graph_title}")
             plt.xlabel("Wave function cutoff (Ry)")
-        plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_MP{MP}.pdf")
+            plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_KE.pdf")
         plt.show()
 
 # class K_cut_Optimize():
