@@ -65,7 +65,7 @@ class LatticeConstantOptimize():
         plt.show()
 
 class E_cut_Optimize():
-    def __init__(self, E_cut, Energies, labels, name="", num_of_atoms = 2):
+    def __init__(self, E_cut, Energies, labels, name="", num_of_atoms = 2, R = False):
         """
         This initializes the E_cut optimization
         Inputs
@@ -76,6 +76,7 @@ class E_cut_Optimize():
         self.cut_off = E_cut  # This should be an array of arrays
         self.final_energies = []
         self.labels = labels
+        self.R = R
         for E in Energies:
             self.final_energies.append(np.array([x/num_of_atoms for x in E])) # Converting to per energies per atom
         self.name = name  # This part will be added to the file name
@@ -108,9 +109,9 @@ class E_cut_Optimize():
             plt.title(f"Convergence SCF for wavefunction K-Grid cutoff {self.graph_title}")
             plt.xlabel("Monkhorst-Pack grid (3D)")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_MPGrid.pdf")
-        elif R ==  True:
-            plt.title(f"Convergence SCF for $\rho$ cutoff {self.graph_title}")
-            plt.xlabel("$\rho$ cutoff (Kinetic energy cutoff for charge density) (Ry)")
+        elif self.R == True:
+            plt.title(f"Kinetic energy cutoff for charge density (Ry) {self.graph_title}")
+            plt.xlabel("$\\rho$ cutoff (Kinetic energy cutoff for charge density) (Ry)")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_Rho.pdf")
         else:
             plt.title(f"Convergence SCF for wavefunction Kinetic Energy cutoff {self.graph_title}")
