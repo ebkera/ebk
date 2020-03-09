@@ -74,7 +74,7 @@ class RunScriptHandler():
         self.npool           = kwargs.get("npool", 1)
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
                                 "calculation"     : self.calculation,
-                                "lspinorb"        : kwargs.get("lspinorbit", False),
+                                "lspinorb"        : kwargs.get("lspinorb", False),
                                 "noncolin"        : kwargs.get("noncolin", False),
                                 # "ecutrho"         : KE_cut_i*4,
                                 "occupations"     : kwargs.get("occupations",'smearing'),
