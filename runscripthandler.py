@@ -503,7 +503,7 @@ class ReadOutfiles():
                 print(f"read_outfiles: Sucessfully read scf files. Zipping done")
         else:
             # Trying to zip bands files here
-            print(self.atoms_bands_objects)
+            # print(self.atoms_bands_objects)
             self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects, self.atoms_bands_objects))
             if self.high_verbosity:
                 print(f"read_outfiles: Sucessfully read bands files and scf files. Zipping done")
