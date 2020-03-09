@@ -67,7 +67,7 @@ class RunScriptHandler():
         self.path             = kwargs.get("path", "GXWLGKL")
         self.density          = kwargs.get("density", 20)
         self.k_path           = {"path":self.path, "density": self.density}
-        # self.R = kwargs.get("R", [300])
+        self.R                = kwargs.get("R", [None])
 
         # Quantum espresso inits
         self.ntasks          = kwargs.get("ntasks", 20)
@@ -76,7 +76,6 @@ class RunScriptHandler():
                                 "calculation"     : self.calculation,
                                 "lspinorb"        : kwargs.get("lspinorb", False),
                                 "noncolin"        : kwargs.get("noncolin", False),
-                                # "ecutrho"         : KE_cut_i*4,
                                 "occupations"     : kwargs.get("occupations",'smearing'),
                                 "diagonalization" : kwargs.get("diagonalization",'david'),
                                 "smearing"        : kwargs.get("smearing",'gaussian'),
@@ -134,7 +133,7 @@ class RunScriptHandler():
         self.pseudopotentials = pseudos
         self.espresso_inputs.update({"pseudopotentials": pseudos})
 
-    def write_QE_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
+    def write_QE_inputfile(self, run_name, KE_cut_i, R_i, a0_i, k_i):
         """
         This method creates Quantum espresso input files
         """
@@ -142,6 +141,8 @@ class RunScriptHandler():
         self.espresso_inputs.update({"label" : f"{run_name}"})
         self.espresso_inputs.update({"ecutwfc" : KE_cut_i})
         self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
+        if R_i != None: self.espresso_inputs.update({"ecutrho" : self.R})
+
         if self.calculation == "bands":
             # First we deal with the scf run
             self.espresso_inputs.update({"calculation" : "scf"})
@@ -163,7 +164,7 @@ class RunScriptHandler():
         pass
 
     def get_number_of_calculations(self):
-        return (len(self.KE_cut)*len(self.a0)*len(self.k))
+        return (len(self.KE_cut)*len(self.a0)*len(self.k)*len(self.R))
 
     def create_torque_job(self):
         # Creating the scf run for bands runs if self.calculation bands
@@ -266,24 +267,27 @@ class RunScriptHandler():
             for KE_cut_i in self.KE_cut:
                 for a0_i in self.a0:
                     for k_i in self.k:
-                        # for R_i in self.R:  # This has been disabled for now
-                        R_i = KE_cut_i*4
-                        run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_i}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calculation}"
-                        if self.structure == 0:
-                            # cell has been set from outside
-                            pass
-                        elif self.structure == 1:
-                            # An fcc cell that scales with the lattice constant
-                            b = a0_i/2.0
-                            self.atoms_object.set_cell([(0, b, b), (b, 0, b), (b, b, 0)], scale_atoms=True)
-                        else:
-                            print("make_runs: Warning! Cannot set cell. Structrue not supported")
-                        if os.path.exists(run_name):
-                            shutil.rmtree(run_name)
-                            print("make_runs: Warning! Path exists!! Overwriting")
-                        os.mkdir(f"{run_name}")
-                        self.write_QE_inputfile(run_name, KE_cut_i, a0_i, k_i)
-                        self.all_runs_list.append(run_name)
+                        for R_i in self.R:  # This has been disabled for now
+                            if R_i == None: 
+                                R_name = f"{4*KE_cut_i}"
+                            else:
+                                R_name = R_i
+                            run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_name}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calculation}"
+                            if self.structure == 0:
+                                # cell has been set from outside
+                                pass
+                            elif self.structure == 1:
+                                # An fcc cell that scales with the lattice constant
+                                b = a0_i/2.0
+                                self.atoms_object.set_cell([(0, b, b), (b, 0, b), (b, b, 0)], scale_atoms=True)
+                            else:
+                                print("make_runs: Warning! Cannot set cell. Structrue not supported")
+                            if os.path.exists(run_name):
+                                shutil.rmtree(run_name)
+                                print("make_runs: Warning! Path exists!! Overwriting")
+                            os.mkdir(f"{run_name}")
+                            self.write_QE_inputfile(run_name, KE_cut_i, R_i, a0_i, k_i)
+                            self.all_runs_list.append(run_name)
 
                         # Creating jobs
                         # This if else block is pending deletion upon making a seperate method for slurm jobs.
@@ -473,7 +477,8 @@ class ReadOutfiles():
 
         for x in range(0,len(self.required_folders_list)):
             path = os.path.join(mydir, self.required_folders_list[x], self.identifier[0])
-            # print(f"Opening file: {path}.out")
+            if self.high_verbosity:
+              print(f"read_outfiles: Opening file: {path}.out")
             try:
                 if self.folder_data[x]["Calc"].lower() == "qe":
                     file = ase.io.read(f"{path}.out", format = "espresso-out")
@@ -485,19 +490,21 @@ class ReadOutfiles():
                 try:
                     self.atoms_bands_objects.append(bands_file)
                 except:
-                    pass
+                    if self.high_verbosity:
+                        print(f"read_outfiles: Recognized as not a bands file. bands files not appeneded to atoms_bands_objects")
             except:
                 print(f"read_outdirs: ** Warning Fatal Error. Cannot read file. File might not be present or might not have finished Recommended to set parameters to specifically exclude this file.\n{path}.out")
-        try:
-            # Trying to zip bands files here
-            self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects, self.atoms_bands_objects))
-            if self.high_verbosity:
-                print(f"read_outfiles: Sucessfully read bands files. Zipping done")
-        except:
+        if self.atoms_bands_objects == []:
             # No bands files have been read
             self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects))
             if self.high_verbosity:
                 print(f"read_outfiles: Sucessfully read scf files. Zipping done")
+        else:
+            # Trying to zip bands files here
+            print(self.atoms_bands_objects)
+            self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects, self.atoms_bands_objects))
+            if self.high_verbosity:
+                print(f"read_outfiles: Sucessfully read bands files and scf files. Zipping done")
 
     def get_sorted_energies(self, sort_for = "KE"):
         """
