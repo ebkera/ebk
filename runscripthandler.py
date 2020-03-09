@@ -344,6 +344,7 @@ class ReadOutfiles():
         self.a0               = kwargs.get("a0", [])
         self.KE_cut           = kwargs.get("KE_cut", [])
         self.k                = kwargs.get("k", [])
+        self.R                = kwargs.get("R", [])
         self.pseudopotentials = kwargs.get("pseudopotentials", [])
         self.pseudo_dir       = kwargs.get("pseudo_dir", [])
         self.calculator       = kwargs.get("calculator", [])
@@ -426,17 +427,18 @@ class ReadOutfiles():
                     # since you can mistakenly set a0 in strings lets try to convert them to floats
                     self.a0 = [float(x) for x in self.a0]
                     if folder["a"] in self.a0 or self.a0 == []:
-                        if folder["Struct"] in self.structure_type or self.structure_type == []:
-                            count = 0
-                            for x in folder["PP"]:
-                                if x in self.pseudopotentials or self.pseudopotentials == []:
-                                    count+=1
-                            if count == len(folder["PP"]):
-                                if float(folder["KE"]) in self.KE_cut or self.KE_cut == []:
-                                    if float(folder["K"]) in self.k or self.k == []:
-                                        if folder["type"] in self.calculation or self.calculation == []:
-                                            self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
-                                            self.required_folder_data.append(self.folder_data[self.folder_data.index(folder)])
+                        if float(folder["R"]) in self.R or self.R ==[]:
+                            if folder["Struct"] in self.structure_type or self.structure_type == []:
+                                count = 0
+                                for x in folder["PP"]:
+                                    if x in self.pseudopotentials or self.pseudopotentials == []:
+                                        count+=1
+                                if count == len(folder["PP"]):
+                                    if float(folder["KE"]) in self.KE_cut or self.KE_cut == []:
+                                        if float(folder["K"]) in self.k or self.k == []:
+                                            if folder["type"] in self.calculation or self.calculation == []:
+                                                self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
+                                                self.required_folder_data.append(self.folder_data[self.folder_data.index(folder)])
         if self.high_verbosity == True:
             print("Loaded folders:")
             for folder in self.required_folders_list:
