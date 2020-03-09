@@ -81,7 +81,7 @@ def eVA32GPa(e):
     return e*160.21766208
 
 
-def get_pseudopotential("identifier"):
+def get_pseudopotential(identifier):
     if identifier == "ONCV_PBE_FR1.1":
             pseudopotential = {'Sn': f"Sn_ONCV_PBE_FR-1.1.upf"}
     elif identifier == "ONCV_PBE_SR1.0":
