@@ -92,5 +92,4 @@ def get_pseudopotential(identifier):
             pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.2.upf"}
     elif identifier == "QE_PBE_FR_NLCC_1":
             pseudopotential = {'Sn': f"Sn.rel-pbe-dn-kjpaw_psl.1.0.0.UPF"}
-
     return pseudopotential
