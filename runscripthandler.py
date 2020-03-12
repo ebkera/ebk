@@ -254,7 +254,12 @@ class RunScriptHandler():
         os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def make_runs(self):
-        """This is more Doc strings"""
+        """This method makes the runs. The inputs files are created in a method that handles the relevant file type
+        These varibles have to be already set for this method to work:
+        self.structure: Has to be set
+            0 - The type of the structure is set from outside
+            1 - An fcc cell that scales with the lattice constant
+        """
         # Here the name version for the pseudopotentials is created since we have to have a form that can go on the folder names
         self.PP = ""
         self.specie = ""
