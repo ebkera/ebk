@@ -1,11 +1,11 @@
 """
 This file creates:
-SIRSTAinput files
+SIESTAinput files
 QE input files
 bash scripts for running on CARBON.
 bash scripts for running on local machines
 This can be used to run multiple jobs for example
-As of now this code can only do runs with similar job schedular parameters
+As of now this code can only do runs with similar job scheduler parameters
 """
 
 import os
