@@ -314,7 +314,7 @@ class RunScriptHandler():
         This script creates bash files so that you can run a batch of the runs that need to be done
         """
         print(f"create_bash_file: job_handler is set to: {self.job_handler}")
-        bash_file = open("run.sh", "w+")
+        bash_file = open(f"run_{self.identifier}.sh", "w+")
         bash_file.write(f"#!/bin/bash\n\n")
         bash_file.write(f"dir_list=(")
         for x in self.all_runs_list:
