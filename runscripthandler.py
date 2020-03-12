@@ -334,7 +334,10 @@ class RunScriptHandler():
         bash_file.close()
 
 class ReadOutfiles():
-    """This method should read all out files of a given type (sesta/qe) and read the vlaues like total energies"""
+    """
+    This method should read all out files of a given type (sesta/qe) and read the values like total energies
+    identifier: list of strings
+    """
     def __init__(self, *args, **kwargs):
         """All Kwargs should be set as strings"""
         self.d = f"^"  # Here you can set the desired delimiter
@@ -499,6 +502,9 @@ class ReadOutfiles():
                 except:
                     if self.high_verbosity:
                         print(f"read_outfiles: Recognized as not a bands file. bands files not appeneded to atoms_bands_objects")
+            except AssertionError as er:
+                print(f"read_outdirs: ** Warning Fatal Error. 'espresso.py' in ASE is giving out an assertion error as below:")
+                raise
             except:
                 print(f"read_outdirs: ** Warning Fatal Error. Cannot read file. File might not be present or might not have finished Recommended to set parameters to specifically exclude this file.\n{path}.out")
         if self.atoms_bands_objects == []:
