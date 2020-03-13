@@ -65,13 +65,14 @@ class LatticeConstantOptimize():
         plt.show()
 
 class E_cut_Optimize():
-    def __init__(self, E_cut, Energies, labels, name="", num_of_atoms = 2, R = False):
+    def __init__(self, E_cut, Energies, num_of_atoms, labels, name="", R = False):
         """
         This initializes the E_cut optimization
         Inputs
         E_cut  # List of lists
         Energies  # List of lists
         label: List of strings
+        num_of_atoms: (integer) The number of atoms that the molecule/primitive unit cell has
         """
         self.cut_off = E_cut  # This should be an array of arrays
         self.final_energies = []
