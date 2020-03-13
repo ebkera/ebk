@@ -76,7 +76,6 @@ class E_cut_Optimize():
         """
         self.cut_off = E_cut  # This should be an array of arrays
         self.Energies = Energies
-        self.final_energies = []
         self.num_of_atoms = num_of_atoms
         self.labels = labels
         self.R = R
@@ -84,18 +83,19 @@ class E_cut_Optimize():
         self.name = name  # This part will be added to the file name
         self.final_DEs = []
         self.new_fig = True
-
+        self.graph_title = ""
 
     def plot(self, diff = True, MP = False, R = False):
+        self.final_energies = []
         for E in self.Energies:
             if self.per_atom:
                 self.final_energies.append(np.array([x/self.num_of_atoms for x in E])) # Converting to per energies per atom
-            elif self.per_atom == False:
+            else :
                 self.final_energies.append(np.array([x for x in E])) # Not converting Converting to per energies per atom
+
         for E in self.final_energies:
             E0 = np.amin(E)
             self.final_DEs.append([(E1 - E0)*1000 for E1 in E])  # Converting in to meV
-        self.graph_title = ""
 
         plt.rcParams["figure.figsize"] = (14,9)
         if self.new_fig: plt.figure()
