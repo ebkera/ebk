@@ -1,11 +1,11 @@
 """
 This file creates:
-SIRSTAinput files
+SIESTAinput files
 QE input files
 bash scripts for running on CARBON.
 bash scripts for running on local machines
 This can be used to run multiple jobs for example
-As of now this code can only do runs with similar job schedular parameters
+As of now this code can only do runs with similar job scheduler parameters
 """
 
 import os
@@ -254,7 +254,12 @@ class RunScriptHandler():
         os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def make_runs(self):
-        """This is more Doc strings"""
+        """This method makes the runs. The inputs files are created in a method that handles the relevant file type
+        These varibles have to be already set for this method to work:
+        self.structure: Has to be set
+            0 - The type of the structure is set from outside
+            1 - An fcc cell that scales with the lattice constant
+        """
         # Here the name version for the pseudopotentials is created since we have to have a form that can go on the folder names
         self.PP = ""
         self.specie = ""
@@ -309,7 +314,7 @@ class RunScriptHandler():
         This script creates bash files so that you can run a batch of the runs that need to be done
         """
         print(f"create_bash_file: job_handler is set to: {self.job_handler}")
-        bash_file = open("run.sh", "w+")
+        bash_file = open(f"run_{self.identifier}.sh", "w+")
         bash_file.write(f"#!/bin/bash\n\n")
         bash_file.write(f"dir_list=(")
         for x in self.all_runs_list:
@@ -329,7 +334,10 @@ class RunScriptHandler():
         bash_file.close()
 
 class ReadOutfiles():
-    """This method should read all out files of a given type (sesta/qe) and read the vlaues like total energies"""
+    """
+    This method should read all out files of a given type (sesta/qe) and read the values like total energies
+    identifier: list of strings
+    """
     def __init__(self, *args, **kwargs):
         """All Kwargs should be set as strings"""
         self.d = f"^"  # Here you can set the desired delimiter
@@ -494,6 +502,9 @@ class ReadOutfiles():
                 except:
                     if self.high_verbosity:
                         print(f"read_outfiles: Recognized as not a bands file. bands files not appeneded to atoms_bands_objects")
+            except AssertionError as er:
+                print(f"read_outdirs: ** Warning Fatal Error. 'espresso.py' in ASE is giving out an assertion error as below:")
+                raise
             except:
                 print(f"read_outdirs: ** Warning Fatal Error. Cannot read file. File might not be present or might not have finished Recommended to set parameters to specifically exclude this file.\n{path}.out")
         if self.atoms_bands_objects == []:

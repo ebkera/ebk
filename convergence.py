@@ -65,58 +65,71 @@ class LatticeConstantOptimize():
         plt.show()
 
 class E_cut_Optimize():
-    def __init__(self, E_cut, Energies, labels, name="", num_of_atoms = 2, R = False):
+    def __init__(self, E_cut, Energies, num_of_atoms, labels, name="", R = False):
         """
         This initializes the E_cut optimization
         Inputs
         E_cut  # List of lists
         Energies  # List of lists
         label: List of strings
+        num_of_atoms: (integer) The number of atoms that the molecule/primitive unit cell has
         """
         self.cut_off = E_cut  # This should be an array of arrays
-        self.final_energies = []
+        self.Energies = Energies
+        self.num_of_atoms = num_of_atoms
         self.labels = labels
         self.R = R
-        for E in Energies:
-            self.final_energies.append(np.array([x/num_of_atoms for x in E])) # Converting to per energies per atom
+        self.per_atom = True
         self.name = name  # This part will be added to the file name
         self.final_DEs = []
+        self.new_fig = True
+        self.graph_title = ""
+
+    def plot(self, diff = True, MP = False, R = False):
+        self.final_energies = []
+        for E in self.Energies:
+            if self.per_atom:
+                self.final_energies.append(np.array([x/self.num_of_atoms for x in E])) # Converting to per energies per atom
+            else :
+                self.final_energies.append(np.array([x for x in E])) # Not converting Converting to per energies per atom
 
         for E in self.final_energies:
             E0 = np.amin(E)
             self.final_DEs.append([(E1 - E0)*1000 for E1 in E])  # Converting in to meV
-        self.graph_title = ""
 
-    def plot(self, diff = True, MP = False, R = False):
         plt.rcParams["figure.figsize"] = (14,9)
+        if self.new_fig: plt.figure()
+
+        # Setting the y label according to all the variables
         if diff == True:
-            # self.final_DEs = [x*1000 for x in self.final_DEs]   # Converting in to meV
             E_to_plot = self.final_DEs
-            # plt.plot(self.cut_off, self.final_DEs, 'x-')
-            plt.ylabel("$\Delta$ E (meV/atom)")
+            if self.per_atom:
+                plt.ylabel("$\Delta$ E (meV/atom)")
+            else:
+                plt.ylabel("$\Delta$ E (meV)")
         else:
             E_to_plot = self.final_energies
-            # plt.plot(self.cut_off, self.final_energies, 'x-')
-            plt.ylabel("Total Energy (eV/atom)")
+            if self.per_atom:
+                plt.ylabel("Total Energy (eV/atom)")
+            else:
+                plt.ylabel("Total Energy (eV)")
 
         for x in range(0, len(self.cut_off)):
             plt.plot(self.cut_off[x], E_to_plot[x], 'x-', label = self.labels[x])
 
         plt.legend()
-        # plt.xlim(28, 40)
-        # plt.ylim(-3176.5, -3175.5)
         if MP == True:
             plt.title(f"Convergence SCF for wavefunction K-Grid cutoff {self.graph_title}")
             plt.xlabel("Monkhorst-Pack grid (3D)")
-            plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_MPGrid.pdf")
+            plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_MPGrid_peratom{self.per_atom}.pdf")
         elif self.R == True:
             plt.title(f"Kinetic energy cutoff for charge density (Ry) {self.graph_title}")
             plt.xlabel("$\\rho$ cutoff (Kinetic energy cutoff for charge density) (Ry)")
-            plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_Rho.pdf")
+            plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_Rho_peratom{self.per_atom}.pdf")
         else:
             plt.title(f"Convergence SCF for wavefunction Kinetic Energy cutoff {self.graph_title}")
             plt.xlabel("Wave function cutoff (Ry)")
-            plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_KE.pdf")
+            plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_KE_peratom{self.per_atom}.pdf")
         plt.show()
 
 # class K_cut_Optimize():
