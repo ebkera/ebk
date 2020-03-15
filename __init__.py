@@ -82,6 +82,10 @@ def eVA32GPa(e):
 
 
 def get_pseudopotential(identifier):
+    """
+    This method returns the pseudopotential that corresponds to the identifier that I have set so that we can quickly identify a psedo. This is just for internal tracking
+    Obviously these identifiers will be only required for a pseudopotential optimization run.
+    """
     if identifier == "ONCV_PBE_FR1.1":
             pseudopotential = {'Sn': f"Sn_ONCV_PBE_FR-1.1.upf"}
     elif identifier == "ONCV_PBE_SR1.0":
@@ -92,5 +96,8 @@ def get_pseudopotential(identifier):
             pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.2.upf"}
     elif identifier == "QE_PBE_FR_NLCC_1":
             pseudopotential = {'Sn': f"Sn.rel-pbe-dn-kjpaw_psl.1.0.0.UPF"}
-
+    elif identifier == "QE_PBE_FR_NLCC_2":
+            pseudopotential = {'Sn': f"Sn.rel-pbe-dn-rrkjus_psl.1.0.0.UPF"}
+    elif identifier == "QE_PZ_FR_NLCC_1":
+            pseudopotential = {'Sn': f"Sn.rel-pz-dn-kjpaw_psl.0.2.UPF"}
     return pseudopotential
