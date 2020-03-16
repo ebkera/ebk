@@ -97,10 +97,29 @@ def get_pseudopotential(identifier):
             pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.1.upf"}
     elif identifier == "ONCV_PBE_SR1.2":
             pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.2.upf"}
+    # PBE pps
+    # FR
     elif identifier == "QE_PBE_FR_NLCC_1":
             pseudopotential = {'Sn': f"Sn.rel-pbe-dn-kjpaw_psl.1.0.0.UPF"}
     elif identifier == "QE_PBE_FR_NLCC_2":
             pseudopotential = {'Sn': f"Sn.rel-pbe-dn-rrkjus_psl.1.0.0.UPF"}
+    elif identifier == "QE_PBE_FR_NLCC_3":
+            pseudopotential = {'Sn': f"Sn.rel-pbe-dn-kjpaw_psl.0.2.UPF"}
+    elif identifier == "QE_PBESOL_FR_NLCC_1":
+            pseudopotential = {'Sn': f"Sn.rel-pbesol-dn-kjpaw_psl.1.0.0.UPF"}
+    # PBE pps
+    # SR
+    elif identifier == "QE_PBE_SR_NLCC_1":
+            pseudopotential = {'Sn': f"Sn.pbe-dn-kjpaw_psl.1.0.0.UPF"}
+    elif identifier == "QE_PBE_SR_NLCC_2":
+            pseudopotential = {'Sn': f"Sn.pbe-dn-rrkjus_psl.1.0.0.UPF"}
+    elif identifier == "QE_PBE_SR_NLCC_3":
+            pseudopotential = {'Sn': f"Sn.pbe-dn-kjpaw_psl.0.2.UPF"}
+    elif identifier == "QE_PBESOL_SR_NLCC_1":
+            pseudopotential = {'Sn': f"Sn.pbesol-dn-kjpaw_psl.1.0.0.UPF"}
+    #LDA pps
     elif identifier == "QE_PZ_FR_NLCC_1":
             pseudopotential = {'Sn': f"Sn.rel-pz-dn-kjpaw_psl.0.2.UPF"}
     return pseudopotential
+
+    
