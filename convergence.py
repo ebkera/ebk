@@ -131,7 +131,6 @@ class E_cut_Optimize():
             plt.title(f"Convergence SCF for wavefunction Kinetic Energy cutoff {self.graph_title}")
             plt.xlabel("Wave function cutoff (Ry)")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_KE_peratom{self.per_atom}.pdf")
-            
         if self.showplot: plt.show()
 
 # class K_cut_Optimize():
