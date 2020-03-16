@@ -84,6 +84,7 @@ class E_cut_Optimize():
         self.final_DEs = []
         self.new_fig = True
         self.graph_title = ""
+        self.showplot = True
 
     def plot(self, diff = True, MP = False, R = False):
         self.final_energies = []
@@ -130,7 +131,8 @@ class E_cut_Optimize():
             plt.title(f"Convergence SCF for wavefunction Kinetic Energy cutoff {self.graph_title}")
             plt.xlabel("Wave function cutoff (Ry)")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_KE_peratom{self.per_atom}.pdf")
-        plt.show()
+            
+        if self.showplot: plt.show()
 
 # class K_cut_Optimize():
 #     def __init__(self, k_cut, E, name="MP_optimization", per_atoms = 2):
