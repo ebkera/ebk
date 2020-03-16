@@ -537,6 +537,14 @@ class ReadOutfiles():
         # except:
         #     print("Error returning band path")
 
+def make_all_job_files(job_list):
+    with open("all_jobs.job", "w+") as file:
+        file.write("#!/bin/bash\n\n")
+        file.write("dos2uinx *.job\n")
+        for job in job_list:
+            file.write(f". {job}\n")
+
+
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
     pass
