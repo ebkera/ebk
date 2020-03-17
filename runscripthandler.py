@@ -537,13 +537,29 @@ class ReadOutfiles():
         # except:
         #     print("Error returning band path")
 
-def make_all_job_files(job_list):
+def make_all_job_files(job_list = []):
+    """
+    This method makes all jobs run when executing a single file. 
+    Warning: Not set to properly handle .bands files since .scf has to finish in order for the .bands files to run.
+    """
+    
+    print("make_all_job_files: Printing all jobs onto a single file.")
+    directory_list = os.listdir(os.getcwd())
     with open("all_jobs.job", "w+") as file:
         file.write("#!/bin/bash\n\n")
-        file.write("dos2uinx *.job\n")
-        for job in job_list:
-            file.write(f". {job}\n")
-
+        file.write("dos2unix *.job\n")
+        # If there are no explicitly given jobs
+        if len(job_list) == 0:
+            for file2 in directory_list:
+                if "scf.job" in file2 or "bands.job" in file2:
+                    file.write(f". {file2}\n")
+        # if jobs are explicitly given
+        else:
+            for job in job_list:
+                for file2 in directory_list:
+                    if job in file2 and (".scf.job" in file2 or ".bands.job" in file2):
+                        file.write(f". {file2}\n")
+        file.write(f"\n")
 
 if __name__ == "__main__":
     """This is used as an example as to how we use this file."""
