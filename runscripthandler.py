@@ -542,7 +542,7 @@ def make_all_job_files(job_list = []):
     This method makes all jobs run when executing a single file. 
     Warning: Not set to properly handle .bands files since .scf has to finish in order for the .bands files to run.
     """
-    
+
     print("make_all_job_files: Printing all jobs onto a single file.")
     directory_list = os.listdir(os.getcwd())
     with open("all_jobs.job", "w+") as file:
@@ -562,5 +562,7 @@ def make_all_job_files(job_list = []):
         file.write(f"\n")
 
 if __name__ == "__main__":
-    """This is used as an example as to how we use this file."""
+    """
+    This is used as an example as to how we use this file.
+    """
     pass
