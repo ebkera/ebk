@@ -2,7 +2,7 @@
 This file creates:
 SIESTAinput files
 QE input files
-bash scripts for running on CARBON.
+bash scripts for running on torque.
 bash scripts for running on local machines
 This can be used to run multiple jobs for example
 As of now this code can only do runs with similar job scheduler parameters
@@ -37,7 +37,7 @@ class RunScriptHandler():
             "calc" (string): scf, relax, bands
             "KE_cut" (list): The kinetic energy cutoff
             "identifier" (string): Description of run will be used in file names
-            "job_handler" (string): ("slurm", "torque", "erapc", "era_ubuntu") This is required and will print the right job files for "slurm" or "torque" job handles
+            "job_handler" (string): ("slurm", "torque", "era_pc", "era_ubuntu") This is required and will print the right job files for "slurm" or "torque" job handles
             "a0" (list): The lattice constant
             "k" (list of lists whith length 3): The k grid
             "pseudopotentials" (string):
@@ -107,7 +107,7 @@ class RunScriptHandler():
         self.nodes           = kwargs.get("nodes", 2)  # the number of cores
         self.procs           = kwargs.get("procs", 8)  # number of processesors per core
         self.partition       = kwargs.get("partition", "cluster")  # The partition that the job will run on
-        self.ntasks          = kwargs.get("ntasks", 20)  # number of threads per core
+        self.ntasks          = kwargs.get("ntasks", 20)  # number of threads in total
         self.npool           = kwargs.get("npool", 1)  # The number of pools of k points per proc (has to be an integer). This is a Quantum espresso parameter and will only work with QE. 
 
         # Other Initializations
@@ -117,17 +117,28 @@ class RunScriptHandler():
         self.atoms_object = kwargs.get("atoms_object", default)
         self.all_runs_list = []
 
+        # Default executable paths are set here
+        self.executable_path = {
+                        "cluster":"",
+                        "torque":"",
+                        "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        "era_pc":"/mnt/c/Users/Eranjan/Desktop/qe-6.4.1/bin/",
+                        "era_ubuntu":"/home/era/Downloads/qe-6.5/bin/"  # the pw - "/home/era/Downloads/qe-6.5/bin"
+                        }
+
     def set_pseudo_dir(self, machine):
         """
         Sets the pseudo_dir according to the machine
         """
         pseudo_database_path = {"cluster":"/usr/local/share/espresso/pseudo",
-                        "carbon":"../PseudopotentialDatabase",
+                        "torque":"../PseudopotentialDatabase",
                         "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
-                        "home_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        "era_pc":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         "era_ubuntu":"../PseudopotentialDatabase"  # the pw - "/home/era/Downloads/qe-6.5/bin"
                         }
         self.espresso_inputs.update({"pseudo_dir" : pseudo_database_path[machine]})
+
+
 
     def set_pseudopotentials(self, pseudos):
         """
@@ -249,7 +260,6 @@ class RunScriptHandler():
             self.calculation = "scf"
             self.create_era_ubuntu_job()
             self.calculation = "bands"
-
         with open (f"{self.identifier}.{self.calculation}.job", "w+") as file_torque:
             file_torque.write(f"#!/bin/bash\n")
             file_torque.write(f"# Submit jobs from explicitly specified directories;\n")
@@ -281,12 +291,10 @@ class RunScriptHandler():
             file_torque.write(f"\n")
             file_torque.write(f"    #!/bin/bash\n")
             file_torque.write("\n")
-            # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
-            # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
             if self.calculation == "bands":
-                file_torque.write(f"    mpirun -np {self.ntasks} /home/era/Downloads/qe-6.5/bin/pw.x -npool {self.npool} < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
+                file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npool {self.npool} < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
             else:
-                file_torque.write(f"    mpirun -np {self.ntasks} /home/era/Downloads/qe-6.5/bin/pw.x -npool {self.npool} < {self.identifier}.in | tee {self.identifier}.out\n")
+                file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npool {self.npool} < {self.identifier}.in | tee {self.identifier}.out\n")
             file_torque.write("    cd .. \n")
             file_torque.write(f"\n")
             file_torque.write(f"done <<'END_TASKLIST'\n")
@@ -310,7 +318,7 @@ class RunScriptHandler():
         os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
 
-    def create_erapc_job(self, run_name):
+    def create_era_pc_job(self, run_name):
         with open (f"{self.identifier}.job", "w+") as file:
             file.write(f"#!/bin/bash\n")
             file.write(f"mpirun -np {self.ntasks} /mnt/c/Users/Eranjan/Desktop/Quantum_Expresso/qe-6.4.1/bin/pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
@@ -328,14 +336,7 @@ class RunScriptHandler():
         self.specie = ""
 
         # Here we set the pseudo path according to what computer you would be running the code on
-        if self.job_handler == "torque":
-            self.set_pseudo_dir("carbon")
-        elif self.job_handler == "slurm":
-            self.set_pseudo_dir("cluster")
-        elif self.job_handler == "erapc":
-            self.set_pseudo_dir("home_wsl")
-        elif self.job_handler == "era_ubuntu":
-            self.set_pseudo_dir("era_ubuntu")
+        self.set_pseudo_dir(self.job_handler)
 
         for key, val in self.pseudopotentials.items():
             self.PP = f"{val}-{self.PP}"
@@ -370,14 +371,14 @@ class RunScriptHandler():
 
                         # Creating jobs
                         # This if else block is pending deletion upon making a seperate method for slurm jobs.
-                        if self.job_handler == "torque" or self.job_handler == "era_ubuntu":
+                        if self.job_handler == "torque" or self.job_handler == "era_ubuntu" or self.job_handler == "era_pc":
                             pass
                             # we dont create job files for everyrun here for now since torque jobs will have specific script to run
                             # self.create_torque_job(run_name)
                         elif self.job_handler == "slurm":
                             self.create_slurm_job(run_name)
-                        elif self.job_handler == "erapc":
-                            self.create_erapc_job(run_name)
+                        # elif self.job_handler == "era_pc":
+                        #     self.create_era_pc_job(run_name)
                         else:
                             print(f"make_runs: Unrecognized job_handler! Job files not created")
 
@@ -385,10 +386,16 @@ class RunScriptHandler():
             bat_file = open("rsyn_out.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" ./ rathnayake@localhost:~/Run_files')
             bat_file.close()
+            self.create_torque_job()
         elif self.job_handler == "era_ubuntu":
             bat_file = open("rsyn_out_eraubuntu.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz -e ssh era@192.168.0.23 ./ era@192.168.0.23:~/Documents/Run_files')
             bat_file.close()
+            self.create_era_ubuntu_job()
+        elif self.job_handler == "era_pc":
+            self.create_era_ubuntu_job()  # sine they are identical
+        else:
+            self.create_bash_file()
 
     def create_bash_file(self):
         """
@@ -410,7 +417,7 @@ class RunScriptHandler():
             bash_file.write(f'  qsub *job\n')
         elif self.job_handler == "slurm":
             bash_file.write(f'  sbatch *job\n')
-        elif self.job_handler == "erapc":
+        elif self.job_handler == "era_pc":
             bash_file.write(f'  . *job\n')
         bash_file.write(f'  cd ..\n')
         bash_file.write(f'done\n')
