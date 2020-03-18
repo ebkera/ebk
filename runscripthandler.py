@@ -228,7 +228,7 @@ class RunScriptHandler():
             file_torque.write(f"    #PBS -e $PWD/$dir/job.err\n")
             file_torque.write(f"    #PBS -j eo\n")
             file_torque.write(f"    # Send mail at begin, end, abort, or never (b, e, a, n). Default is 'a'.\n")
-            file_torque.write(f"    #PBS -m ea\n")
+            file_torque.write(f"    #PBS -m bea\n")
             file_torque.write("\n")
             file_torque.write(f"    # change into the directory where qsub will be executed\n")
             file_torque.write(f"    cd \$PBS_O_WORKDIR\n\n")
