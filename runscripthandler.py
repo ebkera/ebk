@@ -271,6 +271,15 @@ class RunScriptHandler():
         # Here the name version for the pseudopotentials is created since we have to have a form that can go on the folder names
         self.PP = ""
         self.specie = ""
+
+        # Here we set the pseudo path according to what computer you would be running the code on
+        if self.job_handler == "torque":
+            self.set_pseudo_dir("carbon")
+        elif self.job_handler == "slurm":
+            self.set_pseudo_dir("cluster")
+        elif self.job_handler == "erapc":
+            self.set_pseudo_dir("home_wsl")
+
         for key, val in self.pseudopotentials.items():
             self.PP = f"{val}-{self.PP}"
             self.specie = f"{key}-{self.specie}"
@@ -305,15 +314,13 @@ class RunScriptHandler():
                         # Creating jobs
                         # This if else block is pending deletion upon making a seperate method for slurm jobs.
                         if self.job_handler == "torque":
+                            pass
                             # we dont create job files for everyrun here for now since torque jobs will have specific script to run
-                            self.set_pseudo_dir("carbon")
                             # self.create_torque_job(run_name)
                         elif self.job_handler == "slurm":
                             self.create_slurm_job(run_name)
-                            self.set_pseudo_dir("cluster")
                         elif self.job_handler == "erapc":
                             self.create_erapc_job(run_name)
-                            self.set_pseudo_dir("home_wsl")
                         else:
                             print(f"make_runs: Unrecognized job_handler! Job files not created")
 
