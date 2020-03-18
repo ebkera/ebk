@@ -335,8 +335,10 @@ class RunScriptHandler():
 
         if self.job_handler == "torque":
             bash_file.write(f'  qsub *job\n')
-        if self.job_handler == "slurm":
+        elif self.job_handler == "slurm":
             bash_file.write(f'  sbatch *job\n')
+        elif self.job_handler == "erapc":
+            bash_file.write(f'  . *job\n')
         bash_file.write(f'  cd ..\n')
         bash_file.write(f'done\n')
         bash_file.close()
