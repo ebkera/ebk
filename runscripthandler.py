@@ -122,7 +122,7 @@ class RunScriptHandler():
                         "cluster":"",
                         "torque":"",
                         "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
-                        "era_pc":"/mnt/c/Users/Eranjan/Desktop/qe-6.4.1/bin/",
+                        "era_pc":"/mnt/c/Users/Eranjan/Desktop/Quantum_Expresso/qe-6.4.1/bin/",
                         "era_ubuntu":"/home/era/Downloads/qe-6.5/bin/"  # the pw - "/home/era/Downloads/qe-6.5/bin"
                         }
 
