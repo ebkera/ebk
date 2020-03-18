@@ -70,8 +70,6 @@ class RunScriptHandler():
         self.R                = kwargs.get("R", [None])
 
         # Quantum espresso inits
-        self.ntasks          = kwargs.get("ntasks", 20)
-        self.npool           = kwargs.get("npool", 1)
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
                                 "calculation"     : self.calculation,
                                 "lspinorb"        : kwargs.get("lspinorb", False),
@@ -101,14 +99,16 @@ class RunScriptHandler():
             # Thereby reading in machine defaults
             self.espresso_inputs.update({"pseudo_dir" : self.pseudo_dir})
 
-        # Here goes the job init stuff
+        # Here goes the job init stuff and recources allocation
         self.walltime_days   = kwargs.get("walltime_days", 2)
         self.walltime_mins   = kwargs.get("walltime_mins", 0)
         self.walltime_hours  = kwargs.get("walltime_hours", 2)
         self.walltime_secs   = kwargs.get("walltime_secs", 0)
-        self.nodes           = kwargs.get("nodes", 2)
-        self.procs           = kwargs.get("procs", 8)
-        self.partition       = kwargs.get("partition", "cluster")
+        self.nodes           = kwargs.get("nodes", 2)  # the number of cores
+        self.procs           = kwargs.get("procs", 8)  # number of processesors per core
+        self.partition       = kwargs.get("partition", "cluster")  # The partition that the job will run on
+        self.ntasks          = kwargs.get("ntasks", 20)  # number of threads per core
+        self.npool           = kwargs.get("npool", 1)  # The number of pools of k points per proc (has to be an integer). This is a Quantum espresso parameter and will only work with QE. 
 
         # Other Initializations
             # For structure: An fcc cell that scales with the lattice constant = 1
@@ -230,9 +230,9 @@ class RunScriptHandler():
             # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
             # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
             if self.calculation == "bands":
-                file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
+                file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
             else:
-                file_torque.write(f"    mpirun pw.x < {self.identifier}.in > {self.identifier}.out\n")
+                file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
             file_torque.write(f"END_JOB_SCRIPT\n")
             file_torque.write(f"\n")
             file_torque.write(f"done <<'END_TASKLIST'\n")
