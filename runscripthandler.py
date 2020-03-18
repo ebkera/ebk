@@ -95,8 +95,10 @@ class RunScriptHandler():
                                 }
 
         if self.pseudo_dir != False:
-            # Since if not set we want the value to be the default value
+            # Since if not set we want the value to be the default value Thereby reading in machine defaults and not appearing in the .in file
             # pseduo_dir is initialized in the base run init section
+            # Doing it this way without haveing it in the quantum espresso inits makes this not appear in the .in file if not set.
+            # Thereby reading in machine defaults
             self.espresso_inputs.update({"pseudo_dir" : self.pseudo_dir})
 
         # Here goes the job init stuff
@@ -303,13 +305,15 @@ class RunScriptHandler():
                         # Creating jobs
                         # This if else block is pending deletion upon making a seperate method for slurm jobs.
                         if self.job_handler == "torque":
-                            # we do nothing here for now since torque jobs will have specific script to run
-                            pass
+                            # we dont create job files for everyrun here for now since torque jobs will have specific script to run
+                            self.set_pseudo_dir("carbon")
                             # self.create_torque_job(run_name)
                         elif self.job_handler == "slurm":
                             self.create_slurm_job(run_name)
+                            self.set_pseudo_dir("cluster")
                         elif self.job_handler == "erapc":
                             self.create_erapc_job(run_name)
+                            self.set_pseudo_dir("home_wsl")
                         else:
                             print(f"make_runs: Unrecognized job_handler! Job files not created")
 
