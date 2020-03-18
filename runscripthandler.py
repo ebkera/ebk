@@ -308,6 +308,8 @@ class RunScriptHandler():
                             # self.create_torque_job(run_name)
                         elif self.job_handler == "slurm":
                             self.create_slurm_job(run_name)
+                        elif self.job_handler == "erapc":
+                            self.create_erapc_job(run_name)
                         else:
                             print(f"make_runs: Unrecognized job_handler! Job files not created")
 
