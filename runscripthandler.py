@@ -37,7 +37,7 @@ class RunScriptHandler():
             "calc" (string): scf, relax, bands
             "KE_cut" (list): The kinetic energy cutoff
             "identifier" (string): Description of run will be used in file names
-            "job_handler" (string): ("slurm", "torque", "erapc") This is required and will print the right job files for "slurm" or "torque" job handles
+            "job_handler" (string): ("slurm", "torque", "erapc", "era_ubuntu") This is required and will print the right job files for "slurm" or "torque" job handles
             "a0" (list): The lattice constant
             "k" (list of lists whith length 3): The k grid
             "pseudopotentials" (string):
@@ -124,7 +124,8 @@ class RunScriptHandler():
         pseudo_database_path = {"cluster":"/usr/local/share/espresso/pseudo",
                         "carbon":"../PseudopotentialDatabase",
                         "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
-                        "home_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase"
+                        "home_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
+                        "era_ubuntu":"../PseudopotentialDatabase"  # the pw - "/home/era/Downloads/qe-6.5/bin"
                         }
         self.espresso_inputs.update({"pseudo_dir" : pseudo_database_path[machine]})
 
@@ -242,6 +243,59 @@ class RunScriptHandler():
             file_torque.write(f"END_TASKLIST\n")
         # os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
+    def create_era_ubuntu_job(self):
+        # Creating the scf run for bands runs if self.calculation bands
+        if self.calculation == "bands":
+            self.calculation = "scf"
+            self.create_era_ubuntu_job()
+            self.calculation = "bands"
+
+        with open (f"{self.identifier}.{self.calculation}.job", "w+") as file_torque:
+            file_torque.write(f"#!/bin/bash\n")
+            file_torque.write(f"# Submit jobs from explicitly specified directories;\n")
+            file_torque.write(f"# stern, 2020-03-18 - Edited Eranjan\n")
+            file_torque.write(f"\n")
+            file_torque.write(f'shopt -s extglob	# handle "+()" patterns\n')
+            file_torque.write(f"\n")
+            file_torque.write(f"# Let's use a shell loop to read a list of tasks from a 'Here-Document' (at the\n")
+            file_torque.write(f"# end of the loop).  See also: http://www.tldp.org/LDP/abs/html/here-docs.html\n")
+            file_torque.write(f"while read dir\n")
+            file_torque.write(f"do\n")
+            file_torque.write(f"    # Skip empty lines and comments\n")
+            file_torque.write(f'    [[ $dir == +(""|"#"*) ]] && continue\n')
+            file_torque.write(f"    # Let's use some basic shell variable string operations to remove the\n")
+            file_torque.write(f"    # leading and trailing parts of the dir names that are the same, isolating\n")
+            file_torque.write(f"    # the changing middle section as a useful short name.\n")
+            file_torque.write("    job_name=${dir#*KE=}\n")
+            file_torque.write("    job_name=${job_name%^a*}\n")
+            file_torque.write(f"    # Use another here-doc to read the job script, to obviate individual files\n")
+            file_torque.write(f"    # in each data directory.\n")
+            file_torque.write(f"\n")
+            file_torque.write(f"    # A here-doc with leading '-' will get leading TABs removed.  (unwise to\n")
+            file_torque.write(f"    # use, however, if your editor munges TABs.)\n")
+            file_torque.write(f"\n")
+            file_torque.write(f"    # Double-quote $dir to avoid parameter substitution.  (This is not strictly\n")
+            file_torque.write(f"    # necessary here, though, because the chars '^+' are not special -- in the\n")
+            file_torque.write(f"    # circumstances used here.)\n")
+            file_torque.write(f'    cd "$PWD/$dir"\n')
+            file_torque.write(f"\n")
+            file_torque.write(f"    #!/bin/bash\n")
+            file_torque.write("\n")
+            # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
+            # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
+            if self.calculation == "bands":
+                file_torque.write(f"    mpirun -np {self.ntasks} /home/era/Downloads/qe-6.5/bin/pw.x -npool {self.npool} < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
+            else:
+                file_torque.write(f"    mpirun -np {self.ntasks} /home/era/Downloads/qe-6.5/bin/pw.x -npool {self.npool} < {self.identifier}.in | tee {self.identifier}.out\n")
+            file_torque.write("    cd .. \n")
+            file_torque.write(f"\n")
+            file_torque.write(f"done <<'END_TASKLIST'\n")
+            file_torque.write(f"    # Single quoting the limit string 'EOT' will pass strings without shell variable and execution expansion.\n")
+            file_torque.write(f"    # Comments and empty line are fine because we explicitly skip them.\n\n")
+            for run in self.all_runs_list:
+                file_torque.write(f"    {run}\n")
+            file_torque.write(f"END_TASKLIST\n")
+
     def create_slurm_job(self, run_name):
         with open (f"{self.identifier}.job", "w+") as file:
             file.write(f"#!/bin/bash\n")
@@ -254,6 +308,7 @@ class RunScriptHandler():
             # file.write(f"#SBATCH --mail-type=ALL\n")
             file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
         os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
+
 
     def create_erapc_job(self, run_name):
         with open (f"{self.identifier}.job", "w+") as file:
@@ -279,6 +334,8 @@ class RunScriptHandler():
             self.set_pseudo_dir("cluster")
         elif self.job_handler == "erapc":
             self.set_pseudo_dir("home_wsl")
+        elif self.job_handler == "era_ubuntu":
+            self.set_pseudo_dir("era_ubuntu")
 
         for key, val in self.pseudopotentials.items():
             self.PP = f"{val}-{self.PP}"
@@ -313,7 +370,7 @@ class RunScriptHandler():
 
                         # Creating jobs
                         # This if else block is pending deletion upon making a seperate method for slurm jobs.
-                        if self.job_handler == "torque":
+                        if self.job_handler == "torque" or self.job_handler == "era_ubuntu":
                             pass
                             # we dont create job files for everyrun here for now since torque jobs will have specific script to run
                             # self.create_torque_job(run_name)
@@ -324,9 +381,14 @@ class RunScriptHandler():
                         else:
                             print(f"make_runs: Unrecognized job_handler! Job files not created")
 
-        bat_file = open("rsyn_out.bat", "w+")
-        bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" ./ rathnayake@localhost:~/Run_files')
-        bat_file.close()
+        if self.job_handler == "torque":
+            bat_file = open("rsyn_out.bat", "w+")
+            bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" ./ rathnayake@localhost:~/Run_files')
+            bat_file.close()
+        elif self.job_handler == "era_ubuntu":
+            bat_file = open("rsyn_out_eraubuntu.bat", "w+")
+            bat_file.write(f'wsl rsync -avtuz -e ssh era@192.168.0.23 ./ era@192.168.0.23:~/Documents/Run_files')
+            bat_file.close()
 
     def create_bash_file(self):
         """
