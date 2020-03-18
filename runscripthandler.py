@@ -37,7 +37,7 @@ class RunScriptHandler():
             "calc" (string): scf, relax, bands
             "KE_cut" (list): The kinetic energy cutoff
             "identifier" (string): Description of run will be used in file names
-            "job_handler" (string): ("slurm", "torque") This is required and will print the right job files for "slurm" or "torque" job handles
+            "job_handler" (string): ("slurm", "torque", "erapc") This is required and will print the right job files for "slurm" or "torque" job handles
             "a0" (list): The lattice constant
             "k" (list of lists whith length 3): The k grid
             "pseudopotentials" (string):
@@ -251,6 +251,12 @@ class RunScriptHandler():
             # file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
             # file.write(f"#SBATCH --mail-type=ALL\n")
             file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
+        os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
+
+    def create_erapc_job(self, run_name):
+        with open (f"{self.identifier}.job", "w+") as file:
+            file.write(f"#!/bin/bash\n")
+            file.write(f"mpirun -np {self.ntasks} /mnt/c/Users/Eranjan/Desktop/Quantum_Expresso/qe-6.4.1/bin/pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
         os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def make_runs(self):
