@@ -241,7 +241,7 @@ class RunScriptHandler():
             # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
             # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
             if self.calculation == "bands":
-                file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
+                file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
             else:
                 file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
             file_torque.write(f"END_JOB_SCRIPT\n")
@@ -292,7 +292,7 @@ class RunScriptHandler():
             file_torque.write(f"    #!/bin/bash\n")
             file_torque.write("\n")
             if self.calculation == "bands":
-                file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npool {self.npool} < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
+                file_torque.write(f"    mpirun {self.executable_path[self.job_handler]}pw.x < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
             else:
                 file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npool {self.npool} < {self.identifier}.in | tee {self.identifier}.out\n")
             file_torque.write("    cd .. \n")
