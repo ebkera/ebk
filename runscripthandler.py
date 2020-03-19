@@ -89,7 +89,8 @@ class RunScriptHandler():
                                 "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-3),
                                 "outdir"          : kwargs.get("outdir", './'),
                                 "path"            : self.path,
-                                "density"         : self.density
+                                "density"         : self.density,
+                                "nbnd"            : kwargs.get("nbnd", 40)
                                 }
 
         if self.pseudo_dir != False:
