@@ -631,6 +631,7 @@ def make_all_job_files(job_list = []):
     """
     This method makes all jobs run when executing a single file. 
     Warning: Not set to properly handle .bands files since .scf has to finish in order for the .bands files to run.
+             Therefore functionality is only set for .scf.job files to be listed and according to how they finish you manually run the bands.job files
     """
 
     print("make_all_job_files: Printing all jobs onto a single file.")
@@ -641,13 +642,15 @@ def make_all_job_files(job_list = []):
         # If there are no explicitly given jobs
         if len(job_list) == 0:
             for file2 in directory_list:
-                if "scf.job" in file2 or "bands.job" in file2:
+                # if "scf.job" in file2 or "bands.job" in file2:
+                if "scf.job" in file2:
                     file.write(f". {file2}\n")
         # if jobs are explicitly given
         else:
             for job in job_list:
                 for file2 in directory_list:
-                    if job in file2 and (".scf.job" in file2 or ".bands.job" in file2):
+                    # if job in file2 and (".scf.job" in file2 or ".bands.job" in file2):
+                    if job in file2 and (".scf.job" in file2):
                         file.write(f". {file2}\n")
         file.write(f"\n")
 
