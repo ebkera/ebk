@@ -86,6 +86,13 @@ class E_cut_Optimize():
         self.showplot = True
 
     def plot(self, diff = True, MP = False, R = False):
+        """
+        |This is the function that plots everything.
+        |By default plots the Basis wavefucniton Kinetic energy convergence
+        |diff: (bool) If true differences in energy is plotted
+        |MP  : (bool) If True plots the convergence of Monkhorst-Pack grid
+        |R   : (bool) If True plots the convergence of the charge density cutoff
+        """
         self.final_energies = []
         self.final_DEs = []
         for E in self.Energies:
