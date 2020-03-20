@@ -81,16 +81,16 @@ class E_cut_Optimize():
         self.R = R
         self.per_atom = True
         self.name = name  # This part will be added to the file name
-        self.final_DEs = []
         self.new_fig = True
         self.graph_title = ""
         self.showplot = True
 
     def plot(self, diff = True, MP = False, R = False):
         self.final_energies = []
+        self.final_DEs = []
         for E in self.Energies:
             if self.per_atom:
-                self.final_energies.append(np.array([x/self.num_of_atoms for x in E])) # Converting to per energies per atom
+                self.final_energies.append(np.array([x/self.num_of_atoms for x in E])) # Converting to energies per atom
             else :
                 self.final_energies.append(np.array([x for x in E])) # Not converting Converting to per energies per atom
 
