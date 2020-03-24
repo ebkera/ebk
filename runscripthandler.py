@@ -83,7 +83,7 @@ class RunScriptHandler():
                                 "prefix"          : kwargs.get("prefix",'Sn'),
                                 "restart_mode"    : kwargs.get("restart_mode",'from_scratch'),
                                 "disk_io"         : kwargs.get("disk_io",'default'),
-                                "wf_collect"      : kwargs.get("wf_collect", False)
+                                "wf_collect"      : kwargs.get("wf_collect", False),
                                 "verbosity"       : kwargs.get("verbosity",'high'),
                                 "lkpoint_dir"     : kwargs.get("lkpoint_dir", False),
                                 "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-3),
