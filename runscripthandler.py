@@ -584,7 +584,7 @@ class ReadOutfiles():
         for x in range(0,len(self.required_folders_list)):
             path = os.path.join(mydir, self.required_folders_list[x], self.identifier[0])
             if self.high_verbosity:
-              print(f"read_outfiles: Opening file: {path}.out")
+                print(f"read_outfiles: Opening file: {path}.out")
             try:
                 if self.folder_data[x]["Calc"].lower() == "qe":
                     file = ase.io.read(f"{path}.out", format = "espresso-out")
