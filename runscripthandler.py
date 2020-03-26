@@ -362,6 +362,10 @@ class RunScriptHandler():
                                 # An fcc cell that scales with the lattice constant
                                 b = a0_i/2.0
                                 self.atoms_object.set_cell([(0, b, b), (b, 0, b), (b, b, 0)], scale_atoms=True)
+                            elif self.structure == 2:
+                                # An simple cubic cell that scales with the lattice constant
+                                b = a0_i
+                                self.atoms_object.set_cell([(b, 0, 0), (0, b, 0), (0, 0, b)], scale_atoms=True)
                             else:
                                 print("make_runs: Warning! Cannot set cell. Structrue not supported")
                             if os.path.exists(run_name):
