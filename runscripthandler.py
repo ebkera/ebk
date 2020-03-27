@@ -37,7 +37,7 @@ class RunScriptHandler():
             "calc" (string): scf, relax, bands
             "KE_cut" (list): The kinetic energy cutoff
             "identifier" (string): Description of run will be used in file names
-            "job_handler" (string): ("slurm", "torque", "era_pc", "era_ubuntu") This is required and will print the right job files for "slurm" or "torque" job handles
+            "job_handler" (string): ("slurm", "torque", "era_pc", "era_ubuntu", "sl_laptop") This is required and will print the right job files for "slurm" or "torque" job handles
             "a0" (list): The lattice constant
             "k" (list of lists whith length 3): The k grid
             "pseudopotentials" (string):
@@ -125,7 +125,8 @@ class RunScriptHandler():
                         "torque":"",
                         "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         "era_pc":"/mnt/c/Users/Eranjan/Desktop/Quantum_Expresso/qe-6.4.1/bin/",
-                        "era_ubuntu":"/home/era/Downloads/qe-6.5/bin/"  # the pw - "/home/era/Downloads/qe-6.5/bin"
+                        "era_ubuntu":"/home/era/Downloads/qe-6.5/bin/",  # the pw - "/home/era/Downloads/qe-6.5/bin"
+                        "sl_laptop": "/mnt/c/Users/erathnayake/Desktop/qe-6.5/bin/"
                         }
 
     def set_pseudo_dir(self, machine):
@@ -136,7 +137,8 @@ class RunScriptHandler():
                         "torque":"../PseudopotentialDatabase",
                         "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         "era_pc":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
-                        "era_ubuntu":"../PseudopotentialDatabase"  # the pw - "/home/era/Downloads/qe-6.5/bin"
+                        "era_ubuntu":"../PseudopotentialDatabase",  # the pw - "/home/era/Downloads/qe-6.5/bin"
+                        "sl_laptop": "/mnt/c/Users/erathnayake/Desktop/PseudopotentialDatabase"
                         }
         self.espresso_inputs.update({"pseudo_dir" : pseudo_database_path[machine]})
 
@@ -256,11 +258,14 @@ class RunScriptHandler():
             file_torque.write(f"END_TASKLIST\n")
         # os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
-    def create_era_ubuntu_job(self):
+    def create_job(self):
+        """
+        This is the most generic job creator. Will create all jobs
+        """
         # Creating the scf run for bands runs if self.calculation bands
         if self.calculation == "bands":
             self.calculation = "scf"
-            self.create_era_ubuntu_job()
+            self.create_job()
             self.calculation = "bands"
         with open (f"{self.identifier}.{self.calculation}.job", "w+") as file_torque:
             file_torque.write(f"#!/bin/bash\n")
@@ -319,13 +324,6 @@ class RunScriptHandler():
             file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
         os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
-
-    def create_era_pc_job(self, run_name):
-        with open (f"{self.identifier}.job", "w+") as file:
-            file.write(f"#!/bin/bash\n")
-            file.write(f"mpirun -np {self.ntasks} /mnt/c/Users/Eranjan/Desktop/Quantum_Expresso/qe-6.4.1/bin/pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
-        os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
-
     def make_runs(self):
         """This method makes the runs. The inputs files are created in a method that handles the relevant file type
         These varibles have to be already set for this method to work:
@@ -377,7 +375,7 @@ class RunScriptHandler():
 
                         # Creating jobs
                         # This if else block is pending deletion upon making a seperate method for slurm jobs.
-                        if self.job_handler == "torque" or self.job_handler == "era_ubuntu" or self.job_handler == "era_pc":
+                        if self.job_handler == "torque" or self.job_handler == "era_ubuntu" or self.job_handler == "era_pc" or self.job_handler == "sl_laptop":
                             pass
                             # we dont create job files for everyrun here for now since torque jobs will have specific script to run
                             # self.create_torque_job(run_name)
@@ -397,9 +395,9 @@ class RunScriptHandler():
             bat_file = open("rsyn_out_eraubuntu.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz -e ssh era@192.168.0.23 ./ era@192.168.0.23:~/Documents/Run_files')
             bat_file.close()
-            self.create_era_ubuntu_job()
-        elif self.job_handler == "era_pc":
-            self.create_era_ubuntu_job()  # sine they are identical
+            self.create_job()
+        elif self.job_handler == "era_pc" or self.job_handler == "sl_laptop":
+            self.create_job()  # sine they are identical
         else:
             self.create_bash_file()
 
