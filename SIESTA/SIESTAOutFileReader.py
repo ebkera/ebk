@@ -45,7 +45,7 @@ class SiestaReadOut():
                 x = line.strip("siesta:         Fermi =")
                 x = x.split()
                 self.Ef = float(x[0])
-                break
+                return self.Ef
 
     def calculate_work_function(self):
         """
@@ -63,6 +63,7 @@ class SiestaReadOut():
             self.read_fermi()
             self.read_vacuum()
             self.WF = self.Vac_mean - self.Ef
+        return self.WF
 
     def read_total_energy(self):
         """
@@ -78,7 +79,7 @@ class SiestaReadOut():
                 x = line.strip("siesta:         Total =")
                 x = x.split()
                 self.E_total = float(x[0])
-                break
+                return self.E_total
 
 
 if __name__ == "__main__":
