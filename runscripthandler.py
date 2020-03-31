@@ -69,7 +69,7 @@ class RunScriptHandler():
         self.k_path           = {"path":self.path, "density": self.density}
         self.R                = kwargs.get("R", [None])
 
-        # Quantum espresso inits
+        # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
                                 "calculation"     : self.calculation,
                                 "lspinorb"        : kwargs.get("lspinorb", False),
@@ -91,8 +91,12 @@ class RunScriptHandler():
                                 "outdir"          : kwargs.get("outdir", './'),
                                 "path"            : self.path,
                                 "density"         : self.density,
-                                "nbnd"            : kwargs.get("nbnd", 40)
                                 }
+
+        # Here are all initializations of the self.espresso_inputs variable that should be set only if explicitly given by user
+        if "nbnd" in kwargs:
+            self.espresso_inputs.update({"nbnd"            : kwargs.get("nbnd", 40)})
+
 
         if self.pseudo_dir != False:
             # Since if not set we want the value to be the default value Thereby reading in machine defaults and not appearing in the .in file
