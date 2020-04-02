@@ -601,10 +601,10 @@ class ReadOutfiles():
                     if self.high_verbosity:
                         print(f"read_outfiles: Recognized as not a bands file. bands files not appeneded to atoms_bands_objects")
             except AssertionError as er:
-                print(f"read_outdirs: ** Warning Fatal Error. 'espresso.py' in ASE is giving out an assertion error as below:")
+                print(f"read_outfiles: ** Warning Fatal Error. 'espresso.py' in ASE is giving out an assertion error as below:")
                 raise
             except:
-                print(f"read_outdirs: ** Warning Fatal Error. Cannot read file. File might not be present or might not have finished Recommended to set parameters to specifically exclude this file.\n{path}.out")
+                print(f"read_outfiles: ** Warning Fatal Error. Cannot read file. File might not be present or might not have finished Recommended to set parameters to specifically exclude this file.\n{path}.out")
         if self.atoms_bands_objects == []:
             # No bands files have been read
             self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects))
