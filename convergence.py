@@ -82,6 +82,8 @@ class E_cut_Optimize():
         self.name = name  # This part will be added to the file name
         self.graph_title = ""
         self.showplot = True
+        self.xlabel = ""
+        self.ylabel = ""
 
     def add_plots(self, E_cut, Energies, num_of_atoms, labels):
         """This function adds to extra plots to the same graph. See __init__ doc for varable references. They are same."""
@@ -119,15 +121,15 @@ class E_cut_Optimize():
         if diff == True:
             E_to_plot = self.final_DEs
             if self.per_atom:
-                plt.ylabel("$\Delta$ E (meV/atom)")
+                plt.ylabel(f"$\Delta$ E (meV/atom) {self.ylabel}")
             else:
-                plt.ylabel("$\Delta$ E (meV)")
+                plt.ylabel(f"$\Delta$ E (meV) {self.ylabel}")
         else:
             E_to_plot = self.final_energies
             if self.per_atom:
-                plt.ylabel("Total Energy (eV/atom)")
+                plt.ylabel(f"Total Energy (eV/atom) {self.ylabel}")
             else:
-                plt.ylabel("Total Energy (eV)")
+                plt.ylabel(f"Total Energy (eV) {self.ylabel}")
 
         for x in range(0, len(self.cut_off)):
             plt.plot(self.cut_off[x], E_to_plot[x], 'x-', label = self.labels[x])
@@ -135,15 +137,15 @@ class E_cut_Optimize():
         plt.legend()
         if MP == True:
             plt.title(f"Convergence SCF for wavefunction K-Grid cutoff {self.graph_title}")
-            plt.xlabel("Monkhorst-Pack grid (3D)")
+            plt.xlabel(f"Monkhorst-Pack grid (3D) {self.xlabel}")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_MPGrid_peratom{self.per_atom}.pdf")
         elif self.R == True:
             plt.title(f"Kinetic energy cutoff for charge density (Ry) {self.graph_title}")
-            plt.xlabel("$\\rho$ cutoff (Kinetic energy cutoff for charge density) (Ry)")
+            plt.xlabel(f"$\\rho$ cutoff (Kinetic energy cutoff for charge density) (Ry) {self.xlabel}")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_Rho_peratom{self.per_atom}.pdf")
         else:
             plt.title(f"Convergence SCF for wavefunction Kinetic Energy cutoff {self.graph_title}")
-            plt.xlabel("Wave function cutoff (Ry)")
+            plt.xlabel(f"Wave function cutoff (Ry) {self.xlabel}")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_KE_peratom{self.per_atom}.pdf")
         if self.showplot: plt.show()
 
