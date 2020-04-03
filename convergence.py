@@ -65,7 +65,7 @@ class LatticeConstantOptimize():
         plt.show()
 
 class E_cut_Optimize():
-    def __init__(self, E_cut, Energies, num_of_atoms, labels, name="", R = False):
+    def __init__(self, E_cut, Energies, num_of_atoms, labels, name="":
         """
         This initializes the E_cut optimization
         Inputs
@@ -78,12 +78,14 @@ class E_cut_Optimize():
         self.Energies = Energies
         self.num_of_atoms = num_of_atoms
         self.labels = labels
-        self.R = R
         self.per_atom = True
         self.name = name  # This part will be added to the file name
         self.new_fig = True
         self.graph_title = ""
         self.showplot = True
+
+    def add_plots():
+        pass
 
     def plot(self, diff = True, MP = False, R = False):
         """
