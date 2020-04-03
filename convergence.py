@@ -65,7 +65,7 @@ class LatticeConstantOptimize():
         plt.show()
 
 class E_cut_Optimize():
-    def __init__(self, E_cut, Energies, num_of_atoms, labels, name="":
+    def __init__(self, E_cut, Energies, num_of_atoms, labels, name=""):
         """
         This initializes the E_cut optimization
         Inputs
@@ -84,8 +84,12 @@ class E_cut_Optimize():
         self.graph_title = ""
         self.showplot = True
 
-    def add_plots():
-        pass
+    def add_plots(self, E_cut, Energies, num_of_atoms, labels):
+        """This function adds to extra plots to the same graph. See __init__ doc for varable references"""
+        self.cut_off.extend(E_cut)
+        self.Energies.extend(Energies)
+        self.num_of_atoms.extend(num_of_atoms)
+        self.labels.extend(labels)
 
     def plot(self, diff = True, MP = False, R = False):
         """
@@ -97,9 +101,11 @@ class E_cut_Optimize():
         """
         self.final_energies = []
         self.final_DEs = []
+        self.R = R
         for E in self.Energies:
+            index = self.Energies.index(E)
             if self.per_atom:
-                self.final_energies.append(np.array([x/self.num_of_atoms for x in E])) # Converting to energies per atom
+                self.final_energies.append(np.array([x/self.num_of_atoms[index] for x in E])) # Converting to energies per atom
             else :
                 self.final_energies.append(np.array([x for x in E])) # Not converting Converting to per energies per atom
 
