@@ -80,7 +80,6 @@ class E_cut_Optimize():
         self.labels = labels
         self.per_atom = True
         self.name = name  # This part will be added to the file name
-        self.new_fig = True
         self.graph_title = ""
         self.showplot = True
 
@@ -114,7 +113,7 @@ class E_cut_Optimize():
             self.final_DEs.append([(E1 - E0)*1000 for E1 in E])  # Converting in to meV
 
         plt.rcParams["figure.figsize"] = (14,9)
-        if self.new_fig: plt.figure()
+        plt.figure()
 
         # Setting the y label according to all the variables
         if diff == True:
@@ -148,50 +147,6 @@ class E_cut_Optimize():
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_KE_peratom{self.per_atom}.pdf")
         if self.showplot: plt.show()
 
-# class K_cut_Optimize():
-#     def __init__(self, k_cut, E, name="MP_optimization", per_atoms = 2):
-#         self.MP_kpoints = k_cut
-#         self.final_energies_kp = [x/per_atoms for x in E]
-#         self.name = name
-#         self.final_energies_kp = np.array(self.final_energies_kp)*13.6056980659 # Converting to eV
-#         E0 = np.amin(self.final_energies_kp)
-#         self.final_DEs = [E - E0 for E in self.final_energies_kp]
-
-#     def plot(self, diff = True):
-#         if diff == True:
-#             plt.plot(self.MP_kpoints, self.final_DEs, 'x-')
-#             plt.ylabel("$\Delta$ E (eV)")
-#         else:
-#             plt.plot(self.MP_kpoints, self.final_energies, 'x-')
-#             plt.ylabel("Total Energy (eV)")
-#         # plt.xlim(28, 40)
-#         # plt.ylim(-3176.5, -3175.5)
-#         plt.title("Convergence SCF for MP grid")
-#         plt.xlabel("Wave function cutoff in Ry")
-#         plt.savefig(f"Kconvergence_{self.name}.pdf")
-#         plt.show()
-
 if __name__ == "__main__":
-    x = [55, 60, 65, 75, 80, 85]
-    E = [-233.44606483, -233.44617876, -233.44627537, -233.44633003, -233.44633229, -233.44633816]
-    O = E_cut_Optimize(x,E)
-    O.graph_title = "For MP 15"
-    # O.plot(False)
-    O.plot(True)
-
-    f55_10_300 = -233.44602856
-    f60_10_300 = -233.44614256
-    f65_10_300 = -233.44623909
-    f55_15_300 = -233.44606483
-    f60_15_300 = -233.44617876
-    f65_15_300 = -233.44627537
-    f75_15_300 = -233.44633003
-    f80_15_300 = -233.44633229
-    f85_15_300 = -233.44633816
-    f65_20_300 = -233.44921409
-
-    kcut = E_cut_Optimize([15, 20],[f65_15_300, f65_20_300])
-    O.graph_title = "For KE cut 65"
-    # # kcut.plot(True, True)
-    # kcut.plot(False, True)
+    pass
 
