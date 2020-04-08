@@ -76,9 +76,13 @@ class BandPlotter():
 
 class BandPlotterASE():
     # Under costruction!!
-    def __init__(self):
+    def __init__(self, **kwargs):
         """
         If plotting multiple band plots here can do only same path.
+        The idea of how to use this class is as below:
+            1) you sent the required parameters that you need to plot the graph
+            2) You add all the bands you want to add by using the add_to_plot() method
+            3) Plot all bands that you have added using above method by calling the plot() method
         """
         self.file_name = "band_diagram"
         self.number_of_bands_to_plot = 30
@@ -100,6 +104,7 @@ class BandPlotterASE():
         self.new_fig = False
         self.k_locations = None
         self.k_symbols = None
+        self.dots = kwargs.get("dots", False)
 
     def plot(self):
         """
@@ -136,6 +141,22 @@ class BandPlotterASE():
                 else:
                     plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band])
 
+
+        # # This is only for testing with Pierre and should be removed once done
+        # # We plot the figure here
+        # for structure in range(0,len(self.y_to_plot)):
+        #     # print(f"structure: {}")
+        #     for band in range(0,len(self.y_to_plot[structure])):
+        #         if self.same_band_colour == True:
+        #             if self.labels[structure] != None:
+        #                 plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], ".", label = self.labels[structure])
+        #                 self.labels[structure] = None
+        #             else:
+        #                 plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], ".", label = self.labels[structure])
+        #         else:
+        #             plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], ".")
+
+
         plt.xticks(self.k_locations, self.k_symbols)
         plt.xlabel("K path")
         plt.ylabel("Energy (eV)")
@@ -146,7 +167,8 @@ class BandPlotterASE():
 
     def add_to_plot(self, readoutfilesobj, label = None):
         """
-        |Here you add individual plots that need to be plot and then just plot them with the plot command
+        |Here you add individual plots that need to be plot and then just plot them with the plot() method
+        |Use this method which is a part of the BandPlotterASE class you will have to give the bands to plot using a readoutfilesobj type of object
         """
         try:
             Ef = readoutfilesobj.atoms_objects[0].calc.get_fermi_level()
