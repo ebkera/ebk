@@ -189,6 +189,10 @@ class RunScriptHandler():
         return (len(self.KE_cut)*len(self.a0)*len(self.k)*len(self.R))
 
     def create_torque_job(self):
+        """
+        This is the torque job creator and it specifically has PBS lines that torque can understand. 
+        The difference between this and the generic job creator is that the generic job creator does not rely on torque.
+        """
         # Creating the scf run for bands runs if self.calculation bands
         if self.calculation == "bands":
             self.calculation = "scf"
