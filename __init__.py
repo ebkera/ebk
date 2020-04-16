@@ -89,11 +89,11 @@ def get_pseudopotential(identifier):
     This method returns the pseudopotential that corresponds to the identifier that I have set so that we can quickly identify a psedo. This is just for internal tracking
     Obviously these identifiers will be only required for a pseudopotential optimization run.
     """
-    if identifier == "ONCV_PBE_FR1.1" or "Sn_slabs":
+    if identifier == "ONCV_PBE_FR1.1" or "Sn_slab_FR":
             pseudopotential = {'Sn': f"Sn_ONCV_PBE_FR-1.1.upf"}
     elif identifier == "ONCV_PBE_SR1.0":
             pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.0.upf"}
-    elif identifier == "ONCV_PBE_SR1.1":
+    elif identifier == "ONCV_PBE_SR1.1" or "Sn_slab_SR1.1":
             pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.1.upf"}
     elif identifier == "ONCV_PBE_SR1.2":
             pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.2.upf"}

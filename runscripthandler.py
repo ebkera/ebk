@@ -38,8 +38,8 @@ class RunScriptHandler():
             "KE_cut" (list): The kinetic energy cutoff
             "identifier" (string): Description of run will be used in file names
             "job_handler" (string): ("slurm", "torque", "era_pc", "era_ubuntu", "sl_laptop") This is required and will print the right job files for "slurm" or "torque" job handles
-            "a0" (list): The lattice constant
-            "k" (list of lists whith length 3): The k grid
+            "a0" (list of floats): The lattice constant
+            "k" (list of lists whith length 3 or list of ints): The k grid
             "pseudopotentials" (string):
             "atoms_object" (atoms object): This should be without setting the cell since that will be done with every iteration
             "structure" (int): vlaue will determine the cell
@@ -162,7 +162,10 @@ class RunScriptHandler():
         # Here we update aditional run specific stuff
         self.espresso_inputs.update({"label" : f"{run_name}"})
         self.espresso_inputs.update({"ecutwfc" : KE_cut_i})
-        self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
+        if type(k_i) == list:
+            self.espresso_inputs.update({"kpts" : (k_i[0], k_i[1], k_i[2])})
+        else:
+            self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
         if R_i != None: self.espresso_inputs.update({"ecutrho" : R_i})
 
         if self.calculation == "bands":
