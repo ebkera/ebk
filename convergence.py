@@ -80,7 +80,7 @@ class E_cut_Optimize():
         self.labels = labels
         self.per_atom = True
         self.name = name  # This part will be added to the file name
-        self.graph_title = ""
+        self.graph_title = "SCF Convergence"
         self.showplot = True
         self.xlabel = ""
         self.ylabel = ""
@@ -136,15 +136,15 @@ class E_cut_Optimize():
 
         plt.legend()
         if MP == True:
-            plt.title(f"Convergence SCF for wavefunction K-Grid cutoff {self.graph_title}")
+            plt.title(f"{self.graph_title}")
             plt.xlabel(f"Monkhorst-Pack grid (3D) {self.xlabel}")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_MPGrid_peratom{self.per_atom}.pdf")
         elif self.R == True:
-            plt.title(f"Kinetic energy cutoff for charge density (Ry) {self.graph_title}")
+            plt.title(f"{self.graph_title}")
             plt.xlabel(f"$\\rho$ cutoff (Kinetic energy cutoff for charge density) (Ry) {self.xlabel}")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_Rho_peratom{self.per_atom}.pdf")
         else:
-            plt.title(f"Convergence SCF for wavefunction Kinetic Energy cutoff {self.graph_title}")
+            plt.title(f"{self.graph_title}")
             plt.xlabel(f"Wave function cutoff (Ry) {self.xlabel}")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_KE_peratom{self.per_atom}.pdf")
         if self.showplot: plt.show()
