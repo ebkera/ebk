@@ -444,7 +444,14 @@ class ReadOutfiles():
     identifier: list of strings
     """
     def __init__(self, *args, **kwargs):
-        """All Kwargs should be set as strings"""
+        """
+        All Kwargs should be set as strings
+        MHP_base:
+            This is the parameter that will be checked if the monkhorst pack grid is assymetric and the file folder has a list. 
+            You will have to assign a char "x", "y", or "z" to this variable in order to let the program know what direction to chose to compare with others. 
+            If you want to compare multiple you can just load another instance and load the requried direction.
+            The value defaults to the "x" direction.
+        """
         self.d = f"^"  # Here you can set the desired delimiter
         self.equals = ["+", "="]  # Here you can set the desired symbol for value assigner it can also be a list of all possible values
 
@@ -466,6 +473,7 @@ class ReadOutfiles():
         self.calculation      = kwargs.get("calculation", [])
         self.species          = kwargs.get("species", [])
         self.high_verbosity   = kwargs.get("high_verbosity", False)
+        self.MHP_base         = kwargs.get("MHP_base", "x")
 
         # # Initializations
         self.atoms_objects = []  # Where all data read from file will be stored for a scf type file.
@@ -508,6 +516,15 @@ class ReadOutfiles():
                         run_parameters.update({y[0]:float(y[1])})
                     except:
                         run_parameters.update({y[0]:y[1]})
+
+                # Adjusting for nonsymmetric monkhorst pack grids and basing the calling method to chose from "x", "y" or "z" directions in the Monkhorst Pack grid
+                x = run_parameters["K"]
+                if type(x) == str:  # This means the above except statement was executed
+                    x = x.strip("]").strip("[").split(",")
+                    if self.MHP_base == "x": x = int(x[0])
+                    if self.MHP_base == "y": x = int(x[1])
+                    if self.MHP_base == "z": x = int(x[2])
+                run_parameters["K"] = x
 
                 # Splitting up multiple values in Specie
                 x = run_parameters["Specie"]
