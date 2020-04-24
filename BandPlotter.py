@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
 from ase.dft.kpoints import resolve_custom_points, find_bandpath_kinks
+from ase.dft.dos import DOS
 
 # matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 
@@ -226,6 +227,155 @@ class BandPlotterASE():
         self.x_to_plot.append(klengths)
         self.labels.append(label)
 
+class DOSPlotterASE():
+    # Under costruction!!
+    def __init__(self, **kwargs):
+        """
+        If plotting multiple band plots here can do only same path.
+        The idea of how to use this class is as below:
+            1) you sent the required parameters that you need to plot the graph
+            2) You add all the bands you want to add by using the add_to_plot() method
+            3) Plot all bands that you have added using above method by calling the plot() method
+        """
+        self.file_name = "DOS"
+        self.fermi_level = 0
+        self.hlines = False
+        self.vlines = False
+        self.title = "DOS"
+        self.set_y_range = False
+        self.ylim_low = -5
+        self.ylim_high = 5
+        self.xlim_low = 0
+        self.xlim_high = 0
+        self.Ef_shift = True
+        self.y_to_plot = []
+        self.x_to_plot = []
+        self.labels = []
+        self.same_band_colour = False
+        self.band_colour = ["b", "g", "r", "c", "m", "y", "k"]
+        self.new_fig = False
+        self.k_locations = None
+        self.k_symbols = None
+        self.dots = kwargs.get("dots", False)
+
+    def plot(self):
+        """
+        |All the features of the band plot are set here
+        |Inputs: None
+        """
+
+        # Setting the dimensions of the saved image
+        plt.rcParams["figure.figsize"] = (14,9)
+
+        # Setting vertical lines
+        if self.vlines == True:
+            for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
+                plt.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
+
+        # Setting horizontal line on the fermi energy
+        if self.hlines == True:
+            plt.axhline(linewidth=0.1, color='k')
+
+        # Setting y ranges
+        if self.set_y_range == True:
+            plt.ylim([self.ylim_low, self.ylim_high])
+
+        # We plot the figure here
+        for structure in range(0,len(self.y_to_plot)):
+            # print(f"structure: {}")
+            for band in range(0,len(self.y_to_plot[structure])):
+                if self.same_band_colour == True:
+                    if self.labels[structure] != None:
+                        plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], self.band_colour[structure], label = self.labels[structure])
+                        self.labels[structure] = None
+                    else:
+                        plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], self.band_colour[structure], label = self.labels[structure])
+                else:
+                    plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band])
+
+        plt.xticks(self.k_locations, self.k_symbols)
+        plt.xlabel("K path")
+        plt.ylabel("Energy (eV)")
+        plt.title(f"{self.title}")
+        plt.legend()
+        plt.savefig(f"Bands_{self.file_name}.pdf")
+        plt.show()
+
+    def add_to_plot(self, readoutfilesobj, label = None):
+        """
+        |Here you add individual plots that need to be plot and then just plot them with the plot() method
+        |Use this method which is a part of the BandPlotterASE class you will have to give the bands to plot using a readoutfilesobj type of object
+        """
+        try:
+            Ef = readoutfilesobj.atoms_objects[0].calc.get_fermi_level()
+        except:
+            print(f"add_to_plot: Could not read fermi level")
+        try:
+            kpts = readoutfilesobj.atoms_bands_objects[0].calc.get_ibz_k_points()
+        except:
+            print(f"add_to_plot: Could not read k points")
+
+        # # Test space for k path and k high symmetry points
+        # # print(kpts)
+        # path = readoutfilesobj.atoms_bands_objects[0].cell.bandpath(npoints=0)
+        # kinks = find_bandpath_kinks(readoutfilesobj.atoms_bands_objects[0].cell, kpts, eps=1e-5)  # These are the high symmetry points in use 
+        # pathspec = resolve_custom_points(kpts[kinks], path.special_points, eps=1e-5) # This gives the postions for the relevant high symmetry points
+        # path.kpts = kpts
+        # path.path = pathspec
+
+        # klengths = []
+        # for x in range(0, len(kpts)):
+        #     if x == 0:
+        #         kdist = np.sqrt((0.0 - kpts[x][0])**2 + (0.0 - kpts[x][1])**2 +(0.0 - kpts[x][2])**2)
+        #         klengths.append(kdist)
+        #     else:
+        #         kdist = np.sqrt((kpts[x-1][0] - kpts[x][0])**2 + (kpts[x-1][1] - kpts[x][1])**2 + (kpts[x-1][2]- kpts[x][2])**2)
+        #         klengths.append(kdist+klengths[x-1])
+        # self.k_locations = []
+
+        # for x in range(len(kinks)):
+        #     self.k_locations.append(klengths[kinks[x]])
+
+        # self.k_symbols = []
+        # for x in pathspec:
+        #     if x == "G":
+        #         self.k_symbols.append("$\Gamma$")
+        #     else:
+        #         self.k_symbols.append(x)
+
+        # energies = []
+        # for s in range(readoutfilesobj.atoms_bands_objects[0].calc.get_number_of_spins()):
+        #     energies.append([readoutfilesobj.atoms_bands_objects[0].calc.get_eigenvalues(kpt=k, spin=s) for k in range(len(kpts))])
+        # # print(f"lenght of kpoints: {range(len(kpts))}")
+        # Energy_to_plot = []
+        # if self.Ef_shift == True:
+        #     for band in energies[0]:
+        #         Energy_to_plot.append([E - Ef for E in band])
+        # tempMain = []
+        # temp = []
+        # for x in range(len(Energy_to_plot[0])):
+        #     for kpoint in Energy_to_plot:
+        #         temp.append(kpoint[x])
+        #     tempMain.append(temp)
+        #     temp = []
+
+        calc = readoutfilesobj.atoms_bands_objects[0].calc
+        print(calc)
+
+        dos = DOS(calc, width=0.2)
+        d = dos.get_dos()
+        e = dos.get_energies()
+        print(e)
+
+        # This is from the ASE website as an example
+        # plt.plot(e, d)
+        # plt.xlabel('energy [eV]')
+        # plt.ylabel('DOS')
+        # plt.show()
+
+        self.y_to_plot.append(d)
+        self.x_to_plot.append([e])
+        self.labels.append(label)
 
 if __name__ == "__main__":
     # You dont really need this. For testing we have left this block here.
@@ -261,5 +411,3 @@ if __name__ == "__main__":
     plotter2.band_colour = "r"
     # plotter2.new_fig = True
     plotter2.plot()
-
-
