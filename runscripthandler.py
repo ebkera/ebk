@@ -363,7 +363,7 @@ class RunScriptHandler():
                                 R_name = f"{4*KE_cut_i}"
                             else:
                                 R_name = R_i
-                            run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_name}{self.d}a{self.equals}{a0_i}{self.d}PP{self.equals}{self.PP}{self.d}type{self.equals}{self.calculation}"
+                            run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_name}{self.d}a{self.equals}{a0_i}{self.d}{self.d}type{self.equals}{self.calculation}"
                             if self.structure == 0:
                                 # cell has been set from outside
                                 pass
