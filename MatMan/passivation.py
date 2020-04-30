@@ -8,7 +8,7 @@ def passivate_zinc_blende_slab(slab, passivant):
     Inputs:
         slab: Atoms object which is a conventional unit cell of the slab that you would like to passivate
         passivant: String object with the species that you would like to passivate the slab with
-        return: Atoms object
+    return: Atoms object
     """
     slab = slab.copy()  # To prevent any previous instances lurking
     slab *= (1, 1, 2)  # we are here doubling the slab to get thorse top atoms that we can convert to other atoms.
@@ -18,7 +18,7 @@ def passivate_zinc_blende_slab(slab, passivant):
     for x in range(15, 10, -1):  # Delteing the extra atoms of the species up on top of the initial slab
         del(slab[x])
     del(slab[9])
-    print(f"The slab contains : {len(slab)} atoms in total")
+    # print(f"The slab contains : {len(slab)} atoms in total")
 
     #Next We will change the two new atoms to passivation atoms  type and introduce another two atoms that we will change 
     slab[8].symbol = f"{passivant}"
