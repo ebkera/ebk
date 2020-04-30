@@ -473,7 +473,7 @@ class ReadOutfiles():
         self.calculation      = kwargs.get("calculation", [])
         self.species          = kwargs.get("species", [])
         self.high_verbosity   = kwargs.get("high_verbosity", False)
-        self.MHP_base         = kwargs.get("MHP_base", "x")
+        self.MHP_base         = kwargs.get("MHP_base", "x")  # This is what you want to base you analysis on.
 
         # # Initializations
         self.atoms_objects = []  # Where all data read from file will be stored for a scf type file.
