@@ -4,7 +4,7 @@ Here all the passivation in volved things can be found
 
 def passivate_zinc_blende_slab(slab, passivant):
     """
-    Passivates zincblende slabs with the type of atoms given in the inputs
+    Passivates zincblende slabs (only conventional unit cells) with the type of atoms given in the inputs
     Inputs:
         slab: Atoms object which is a conventional unit cell of the slab that you would like to passivate
         passivant: String object with the species that you would like to passivate the slab with
