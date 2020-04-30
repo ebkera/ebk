@@ -65,19 +65,19 @@ class LatticeConstantOptimize():
         plt.show()
 
 class E_cut_Optimize():
-    def __init__(self, E_cut, Energies, num_of_atoms, labels, name=""):
+    def __init__(self, E_cut, Energies, num_of_atoms, label, name=""):
         """
         This initializes the E_cut optimization
         Inputs
-        E_cut  # List of lists
-        Energies  # List of lists
+        E_cut (list): List of cutoff values can be K cut or KE_cut
+        Energies (list): List of Energy values
         label: List of strings
         num_of_atoms: (integer) The number of atoms that the molecule/primitive unit cell has
         """
-        self.cut_off = E_cut  # This should be an array of arrays
-        self.Energies = Energies
-        self.num_of_atoms = num_of_atoms
-        self.labels = labels
+        self.cut_off = [E_cut]  # This should be an array of arrays
+        self.Energies = [Energies]
+        self.num_of_atoms = [num_of_atoms]
+        self.labels = [label]
         self.per_atom = True
         self.name = name  # This part will be added to the file name
         self.graph_title = "SCF Convergence"
@@ -85,7 +85,7 @@ class E_cut_Optimize():
         self.xlabel = ""
         self.ylabel = ""
 
-    def add_plots(self, E_cut, Energies, num_of_atoms, labels):
+    def add_to_plot(self, E_cut, Energies, num_of_atoms, labels):
         """This function adds to extra plots to the same graph. See __init__ doc sting for varable references. They are same."""
         self.cut_off.extend(E_cut)
         self.Energies.extend(Energies)
