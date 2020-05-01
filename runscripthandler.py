@@ -508,6 +508,7 @@ class ReadOutfiles():
             # print(f"This is the dir: {dir}")  # For debugging
             try:
                 x = dir.split("^")
+                # print(x)
                 run_parameters = {}
                 run_parameters.update({"identifier":x[0]})  #Done seperately due to "identifier" not being present as a word in the folder name
                 for i in range(1,len(x)):
@@ -532,16 +533,17 @@ class ReadOutfiles():
                 x = [i for i in x if i != ""]
                 run_parameters["Specie"] = x
 
-                # Splitting up multiple values in PP
-                x = run_parameters["PP"]
-                x = x.split("-")
-                x = [i for i in x if i != ""]
-                run_parameters["PP"] = x
+                # # Splitting up multiple values in PP
+                # x = run_parameters["PP"]
+                # x = x.split("-")
+                # x = [i for i in x if i != ""]
+                # run_parameters["PP"] = x
                 self.folder_data.append(run_parameters)
 
                 # print(f"read_folder_data: Logging folder: {dir}")   #For debugging purposes
             except:
                 print(f"read_folder_data: Warning!! Something wrong with {dir}. Cannot recognize patterns.")
+            # print(run_parameters)  # For Debugging
 
     def make_required_folders_list(self):
         """
@@ -553,22 +555,24 @@ class ReadOutfiles():
         self.required_folder_data = []
         for folder in self.folder_data:
             if folder["identifier"] in self.identifier or self.identifier == []:
+                print("inside Identifier")
                 if folder["Calc"] in self.calculator or self.calculator == []:
                     # since you can mistakenly set a0 in strings lets try to convert them to floats
                     self.a0 = [float(x) for x in self.a0]
                     if folder["a"] in self.a0 or self.a0 == []:
                         if float(folder["R"]) in self.R or self.R ==[]:
                             if folder["Struct"] in self.structure_type or self.structure_type == []:
-                                count = 0
-                                for x in folder["PP"]:
-                                    if x in self.pseudopotentials or self.pseudopotentials == []:
-                                        count+=1
-                                if count == len(folder["PP"]):
-                                    if float(folder["KE"]) in self.KE_cut or self.KE_cut == []:
-                                        if float(folder["K"]) in self.k or self.k == []:
-                                            if folder["type"] in self.calculation or self.calculation == []:
-                                                self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
-                                                self.required_folder_data.append(self.folder_data[self.folder_data.index(folder)])
+                                # Below commented lines for getting pseudos from teh file name but now not implemented
+                                # count = 0
+                                # for x in folder["PP"]:
+                                #     if x in self.pseudopotentials or self.pseudopotentials == []:
+                                #         count+=1
+                                # if count == len(folder["PP"]):
+                                if float(folder["KE"]) in self.KE_cut or self.KE_cut == []:
+                                    if float(folder["K"]) in self.k or self.k == []:
+                                        if folder["type"] in self.calculation or self.calculation == []:
+                                            self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
+                                            self.required_folder_data.append(self.folder_data[self.folder_data.index(folder)])
         if self.high_verbosity == True:
             print("Loaded folders:")
             for folder in self.required_folders_list:
