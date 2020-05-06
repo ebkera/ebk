@@ -90,7 +90,8 @@ class RunScriptHandler():
                                 "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-3),
                                 "outdir"          : kwargs.get("outdir", './'),
                                 "path"            : self.path,
-                                "density"         : self.density,
+                                "density"         : self.density,  # This is an ASE command for input files for Quantum Espresso
+                                "electron_maxstep": kwargs.get("electron_maxstep", 200)
                                 }
 
         # Here are all initializations of the self.espresso_inputs variable that should be set only if explicitly given by user
@@ -671,7 +672,7 @@ def make_all_job_files(job_list = []):
     """
 
     print("make_all_job_files: Printing all jobs onto a single file.")
-    directory_list = os.listdir(os.getcwd())
+    directory_list = os.listdir(os.getcwd())  # os.getcwd() might give different folders in different systems.
     with open("all_jobs.job", "w+") as file:
         file.write("#!/bin/bash\n\n")
         file.write("dos2unix *.job\n")
@@ -679,14 +680,14 @@ def make_all_job_files(job_list = []):
         if len(job_list) == 0:
             for file2 in directory_list:
                 # if "scf.job" in file2 or "bands.job" in file2:
-                if "scf.job" in file2:
+                if "scf.job" in file2 or "relax.job" in file2:
                     file.write(f". {file2}\n")
         # if jobs are explicitly given
         else:
             for job in job_list:
                 for file2 in directory_list:
                     # if job in file2 and (".scf.job" in file2 or ".bands.job" in file2):
-                    if job in file2 and (".scf.job" in file2):
+                    if job in file2 and (".scf.job" in file2) or job in file2 and (".relax.job" in file2):
                         file.write(f". {file2}\n")
         file.write(f"\n")
 
