@@ -91,7 +91,8 @@ class RunScriptHandler():
                                 "outdir"          : kwargs.get("outdir", './'),
                                 "path"            : self.path,
                                 "density"         : self.density,  # This is an ASE command for input files for Quantum Espresso
-                                "electron_maxstep": kwargs.get("electron_maxstep", 200)
+                                "electron_maxstep": kwargs.get("electron_maxstep", 500),
+                                "mixing_mode"     : kwargs.get("mixing_mode", "plain"),
                                 }
 
         # Here are all initializations of the self.espresso_inputs variable that should be set only if explicitly given by user
