@@ -99,7 +99,6 @@ class RunScriptHandler():
         if "nbnd" in kwargs:
             self.espresso_inputs.update({"nbnd"            : kwargs.get("nbnd", 40)})
 
-
         if self.pseudo_dir != False:
             # Since if not set we want the value to be the default value Thereby reading in machine defaults and not appearing in the .in file
             # pseduo_dir is initialized in the base run init section
