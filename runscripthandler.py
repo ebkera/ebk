@@ -556,7 +556,7 @@ class ReadOutfiles():
         self.required_folder_data = []
         for folder in self.folder_data:
             if folder["identifier"] in self.identifier or self.identifier == []:
-                print("inside Identifier")
+                # print("inside Identifier")  # For debugging
                 if folder["Calc"] in self.calculator or self.calculator == []:
                     # since you can mistakenly set a0 in strings lets try to convert them to floats
                     self.a0 = [float(x) for x in self.a0]
