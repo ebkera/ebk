@@ -85,12 +85,12 @@ class E_cut_Optimize():
         self.xlabel = ""
         self.ylabel = ""
 
-    def add_to_plot(self, E_cut, Energies, num_of_atoms, labels):
+    def add_to_plot(self, E_cut, Energies, num_of_atoms, label):
         """This function adds to extra plots to the same graph. See __init__ doc sting for varable references. They are same."""
-        self.cut_off.extend(E_cut)
-        self.Energies.extend(Energies)
-        self.num_of_atoms.extend(num_of_atoms)
-        self.labels.extend(labels)
+        self.cut_off.append(E_cut)
+        self.Energies.append(Energies)
+        self.num_of_atoms.append(num_of_atoms)
+        self.labels.append(label)
 
     def plot(self, diff = True, MP = False, R = False):
         """
