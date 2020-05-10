@@ -81,7 +81,7 @@ class BandPlotterASE():
         """
         If plotting multiple band plots here can do only same path.
         The idea of how to use this class is as below:
-            1) you sent the required parameters that you need to plot the graph
+            1) you set the required parameters that you need to plot the graph
             2) You add all the bands you want to add by using the add_to_plot() method
             3) Plot all bands that you have added using above method by calling the plot() method
         """
@@ -233,7 +233,7 @@ class DOSPlotterASE():
         """
         If plotting multiple band plots here can do only same path.
         The idea of how to use this class is as below:
-            1) you sent the required parameters that you need to plot the graph
+            1) you set the required parameters that you need to plot the graph
             2) You add all the bands you want to add by using the add_to_plot() method
             3) Plot all bands that you have added using above method by calling the plot() method
         """
@@ -281,24 +281,15 @@ class DOSPlotterASE():
             plt.ylim([self.ylim_low, self.ylim_high])
 
         # We plot the figure here
-        for structure in range(0,len(self.y_to_plot)):
-            # print(f"structure: {}")
-            for band in range(0,len(self.y_to_plot[structure])):
-                if self.same_band_colour == True:
-                    if self.labels[structure] != None:
-                        plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], self.band_colour[structure], label = self.labels[structure])
-                        self.labels[structure] = None
-                    else:
-                        plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], self.band_colour[structure], label = self.labels[structure])
-                else:
-                    plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band])
+        for i,v in enumerate(self.y_to_plot):
+            plt.plot(self.x_to_plot[i], self.y_to_plot[i], self.band_colour[i], label = self.labels[i])
 
-        plt.xticks(self.k_locations, self.k_symbols)
-        plt.xlabel("K path")
-        plt.ylabel("Energy (eV)")
+        # plt.xticks(self.k_locations, self.k_symbols)
+        plt.ylabel("DOS")
+        plt.xlabel("Energy (eV)")
         plt.title(f"{self.title}")
         plt.legend()
-        plt.savefig(f"Bands_{self.file_name}.pdf")
+        plt.savefig(f"DOS_{self.file_name}.pdf")
         plt.show()
 
     def add_to_plot(self, readoutfilesobj, label = None):
@@ -306,14 +297,14 @@ class DOSPlotterASE():
         |Here you add individual plots that need to be plot and then just plot them with the plot() method
         |Use this method which is a part of the BandPlotterASE class you will have to give the bands to plot using a readoutfilesobj type of object
         """
-        try:
-            Ef = readoutfilesobj.atoms_objects[0].calc.get_fermi_level()
-        except:
-            print(f"add_to_plot: Could not read fermi level")
-        try:
-            kpts = readoutfilesobj.atoms_bands_objects[0].calc.get_ibz_k_points()
-        except:
-            print(f"add_to_plot: Could not read k points")
+        # try:
+        #     Ef = readoutfilesobj.atoms_objects[0].calc.get_fermi_level()
+        # except:
+        #     print(f"add_to_plot: Could not read fermi level")
+        # try:
+        #     kpts = readoutfilesobj.atoms_bands_objects[0].calc.get_ibz_k_points()
+        # except:
+        #     print(f"add_to_plot: Could not read k points")
 
         # # Test space for k path and k high symmetry points
         # # print(kpts)
@@ -359,13 +350,15 @@ class DOSPlotterASE():
         #     tempMain.append(temp)
         #     temp = []
 
-        calc = readoutfilesobj.atoms_bands_objects[0].calc
-        print(calc)
-
+        # calc = readoutfilesobj.atoms_bands_objects[0].calc
+        calc = readoutfilesobj.atoms_objects[0].calc
+        # print(calc)
         dos = DOS(calc, width=0.2)
         d = dos.get_dos()
         e = dos.get_energies()
-        print(e)
+        # print(d)
+        # print(e)
+
 
         # This is from the ASE website as an example
         # plt.plot(e, d)
@@ -374,7 +367,7 @@ class DOSPlotterASE():
         # plt.show()
 
         self.y_to_plot.append(d)
-        self.x_to_plot.append([e])
+        self.x_to_plot.append(e)
         self.labels.append(label)
 
 if __name__ == "__main__":
