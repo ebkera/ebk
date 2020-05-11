@@ -3,6 +3,7 @@ import matplotlib
 import numpy as np
 from ase.dft.kpoints import resolve_custom_points, find_bandpath_kinks
 from ase.dft.dos import DOS
+from matplotlib import gridspec
 
 # matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 
@@ -90,6 +91,7 @@ class BandPlotterASE():
         self.hlines = False
         self.vlines = False
         self.title = "Band diagram"
+        self.dos_title = "Density of States"
         self.set_y_range = False
         self.set_x_range = False
         self.ylim_low = -5
@@ -102,7 +104,7 @@ class BandPlotterASE():
         self.dos = []
         self.E_dos = []
         self.labels = []
-        self.same_band_colour = False
+        self.same_band_colour = kwargs.get("same_band_colour", True)
         self.band_colour = ["b", "g", "r", "c", "m", "y", "k"]
         self.new_fig = False
         self.k_locations = None
@@ -131,7 +133,10 @@ class BandPlotterASE():
         # Setting the dimensions of the saved image
         plt.rcParams["figure.figsize"] = (14,9)
         if self.include_dos:
-            fig, (ax1, ax2) = plt.subplots(1,2)
+            # fig, (ax1, ax2) = plt.subplots(1,2)
+            gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1])
+            ax1 = plt.subplot(gs[0])
+            ax2 = plt.subplot(gs[1])
         elif self.plot_only_dos:
             fig, ax2 = plt.subplots()
         else:
@@ -139,9 +144,7 @@ class BandPlotterASE():
 
         # Setting vertical lines
         if self.vlines == True:
-            if self.plot_only_dos or self.include_dos:
-                ax2.axhline(linewidth=0.1, color='k')
-            else:
+            if not self.plot_only_dos:
                 for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
                     ax1.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
 
@@ -176,7 +179,7 @@ class BandPlotterASE():
                     ax2.plot(self.dos[i], self.E_dos[i], self.band_colour[i], label = self.labels[i])
             ax2.set_xlabel("DOS")
             ax2.set_ylabel("Energy (eV)")
-            ax2.set_title(f"{self.title}")
+            ax2.set_title(f"{self.dos_title}")
             ax2.legend()
         if not self.plot_only_dos :
             # We plot the bands figure here
