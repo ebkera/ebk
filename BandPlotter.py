@@ -76,7 +76,6 @@ class BandPlotter():
 
 
 class BandPlotterASE():
-    # Under costruction!!
     def __init__(self, **kwargs):
         """
         If plotting multiple band plots here can do only same path.
@@ -92,6 +91,7 @@ class BandPlotterASE():
         self.vlines = False
         self.title = "Band diagram"
         self.set_y_range = False
+        self.set_x_range = False
         self.ylim_low = -5
         self.ylim_high = 5
         self.xlim_low = 0
@@ -99,6 +99,8 @@ class BandPlotterASE():
         self.Ef_shift = True
         self.y_to_plot = []
         self.x_to_plot = []
+        self.dos = []
+        self.E_dos = []
         self.labels = []
         self.same_band_colour = False
         self.band_colour = ["b", "g", "r", "c", "m", "y", "k"]
@@ -106,6 +108,19 @@ class BandPlotterASE():
         self.k_locations = None
         self.k_symbols = None
         self.dots = kwargs.get("dots", False)
+        self.include_dos = kwargs.get("dos", False)
+        self.plot_only_dos = kwargs.get("only_dos", False)
+
+    def get_dos(self, readoutfilesobj):
+        """
+        This method gets the dos parameters for plotting
+        This can be an ordinary function and does not have to be a method for this class but I have included it as such so that we can be more flexible in the future
+        """
+
+        calc = readoutfilesobj.atoms_objects[0].calc
+        dos = DOS(calc, width=0.2)
+        self.dos.append(dos.get_dos())
+        self.E_dos.append(dos.get_energies())
 
     def plot(self):
         """
@@ -115,54 +130,72 @@ class BandPlotterASE():
 
         # Setting the dimensions of the saved image
         plt.rcParams["figure.figsize"] = (14,9)
+        if self.include_dos:
+            fig, (ax1, ax2) = plt.subplots(1,2)
+        elif self.plot_only_dos:
+            fig, ax2 = plt.subplots()
+        else:
+            fig, ax1 = plt.subplots()
 
         # Setting vertical lines
         if self.vlines == True:
-            for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
-                plt.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
+            if self.plot_only_dos or self.include_dos:
+                ax2.axhline(linewidth=0.1, color='k')
+            else:
+                for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
+                    ax1.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
 
         # Setting horizontal line on the fermi energy
         if self.hlines == True:
-            plt.axhline(linewidth=0.1, color='k')
+            if self.plot_only_dos or self.include_dos:
+                ax2.axhline(linewidth=0.1, color='k')
+            if not self.plot_only_dos :
+                ax1.axhline(linewidth=0.1, color='k')
 
         # Setting y ranges
         if self.set_y_range == True:
-            plt.ylim([self.ylim_low, self.ylim_high])
+            if self.plot_only_dos or self.include_dos:
+                ax2.set_ylim([self.ylim_low, self.ylim_high])
+            if not self.plot_only_dos :
+                ax1.set_ylim([self.ylim_low, self.ylim_high])
 
-        # We plot the figure here
-        for structure in range(0,len(self.y_to_plot)):
-            # print(f"structure: {}")
-            for band in range(0,len(self.y_to_plot[structure])):
-                if self.same_band_colour == True:
-                    if self.labels[structure] != None:
-                        plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], self.band_colour[structure], label = self.labels[structure])
-                        self.labels[structure] = None
-                    else:
-                        plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], self.band_colour[structure], label = self.labels[structure])
+        if self.set_x_range == True:
+            if self.plot_only_dos or self.include_dos:
+                # This for now applies only to DOS
+                ax2.set_xlim([self.xlim_low, self.xlim_high])
+            if not self.plot_only_dos :
+                pass
+
+        # we plot the dos figure here
+        if self.plot_only_dos or self.include_dos:
+            for i,v in enumerate(self.y_to_plot):
+                if self.plot_only_dos:
+                    # This will flip the axes
+                    ax2.plot(self.E_dos[i], self.dos[i], self.band_colour[i], label = self.labels[i])
                 else:
-                    plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band])
-
-
-        # # This is only for testing with Pierre and should be removed once done
-        # # We plot the figure here
-        # for structure in range(0,len(self.y_to_plot)):
-        #     # print(f"structure: {}")
-        #     for band in range(0,len(self.y_to_plot[structure])):
-        #         if self.same_band_colour == True:
-        #             if self.labels[structure] != None:
-        #                 plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], ".", label = self.labels[structure])
-        #                 self.labels[structure] = None
-        #             else:
-        #                 plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], ".", label = self.labels[structure])
-        #         else:
-        #             plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], ".")
-
-
-        plt.xticks(self.k_locations, self.k_symbols)
-        plt.xlabel("K path")
-        plt.ylabel("Energy (eV)")
-        plt.title(f"{self.title}")
-        plt.legend()
+                    ax2.plot(self.dos[i], self.E_dos[i], self.band_colour[i], label = self.labels[i])
+            ax2.set_xlabel("DOS")
+            ax2.set_ylabel("Energy (eV)")
+            ax2.set_title(f"{self.title}")
+            ax2.legend()
+        if not self.plot_only_dos :
+            # We plot the bands figure here
+            for i,v in enumerate(self.y_to_plot):
+                for band in v:
+                    if self.same_band_colour == True:
+                        if self.labels[i] != None:
+                            ax1.plot(self.x_to_plot[i], band, self.band_colour[i], label = self.labels[i])
+                            self.labels[i] = None  # Here we have set the label to none since we are plotting multiple bands with teh same label and we dont want to list multiple labels
+                        else:
+                            ax1.plot(self.x_to_plot[i], band, self.band_colour[i], label = self.labels[i])
+                    else:
+                        ax1.plot(self.x_to_plot[i], band)  # Here we have ignored labels since individual bands have no labels
+            ax1.set_xticks( self.k_locations)
+            ax1.set_xticklabels(self.k_symbols)
+            ax1.set_xlabel("K path")
+            ax1.set_ylabel("Energy (eV)")
+            ax1.set_title(f"{self.title}")
+            ax1.legend()
         plt.savefig(f"Bands_{self.file_name}.pdf")
         plt.show()
 
@@ -179,6 +212,10 @@ class BandPlotterASE():
             kpts = readoutfilesobj.atoms_bands_objects[0].calc.get_ibz_k_points()
         except:
             print(f"add_to_plot: Could not read k points")
+
+        if self.include_dos or self.plot_only_dos:
+            # we are here getting the required information for DOS
+            self.get_dos(readoutfilesobj)
 
         # Test space for k path and k high symmetry points
         # print(kpts)
@@ -256,7 +293,6 @@ class DOSPlotterASE():
         self.new_fig = False
         self.k_locations = None
         self.k_symbols = None
-        self.dots = kwargs.get("dots", False)
 
     def plot(self):
         """
@@ -404,3 +440,159 @@ if __name__ == "__main__":
     plotter2.band_colour = "r"
     # plotter2.new_fig = True
     plotter2.plot()
+
+
+
+# copy of the class before the implementation of all DOS related things into the things
+
+# class BandPlotterASE():
+#     # Under costruction!!
+#     def __init__(self, **kwargs):
+#         """
+#         If plotting multiple band plots here can do only same path.
+#         The idea of how to use this class is as below:
+#             1) you set the required parameters that you need to plot the graph
+#             2) You add all the bands you want to add by using the add_to_plot() method
+#             3) Plot all bands that you have added using above method by calling the plot() method
+#         """
+#         self.file_name = "band_diagram"
+#         self.number_of_bands_to_plot = 30
+#         self.fermi_level = 0
+#         self.hlines = False
+#         self.vlines = False
+#         self.title = "Band diagram"
+#         self.set_y_range = False
+#         self.ylim_low = -5
+#         self.ylim_high = 5
+#         self.xlim_low = 0
+#         self.xlim_high = 0
+#         self.Ef_shift = True
+#         self.y_to_plot = []
+#         self.x_to_plot = []
+#         self.labels = []
+#         self.same_band_colour = False
+#         self.band_colour = ["b", "g", "r", "c", "m", "y", "k"]
+#         self.new_fig = False
+#         self.k_locations = None
+#         self.k_symbols = None
+#         self.dots = kwargs.get("dots", False)
+
+#     def plot(self):
+#         """
+#         |All the features of the band plot are set here
+#         |Inputs: None
+#         """
+
+#         # Setting the dimensions of the saved image
+#         plt.rcParams["figure.figsize"] = (14,9)
+
+#         # Setting vertical lines
+#         if self.vlines == True:
+#             for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
+#                 plt.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
+
+#         # Setting horizontal line on the fermi energy
+#         if self.hlines == True:
+#             plt.axhline(linewidth=0.1, color='k')
+
+#         # Setting y ranges
+#         if self.set_y_range == True:
+#             plt.ylim([self.ylim_low, self.ylim_high])
+
+#         # We plot the figure here
+#         for structure in range(0,len(self.y_to_plot)):
+#             # print(f"structure: {}")
+#             for band in range(0,len(self.y_to_plot[structure])):
+#                 if self.same_band_colour == True:
+#                     if self.labels[structure] != None:
+#                         plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], self.band_colour[structure], label = self.labels[structure])
+#                         self.labels[structure] = None
+#                     else:
+#                         plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], self.band_colour[structure], label = self.labels[structure])
+#                 else:
+#                     plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band])
+
+
+#         # # This is only for testing with Pierre and should be removed once done
+#         # # We plot the figure here
+#         # for structure in range(0,len(self.y_to_plot)):
+#         #     # print(f"structure: {}")
+#         #     for band in range(0,len(self.y_to_plot[structure])):
+#         #         if self.same_band_colour == True:
+#         #             if self.labels[structure] != None:
+#         #                 plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], ".", label = self.labels[structure])
+#         #                 self.labels[structure] = None
+#         #             else:
+#         #                 plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], ".", label = self.labels[structure])
+#         #         else:
+#         #             plt.plot(self.x_to_plot[structure], self.y_to_plot[structure][band], ".")
+
+
+#         plt.xticks(self.k_locations, self.k_symbols)
+#         plt.xlabel("K path")
+#         plt.ylabel("Energy (eV)")
+#         plt.title(f"{self.title}")
+#         plt.legend()
+#         plt.savefig(f"Bands_{self.file_name}.pdf")
+#         plt.show()
+
+#     def add_to_plot(self, readoutfilesobj, label = None):
+#         """
+#         |Here you add individual plots that need to be plot and then just plot them with the plot() method
+#         |Use this method which is a part of the BandPlotterASE class you will have to give the bands to plot using a readoutfilesobj type of object
+#         """
+#         try:
+#             Ef = readoutfilesobj.atoms_objects[0].calc.get_fermi_level()
+#         except:
+#             print(f"add_to_plot: Could not read fermi level")
+#         try:
+#             kpts = readoutfilesobj.atoms_bands_objects[0].calc.get_ibz_k_points()
+#         except:
+#             print(f"add_to_plot: Could not read k points")
+
+#         # Test space for k path and k high symmetry points
+#         # print(kpts)
+#         path = readoutfilesobj.atoms_bands_objects[0].cell.bandpath(npoints=0)
+#         kinks = find_bandpath_kinks(readoutfilesobj.atoms_bands_objects[0].cell, kpts, eps=1e-5)  # These are the high symmetry points in use 
+#         pathspec = resolve_custom_points(kpts[kinks], path.special_points, eps=1e-5) # This gives the postions for the relevant high symmetry points
+#         path.kpts = kpts
+#         path.path = pathspec
+
+#         klengths = []
+#         for x in range(0, len(kpts)):
+#             if x == 0:
+#                 kdist = np.sqrt((0.0 - kpts[x][0])**2 + (0.0 - kpts[x][1])**2 +(0.0 - kpts[x][2])**2)
+#                 klengths.append(kdist)
+#             else:
+#                 kdist = np.sqrt((kpts[x-1][0] - kpts[x][0])**2 + (kpts[x-1][1] - kpts[x][1])**2 + (kpts[x-1][2]- kpts[x][2])**2)
+#                 klengths.append(kdist+klengths[x-1])
+#         self.k_locations = []
+
+#         for x in range(len(kinks)):
+#             self.k_locations.append(klengths[kinks[x]])
+
+#         self.k_symbols = []
+#         for x in pathspec:
+#             if x == "G":
+#                 self.k_symbols.append("$\Gamma$")
+#             else:
+#                 self.k_symbols.append(x)
+
+#         energies = []
+#         for s in range(readoutfilesobj.atoms_bands_objects[0].calc.get_number_of_spins()):
+#             energies.append([readoutfilesobj.atoms_bands_objects[0].calc.get_eigenvalues(kpt=k, spin=s) for k in range(len(kpts))])
+#         # print(f"lenght of kpoints: {range(len(kpts))}")
+#         Energy_to_plot = []
+#         if self.Ef_shift == True:
+#             for band in energies[0]:
+#                 Energy_to_plot.append([E - Ef for E in band])
+#         tempMain = []
+#         temp = []
+#         for x in range(len(Energy_to_plot[0])):
+#             for kpoint in Energy_to_plot:
+#                 temp.append(kpoint[x])
+#             tempMain.append(temp)
+#             temp = []
+#         self.y_to_plot.append(tempMain)
+#         self.x_to_plot.append(klengths)
+#         self.labels.append(label)
