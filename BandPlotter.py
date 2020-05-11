@@ -88,11 +88,11 @@ class BandPlotterASE():
         self.file_name = "band_diagram"
         self.number_of_bands_to_plot = 30
         self.fermi_level = 0
-        self.hlines = False
-        self.vlines = False
+        self.hlines = kwargs.get("hlines", True)
+        self.vlines = kwargs.get("vlines", True)
         self.title = "Band diagram"
         self.dos_title = "Density of States"
-        self.set_y_range = False
+        self.set_y_range = kwargs.get("set_y_range", True)
         self.set_x_range = False
         self.ylim_low = -5
         self.ylim_high = 5
