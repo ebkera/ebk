@@ -110,7 +110,7 @@ class BandPlotterASE():
         self.k_locations = None
         self.k_symbols = None
         self.dots = kwargs.get("dots", False)
-        self.include_dos = kwargs.get("dos", False)
+        self.include_dos = kwargs.get("include_dos", False)
         self.plot_only_dos = kwargs.get("only_dos", False)
 
     def get_dos(self, readoutfilesobj):
@@ -131,10 +131,10 @@ class BandPlotterASE():
         """
 
         # Setting the dimensions of the saved image
-        plt.rcParams["figure.figsize"] = (14,9)
+        plt.rcParams["figure.figsize"] = (18,9)
         if self.include_dos:
             # fig, (ax1, ax2) = plt.subplots(1,2)
-            gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1])
+            gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1])
             ax1 = plt.subplot(gs[0])
             ax2 = plt.subplot(gs[1])
         elif self.plot_only_dos:
