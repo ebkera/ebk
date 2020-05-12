@@ -70,6 +70,7 @@ class RunScriptHandler():
         self.density          = kwargs.get("density", 30)
         self.k_path           = {"path":self.path, "density": self.density}
         self.R                = kwargs.get("R", [None])
+        self.base_folder      = kwargs.get("base_folder": "Runs")
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
@@ -177,8 +178,8 @@ class RunScriptHandler():
             self.espresso_inputs.update({"calculation" : "bands"})
             self.espresso_inputs.update({"kpts" : self.k_path})
             ase.io.write(f"{self.identifier}.bands.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
-            os.rename(f"{self.identifier}.bands.in", f"./{run_name}/{self.identifier}.bands.in")
-            os.rename(f"{self.identifier}.scf.in", f"./{run_name}/{self.identifier}.scf.in")
+            os.rename(f"{self.identifier}.bands.in", f"./{self.base_folder}/{run_name}/{self.identifier}.bands.in")
+            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
         elif self.calculation == "nscf":
             # First we deal with the scf run
             self.espresso_inputs.update({"calculation" : "scf"})
@@ -194,11 +195,11 @@ class RunScriptHandler():
                 self.espresso_inputs.update({"kpts" : (self.k_nscf, self.k_nscf, self.k_nscf)})
             # self.espresso_inputs.update({"kpts" : self.k_nscf})
             ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
-            os.rename(f"{self.identifier}.nscf.in", f"./{run_name}/{self.identifier}.nscf.in")
-            os.rename(f"{self.identifier}.scf.in", f"./{run_name}/{self.identifier}.scf.in")
+            os.rename(f"{self.identifier}.nscf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.nscf.in")
+            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
         else:
             ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
-            os.rename(f"{self.identifier}.scf.in", f"./{run_name}/{self.identifier}.scf.in")
+            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
 
     def write_SIESTA_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
         """
