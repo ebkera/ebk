@@ -39,7 +39,8 @@ class RunScriptHandler():
             "identifier" (string): Description of run will be used in file names
             "job_handler" (string): ("slurm", "torque", "era_pc", "era_ubuntu", "sl_laptop") This is required and will print the right job files for "slurm" or "torque" job handles
             "a0" (list of floats): The lattice constant
-            "k" (list of lists whith length 3 or list of ints): The k grid
+            "k" (list of lists with length 3 or list of ints): The k grid
+            "k_nscf" (list of length 3 or single int): The k grid that you want to preserve for nscf calculations by default it will be the same as the relevant scf calculation
             "pseudopotentials" (string):
             "atoms_object" (atoms object): This should be without setting the cell since that will be done with every iteration
             "structure" (int): vlaue will determine the cell
@@ -58,6 +59,7 @@ class RunScriptHandler():
         self.a0               = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
         self.KE_cut           = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
         self.k                = kwargs.get("k", [2])
+        self.k_nscf           = kwargs.get("k_nscf", self.k[0])
         self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn':'Sn_ONCV_PBE_FR-1.1.upf'})
         self.pseudo_dir       = kwargs.get("pseudo_dir", False)
         self.calculator       = kwargs.get("calculator", "QE")
@@ -147,8 +149,6 @@ class RunScriptHandler():
                         }
         self.espresso_inputs.update({"pseudo_dir" : pseudo_database_path[machine]})
 
-
-
     def set_pseudopotentials(self, pseudos):
         """
         Sets the pseudopotentials
@@ -178,6 +178,23 @@ class RunScriptHandler():
             self.espresso_inputs.update({"kpts" : self.k_path})
             ase.io.write(f"{self.identifier}.bands.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             os.rename(f"{self.identifier}.bands.in", f"./{run_name}/{self.identifier}.bands.in")
+            os.rename(f"{self.identifier}.in", f"./{run_name}/{self.identifier}.in")
+        elif self.calculation == "nscf":
+            # First we deal with the scf run
+            self.espresso_inputs.update({"calculation" : "scf"})
+            if self.espresso_inputs["occupations"] == "tetrahedra":
+                del(self.espresso_inputs["smearing"])
+                del(self.espresso_inputs["degauss"])
+            ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            # Then here we take care of the nscf run
+            self.espresso_inputs.update({"calculation" : "nscf"})
+            if type(self.k_nscf) == list:
+                self.espresso_inputs.update({"kpts" : (self.k_nscf[0], self.k_nscf[1], self.k_nscf[2])})
+            else:
+                self.espresso_inputs.update({"kpts" : (self.k_nscf, self.k_nscf, self.k_nscf)})
+            # self.espresso_inputs.update({"kpts" : self.k_nscf})
+            ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            os.rename(f"{self.identifier}.nscf.in", f"./{run_name}/{self.identifier}.nscf.in")
             os.rename(f"{self.identifier}.in", f"./{run_name}/{self.identifier}.in")
         else:
             ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
@@ -310,10 +327,11 @@ class RunScriptHandler():
             file_torque.write(f"\n")
             file_torque.write(f"    #!/bin/bash\n")
             file_torque.write("\n")
+            file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npool {self.npool} < {self.identifier}.in | tee {self.identifier}.out\n")
             if self.calculation == "bands":
                 file_torque.write(f"    mpirun {self.executable_path[self.job_handler]}pw.x < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
-            else:
-                file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npool {self.npool} < {self.identifier}.in | tee {self.identifier}.out\n")
+            elif self.calculation == "nscf":
+                file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x < {self.identifier}.nscf.in | tee {self.identifier}.nscf.out\n")
             file_torque.write("    cd .. \n")
             file_torque.write(f"\n")
             file_torque.write(f"done <<'END_TASKLIST'\n")
