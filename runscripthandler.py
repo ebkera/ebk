@@ -172,20 +172,20 @@ class RunScriptHandler():
         if self.calculation == "bands":
             # First we deal with the scf run
             self.espresso_inputs.update({"calculation" : "scf"})
-            ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             # Then here we take care of the bands run
             self.espresso_inputs.update({"calculation" : "bands"})
             self.espresso_inputs.update({"kpts" : self.k_path})
             ase.io.write(f"{self.identifier}.bands.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             os.rename(f"{self.identifier}.bands.in", f"./{run_name}/{self.identifier}.bands.in")
-            os.rename(f"{self.identifier}.in", f"./{run_name}/{self.identifier}.in")
+            os.rename(f"{self.identifier}.scf.in", f"./{run_name}/{self.identifier}.scf.in")
         elif self.calculation == "nscf":
             # First we deal with the scf run
             self.espresso_inputs.update({"calculation" : "scf"})
             if self.espresso_inputs["occupations"] == "tetrahedra":
                 del(self.espresso_inputs["smearing"])
                 del(self.espresso_inputs["degauss"])
-            ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             # Then here we take care of the nscf run
             self.espresso_inputs.update({"calculation" : "nscf"})
             if type(self.k_nscf) == list:
@@ -195,10 +195,10 @@ class RunScriptHandler():
             # self.espresso_inputs.update({"kpts" : self.k_nscf})
             ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             os.rename(f"{self.identifier}.nscf.in", f"./{run_name}/{self.identifier}.nscf.in")
-            os.rename(f"{self.identifier}.in", f"./{run_name}/{self.identifier}.in")
+            os.rename(f"{self.identifier}.scf.in", f"./{run_name}/{self.identifier}.scf.in")
         else:
-            ase.io.write(f"{self.identifier}.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
-            os.rename(f"{self.identifier}.in", f"./{run_name}/{self.identifier}.in")
+            ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            os.rename(f"{self.identifier}.scf.in", f"./{run_name}/{self.identifier}.scf.in")
 
     def write_SIESTA_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
         """
@@ -273,7 +273,7 @@ class RunScriptHandler():
             file_torque.write(f"    module list\n\n")
             # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
             # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
-            file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
+            file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
             if self.calculation == "bands":
                 file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
             elif self.calculation == "nscf":
@@ -328,7 +328,7 @@ class RunScriptHandler():
             file_torque.write(f"\n")
             file_torque.write(f"    #!/bin/bash\n")
             file_torque.write("\n")
-            file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npool {self.npool} < {self.identifier}.in | tee {self.identifier}.out\n")
+            file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npool {self.npool} < {self.identifier}.scf.in | tee {self.identifier}.scf.out\n")
             if self.calculation == "bands":
                 file_torque.write(f"    mpirun {self.executable_path[self.job_handler]}pw.x < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
             elif self.calculation == "nscf":
