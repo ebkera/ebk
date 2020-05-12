@@ -215,10 +215,10 @@ class RunScriptHandler():
         The difference between this and the generic job creator is that the generic job creator does not rely on torque.
         """
         # Creating the scf run for bands runs if self.calculation bands
-        if self.calculation == "bands":
-            self.calculation = "scf"
-            self.create_torque_job()
-            self.calculation = "bands"
+        # if self.calculation == "bands":
+        #     self.calculation = "scf"
+        #     self.create_torque_job()
+        #     self.calculation = "bands"
 
         with open (f"{self.identifier}.{self.calculation}.job", "w+") as file_torque:
             file_torque.write(f"#!/bin/bash\n")
@@ -273,10 +273,11 @@ class RunScriptHandler():
             file_torque.write(f"    module list\n\n")
             # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
             # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
+            file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
             if self.calculation == "bands":
                 file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
-            else:
-                file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
+            elif self.calculation == "nscf":
+                file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
             file_torque.write(f"END_JOB_SCRIPT\n")
             file_torque.write(f"\n")
             file_torque.write(f"done <<'END_TASKLIST'\n")
@@ -292,10 +293,10 @@ class RunScriptHandler():
         This is the most generic job creator. Will create all jobs
         """
         # Creating the scf run for bands runs if self.calculation bands
-        if self.calculation == "bands":
-            self.calculation = "scf"
-            self.create_job()
-            self.calculation = "bands"
+        # if self.calculation == "bands":
+        #     self.calculation = "scf"
+        #     self.create_job()
+        #     self.calculation = "bands"
         with open (f"{self.identifier}.{self.calculation}.job", "w+") as file_torque:
             file_torque.write(f"#!/bin/bash\n")
             file_torque.write(f"# Submit jobs from explicitly specified directories;\n")
@@ -420,10 +421,16 @@ class RunScriptHandler():
             bat_file = open("rsyn_out.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" ./ rathnayake@localhost:~/Run_files')
             bat_file.close()
+            bat_file = open("rsyn_in.bat", "w+")
+            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e "ssh -p 33301" rathnayake@localhost:~/Run_files/ ./')
+            bat_file.close()
             self.create_torque_job()
         elif self.job_handler == "era_ubuntu":
             bat_file = open("rsyn_out_eraubuntu.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz -e ssh era@192.168.0.23 ./ era@192.168.0.23:~/Documents/Run_files')
+            bat_file.close()
+            bat_file = open("rsyn_in_eraubuntu.bat", "w+")
+            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e ssh era@192.168.0.23:~/Documents/Run_files/ ./')
             bat_file.close()
             self.create_job()
         elif self.job_handler == "era_pc" or self.job_handler == "sl_laptop":
