@@ -70,7 +70,7 @@ class RunScriptHandler():
         self.density          = kwargs.get("density", 30)
         self.k_path           = {"path":self.path, "density": self.density}
         self.R                = kwargs.get("R", [None])
-        self.base_folder      = kwargs.get("base_folder": "Runs")
+        self.base_folder      = kwargs.get("base_folder", "Runs")
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
@@ -298,7 +298,7 @@ class RunScriptHandler():
         #     self.calculation = "scf"
         #     self.create_job()
         #     self.calculation = "bands"
-        with open (f"{self.identifier}.{self.calculation}.job", "w+") as file_torque:
+        with open (f"{self.base_folder}/{self.identifier}.{self.calculation}.job", "w+") as file_torque:
             file_torque.write(f"#!/bin/bash\n")
             file_torque.write(f"# Submit jobs from explicitly specified directories;\n")
             file_torque.write(f"# stern, 2020-03-18 - Edited Eranjan\n")
@@ -398,10 +398,10 @@ class RunScriptHandler():
                                 self.atoms_object.set_cell([(b, 0, 0), (0, b, 0), (0, 0, b)], scale_atoms=True)
                             else:
                                 print("make_runs: Warning! Cannot set cell. Structrue not supported")
-                            if os.path.exists(run_name):
-                                shutil.rmtree(run_name)
+                            if os.path.exists(f"{self.base_folder}/{run_name}"):
+                                shutil.rmtree(f"{self.base_folder}/{run_name}")
                                 print("make_runs: Warning! Path exists!! Overwriting")
-                            os.mkdir(f"{run_name}")
+                            os.makedirs(f"{self.base_folder}/{run_name}")
                             self.write_QE_inputfile(run_name, KE_cut_i, R_i, a0_i, k_i)
                             self.all_runs_list.append(run_name)
 
@@ -690,7 +690,7 @@ class ReadOutfiles():
         # except:
         #     print("Error returning band path")
 
-def make_all_job_files(job_list = []):
+def make_all_job_files(base_folder = "Runs", job_list = []):
     """
     This method makes all jobs run when executing a single file. 
     Warning: Not set to properly handle .bands files since .scf has to finish in order for the .bands files to run.
@@ -698,8 +698,8 @@ def make_all_job_files(job_list = []):
     """
 
     print("make_all_job_files: Printing all jobs onto a single file.")
-    directory_list = os.listdir(os.getcwd())  # os.getcwd() might give different folders in different systems.
-    with open("all_jobs.job", "w+") as file:
+    directory_list = os.listdir(f"{os.getcwd()}/{base_folder}")  # os.getcwd() might give different folders in different systems.
+    with open(f"{base_folder}/all_jobs.job", "w+") as file:
         file.write("#!/bin/bash\n\n")
         file.write("dos2unix *.job\n")
         # If there are no explicitly given jobs
