@@ -222,6 +222,7 @@ class BandPlotterASE():
 
         # Test space for k path and k high symmetry points
         # print(kpts)
+        # if self.plot_only_dos == True:
         path = readoutfilesobj.atoms_bands_objects[0].cell.bandpath(npoints=0)
         kinks = find_bandpath_kinks(readoutfilesobj.atoms_bands_objects[0].cell, kpts, eps=1e-5)  # These are the high symmetry points in use 
         pathspec = resolve_custom_points(kpts[kinks], path.special_points, eps=1e-5) # This gives the postions for the relevant high symmetry points
