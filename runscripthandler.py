@@ -419,7 +419,7 @@ class RunScriptHandler():
                             print(f"make_runs: Unrecognized job_handler! Job files not created")
 
         if self.job_handler == "torque":
-            bat_file = open("rsyn_out.bat", "w+")
+            bat_file = open(f"{self.base_folder}/rsyn_out.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" ./ rathnayake@localhost:~/Run_files')
             bat_file.close()
             bat_file = open("rsyn_in.bat", "w+")
@@ -427,7 +427,7 @@ class RunScriptHandler():
             bat_file.close()
             self.create_torque_job()
         elif self.job_handler == "era_ubuntu":
-            bat_file = open("rsyn_out_eraubuntu.bat", "w+")
+            bat_file = open(f"{self.base_folder}/rsyn_out_eraubuntu.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz -e ssh era@192.168.0.23 ./ era@192.168.0.23:~/Documents/Run_files')
             bat_file.close()
             bat_file = open("rsyn_in_eraubuntu.bat", "w+")
