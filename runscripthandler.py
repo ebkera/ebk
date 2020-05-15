@@ -71,13 +71,15 @@ class RunScriptHandler():
         self.k_path           = {"path":self.path, "density": self.density}
         self.R                = kwargs.get("R", [None])
         self.base_folder      = kwargs.get("base_folder", "Runs")
+        self.occupations      = kwargs.get("occupations",'smearing')
+        self.occupations_nscf = kwargs.get("occupations_nscf", self.occupations)
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
                                 "calculation"     : self.calculation,
                                 "lspinorb"        : kwargs.get("lspinorb", False),
                                 "noncolin"        : kwargs.get("noncolin", False),
-                                "occupations"     : kwargs.get("occupations",'smearing'),
+                                "occupations"     : self.occupations,
                                 "diagonalization" : kwargs.get("diagonalization",'david'),
                                 "smearing"        : kwargs.get("smearing",'gaussian'),
                                 "degauss"         : kwargs.get("degauss", 0.01),
@@ -184,6 +186,7 @@ class RunScriptHandler():
             # First we deal with the scf run
             self.espresso_inputs.update({"calculation" : "scf"})
             if self.espresso_inputs["occupations"] == "tetrahedra":
+                print(f"meka wada")
                 del(self.espresso_inputs["smearing"])
                 del(self.espresso_inputs["degauss"])
             ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
@@ -193,8 +196,12 @@ class RunScriptHandler():
                 self.espresso_inputs.update({"kpts" : (self.k_nscf[0], self.k_nscf[1], self.k_nscf[2])})
             else:
                 self.espresso_inputs.update({"kpts" : (self.k_nscf, self.k_nscf, self.k_nscf)})
-            # self.espresso_inputs.update({"kpts" : self.k_nscf})
+            if self.occupations_nscf == "tetrahedra":
+                del(self.espresso_inputs["smearing"])
+                del(self.espresso_inputs["degauss"])
+            self.espresso_inputs.update({"occupations" : "tetrahedra"})
             ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            # Putting files into folders
             os.rename(f"{self.identifier}.nscf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.nscf.in")
             os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
         else:
