@@ -442,7 +442,7 @@ class RunScriptHandler():
             bat_file.close()
             self.create_job()
         elif self.job_handler == "era_pc" or self.job_handler == "sl_laptop":
-            self.create_job()  # sine they are identical
+            self.create_job()  # since they are identical
         else:
             self.create_bash_file()
 
