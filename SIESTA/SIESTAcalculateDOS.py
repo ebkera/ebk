@@ -99,6 +99,9 @@ def plotter_grid(*args, **kwargs):
     plt.savefig('grid_figure.pdf')
 
 class Band():
+    """
+    Main class that deals with DOS. Dont know why Ii named it bands but retaining it for legacy reasons.
+    """
     def __init__(self, name):
         self.name = name
         self.file_name_eig = name + ".EIG"
