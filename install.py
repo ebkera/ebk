@@ -1,8 +1,8 @@
 """This file will create contains installation scripts"""
 
 class Install():
-    def __init__(self, self.source_folder):
-        self.source_folder = self.source_folder
+    def __init__(self, source_folder):
+        self.source_folder = source_folder
 
     def check(self):
         pass
