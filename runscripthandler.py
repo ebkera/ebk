@@ -172,8 +172,10 @@ class RunScriptHandler():
             self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
         if R_i != None: self.espresso_inputs.update({"ecutrho" : R_i})
 
-        if self.calculation == "bands":
-            # First we deal with the scf run
+        print(self.calculation)
+        if "bands" in self.calculation:
+            print("inside bands if statement")
+            # First we deal with the scf run. One thing to note is that this file will be overwritten if nscf run is present
             self.espresso_inputs.update({"calculation" : "scf"})
             ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             # Then here we take care of the bands run
@@ -182,8 +184,8 @@ class RunScriptHandler():
             ase.io.write(f"{self.identifier}.bands.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             os.rename(f"{self.identifier}.bands.in", f"./{self.base_folder}/{run_name}/{self.identifier}.bands.in")
             os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
-        elif self.calculation == "nscf":
-            # First we deal with the scf run
+        elif "nscf" in self.calculation:
+            # First we deal with the scf run. This will overwrite any scf runs produced during bands file creation.
             self.espresso_inputs.update({"calculation" : "scf"})
             if self.espresso_inputs["occupations"] == "tetrahedra":
                 print(f"meka wada")
@@ -336,11 +338,19 @@ class RunScriptHandler():
             file_torque.write(f"\n")
             file_torque.write(f"    #!/bin/bash\n")
             file_torque.write("\n")
+            file_torque.write(f"    now=$(date)\n")
+            file_torque.write(f'    echo "$now: Entering $PWD/$dir >> log"\n')
             file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npool {self.npool} < {self.identifier}.scf.in | tee {self.identifier}.scf.out\n")
-            if self.calculation == "bands":
+            file_torque.write(f"    now=$(date)\n")
+            file_torque.write(f'    echo "$now: completed scf >> log"\n')
+            if "bands" in self.calculation:
                 file_torque.write(f"    mpirun {self.executable_path[self.job_handler]}pw.x < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
-            elif self.calculation == "nscf":
+                file_torque.write(f"    now=$(date)\n")
+                file_torque.write(f'    echo "$now: completed bands >> log"\n')
+            if "nscf" in self.calculation:
                 file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x < {self.identifier}.nscf.in | tee {self.identifier}.nscf.out\n")
+                file_torque.write(f"    now=$(date)\n")
+                file_torque.write(f'    echo "$now: completed nscf >> log"\n')
             file_torque.write("    cd .. \n")
             file_torque.write(f"\n")
             file_torque.write(f"done <<'END_TASKLIST'\n")
