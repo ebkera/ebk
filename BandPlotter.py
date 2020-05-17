@@ -119,7 +119,7 @@ class BandPlotterASE():
         This can be an ordinary function and does not have to be a method for this class but I have included it as such so that we can be more flexible in the future
         """
 
-        calc = readoutfilesobj.atoms_objects[0].calc
+        calc = readoutfilesobj.atoms_nscf_objects[0].calc
         dos = DOS(calc, width=0.2)
         self.dos.append(dos.get_dos())
         self.E_dos.append(dos.get_energies())
