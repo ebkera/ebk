@@ -11,8 +11,8 @@ class Install():
         pass
 
 class InstallSIESTA(Install):
-    def __init__(self):
-        pass
+    def __init__(self, source_folder):
+        super().__init__(source_folder)
 
     def check(self):
         pass
