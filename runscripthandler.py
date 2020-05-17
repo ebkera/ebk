@@ -649,19 +649,25 @@ class ReadOutfiles():
 
         for x in range(0,len(self.required_folders_list)):
             path = os.path.join(mydir, self.required_folders_list[x], self.identifier[0])
-            if self.high_verbosity:
-                print(f"read_outfiles: Opening file: {path}.out")
             try:
                 if self.folder_data[x]["Calc"].lower() == "qe":
                     # Opening Quatnum Espresso Files
                     try:
                         file = ase.io.read(f"{path}.out", format = "espresso-out")  # Retains legacy code.
+                        if self.high_verbosity:
+                            print(f"read_outfiles: Opening file: {path}.out")
                     except:
                         file = ase.io.read(f"{path}.scf.out", format = "espresso-out")
+                        if self.high_verbosity:
+                            print(f"read_outfiles: Opening file: {path}.scf.out")
                     if self.calculation == "bands" or self.calculation == "bands+nscf" or self.calculation == "nscf+bands":
                         bands_file = ase.io.read(f"{path}.bands.out", format = "espresso-out")
+                        if self.high_verbosity:
+                            print(f"read_outfiles: Opening file: {path}.bands.out")
                     if self.calculation == "nscf" or self.calculation == "bands+nscf" or self.calculation == "nscf+bands":
                         nscf_file = ase.io.read(f"{path}.nscf.out", format = "espresso-out")
+                        if self.high_verbosity:
+                            print(f"read_outfiles: Opening file: {path}.nscf.out")
                 elif self.folder_data[x]["Calc"].lower() == "siesta":
                     # Opening Quatnum Espresso Files
                     file = ase.io.read(f"{path}.out", format = "espresso-out")
