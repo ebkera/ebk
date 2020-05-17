@@ -512,6 +512,7 @@ class ReadOutfiles():
         # # Initializations
         self.atoms_objects = []  # Where all data read from file will be stored for a scf type file.
         self.atoms_bands_objects = []  #Where all data read from file will be stored for a bands type file.
+        self.atoms_nscf_objects = []  #Where all data read from file will be stored for a nscf type file.
 
     def read_folder_data(self, dir):
         """
@@ -604,7 +605,9 @@ class ReadOutfiles():
                                 # if count == len(folder["PP"]):
                                 if float(folder["KE"]) in self.KE_cut or self.KE_cut == []:
                                     if float(folder["K"]) in self.k or self.k == []:
-                                        if folder["type"] in self.calculation or self.calculation == []:
+                                        if folder["type"] == self.calculation or self.calculation == []:
+                                            print(folder["type"])
+                                            print(f"This is self.calculation:{self.calculation}")
                                             self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
                                             self.required_folder_data.append(self.folder_data[self.folder_data.index(folder)])
         if self.high_verbosity == True:
@@ -630,7 +633,6 @@ class ReadOutfiles():
         #     print(x)
 
         from pathlib import Path
-
         cur_dir = Path(os.getcwd())
         runs_dir = cur_dir.parent.parent
         if dir == "thesis":
@@ -651,10 +653,17 @@ class ReadOutfiles():
                 print(f"read_outfiles: Opening file: {path}.out")
             try:
                 if self.folder_data[x]["Calc"].lower() == "qe":
-                    file = ase.io.read(f"{path}.out", format = "espresso-out")
-                    if self.calculation == "bands":
+                    # Opening Quatnum Espresso Files
+                    try:
+                        file = ase.io.read(f"{path}.out", format = "espresso-out")  # Retains legacy code.
+                    except:
+                        file = ase.io.read(f"{path}.scf.out", format = "espresso-out")
+                    if self.calculation == "bands" or self.calculation == "bands+nscf" or self.calculation == "nscf+bands":
                         bands_file = ase.io.read(f"{path}.bands.out", format = "espresso-out")
+                    if self.calculation == "nscf" or self.calculation == "bands+nscf" or self.calculation == "nscf+bands":
+                        nscf_file = ase.io.read(f"{path}.nscf.out", format = "espresso-out")
                 elif self.folder_data[x]["Calc"].lower() == "siesta":
+                    # Opening Quatnum Espresso Files
                     file = ase.io.read(f"{path}.out", format = "espresso-out")
                 self.atoms_objects.append(file)
                 try:
@@ -662,17 +671,28 @@ class ReadOutfiles():
                 except:
                     if self.high_verbosity:
                         print(f"read_outfiles: Recognized as not a bands file. bands files not appeneded to atoms_bands_objects")
+                try:
+                    self.atoms_nscf_objects.append(nscf_file)
+                except:
+                    if self.high_verbosity:
+                        print(f"read_outfiles: Recognized as not a nscf file. nscf files not appeneded to atoms_nscf_objects")
             except AssertionError as er:
                 print(f"read_outfiles: ** Warning Fatal Error. 'espresso.py' in ASE is giving out an assertion error as below:")
                 raise
             except:
                 print(f"read_outfiles: ** Warning Fatal Error. Cannot read file. File might not be present or might not have finished Recommended to set parameters to specifically exclude this file.\n{path}.out\nIt might also be the bands file of the same name.\n{path}.bands.out")
-        if self.atoms_bands_objects == []:
+        if self.atoms_bands_objects == [] and self.atoms_nscf_objects == []:
             # No bands files have been read
             self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects))
             if self.high_verbosity:
                 print(f"read_outfiles: Sucessfully read scf files. Zipping done")
-        else:
+        elif self.atoms_bands_objects == []:
+            # Trying to zip nscf files here
+            # print(self.atoms_nscf_objects)
+            self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects, self.atoms_nscf_objects))
+            if self.high_verbosity:
+                print(f"read_outfiles: Sucessfully read nscf files and scf files. Zipping done")
+        elif self.atoms_nscf_objects == []:
             # Trying to zip bands files here
             # print(self.atoms_bands_objects)
             self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects, self.atoms_bands_objects))
