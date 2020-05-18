@@ -450,6 +450,7 @@ class RunScriptHandler():
                             else:
                                 print("make_runs: Warning! Cannot set cell. Structrue not supported")
                             if os.path.exists(f"{self.base_folder}/{run_name}"):
+                                # Here we delete only folders inside the base folder. The reason is you might have multiple runs and if you delete the base folder you will delete all of them
                                 shutil.rmtree(f"{self.base_folder}/{run_name}")
                                 print("make_runs: Warning! Path exists!! Overwriting")
                             os.makedirs(f"{self.base_folder}/{run_name}")
