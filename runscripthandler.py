@@ -331,7 +331,6 @@ class RunScriptHandler():
             file_torque.write(f"    # necessary here, though, because the chars '^+' are not special -- in the\n")
             file_torque.write(f"    # circumstances used here.)\n")
             file_torque.write(f'    echo "*********** New Job ***********" >> log\n')
-            file_torque.write(f'    echo "$dir" >> log\n')
             file_torque.write(f'    cd "$PWD/$dir"\n')
             file_torque.write(f"\n")
             file_torque.write(f"    #!/bin/bash\n")
@@ -652,7 +651,7 @@ class ReadOutfiles():
                                     if float(folder["K"]) in self.k or self.k == []:
                                         if folder["type"] == self.calculation or self.calculation == []:
                                             print(folder["type"])
-                                            print(f"This is self.calculation:{self.calculation}")
+                                            # print(f"This is self.calculation:{self.calculation}")
                                             self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
                                             self.required_folder_data.append(self.folder_data[self.folder_data.index(folder)])
         if self.high_verbosity == True:
