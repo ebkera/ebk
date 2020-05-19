@@ -384,6 +384,7 @@ class RunScriptHandler():
                     file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x < {self.identifier}.nscf.in | tee {self.identifier}.nscf.out\n")
                     file_torque.write(f"    now=$(date)\n")
                     file_torque.write(f'    echo "$now: completed nscf" >> ../all_jobs.log\n')
+            file_torque.write("    cp ../all_jobs.log all_jobs.log\n")
             file_torque.write("    cd .. \n")
             file_torque.write(f"\n")
             file_torque.write(f"done <<'END_TASKLIST'\n")
