@@ -44,9 +44,26 @@ class Install():
         return str(answer)
 
     def update_packages(self):
-        print("Updating system first")
+        print("Updating system..")
         self.system_call("sudo apt-get update")
+        logging.info("System has been updated")
+        print("Upgrading system..")
         self.system_call("sudo apt-get upgrade")
+        logging.info("System has been upgraded")
+
+    def acquire_target_folder(self):
+        if self.installation_package == "SIESTA":
+            output = [dI for dI in os.listdir()]
+            for x in output:
+                if "siesta" in x and ".tar" not in x:
+                    logging.info(f"Possible SIESTA folder found: {x}")
+                    print(f"Possible SIESTA folder found: {x}")
+                    return x
+
+    def untar(self):
+        print("Attemping to untar the source folder")
+        logging.info("Attemping to untar the source folder")
+        print(self.system_call("tar xvzf *.tar.gz"))
 
     def check_master(self):
         """
@@ -105,7 +122,6 @@ class Install():
                 print("Installation stopped: Check to see if gfortran (continuing with other checks)")
                 return False
 
-
     def check_open_mpi(self):
         answer = self.system_call("mpirun --version")
         logging.warning("Settings are set to use Parallel installation")
@@ -135,7 +151,8 @@ class Install():
         logging.info(f"Starting installation of {self.installation_package}")
         test = self.check_master()
         print(test)
-
+        if test:
+            self.install_daughter()
 
 class win32(Install):
     def __init__(self):
@@ -154,8 +171,9 @@ class InstallSIESTA(Install):
     def check_this(self):
         pass
 
-    def _install(self):
-        pass
+    def install_daughter(self):
+        self.untar()
+        self.acquire_target_folder()
 
 class InstallQuantumEspresso(Install):
     def __init__(self):
