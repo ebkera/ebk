@@ -1,17 +1,30 @@
 """This file will create contains installation scripts"""
+import sys
 import logging
 
-logging.basicConfig(filename='installation_log.txt', level=logging.DEBUG, format='\
+# Some global settings here
+logging.basicConfig(filename='installation.log.era', level=logging.DEBUG, format='\
 %(asctime)s - %(levelname)s - %(message)s')
+
+def get_system_version():
+    version = sys.platform
+    print(f"System version: {version}")
+    logging.info(f"System platform detected: {version}")
+    return version
 
 class Install():
     def __init__(self, source_folder):
         self.source_folder = source_folder
+        self.system_version = "windows"
 
     def check(self):
         pass
 
     def install(self):
+        pass
+
+class win32(Install):
+    def __init__(self):
         pass
 
 class InstallSIESTA(Install):
@@ -26,7 +39,7 @@ class InstallSIESTA(Install):
 
 class InstallSIESTA(Install):
     def __init__(self):
-        pass
+        super().__init__(source_folder)
 
     def check(self):
         pass
