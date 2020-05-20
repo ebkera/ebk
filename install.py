@@ -10,9 +10,7 @@ logging.basicConfig(filename='installation.log.era', level=logging.DEBUG, format
 
 def get_system_version():
     """Gets the system version."""
-    version = sys.platform
-    logging.info(f"System platform detected: {version}")
-    return version
+    return sys.platform
 
 class Install():
     def __init__(self):
@@ -20,7 +18,12 @@ class Install():
         self.system_version = get_system_version()
 
     def system_call(self, command):
-        if self.system_version = "win32":
+        """
+        This command calls the shell and does it system specifically. 
+            If linux machine calls shell
+            if windows then calls shell commands in wsl
+        """
+        if self.system_version == "win32":
             call = subprocess.Popen(f"wsl {command}", shell=True, stdout=subprocess.PIPE)
         else:
             call = subprocess.Popen(f"{command}", shell=True, stdout=subprocess.PIPE)
@@ -53,6 +56,7 @@ class Install():
         """
         This method is the main install method
         """
+        logging.info(f"System platform detected: {self.system_version}")
         logging.info(f"Starting installation of {self.installation_package}")
         test = self.check_master()
         print(test)
