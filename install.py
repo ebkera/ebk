@@ -31,9 +31,11 @@ class Install():
         return answer
 
     def check_master(self):
-        chark_var = []
-        check_var.append(check_system_version())
-
+        """
+        This is the master checking method specific other checks should be done with the other functions in the daughter class methods
+        """
+        check_var = []
+        check_var.append(self.check_system_version())
         if False in chark_var: return False
         else: return True
 
