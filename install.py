@@ -32,25 +32,35 @@ class Install():
 
     def check_master(self):
         """
-        This is the master checking method specific other checks should be done with the other functions in the daughter class methods
+        This is the master checking method specific other checks should be done with the other functions in the daughter class methods.
+        How the method works:
+            It first calls the methods that has to be checked and gets boolean values that is saves into a list
+            Then specific checks are performed by calling check_daughter method of the instance
+            If they also return true then the installation can proceed
         """
         check_var = []
         check_var.append(self.check_system_version())
-        if False in chark_var: return False
+
+
+        if False in check_var: return False
         else: return True
 
     def check_system_version(self):
         """
         This method returns a boolean True if all checks are postive and therefore
-        intallatin can proceed. Else will return false
+        intallation can proceed. Else will return false
         """
         if self.system_version == "win32":
-            is_wls = subprocess.Popen("wsl", shell=True, stdout=subprocess.PIPE)
-            answer = is_wls.stdout.read()
-            print(answer)
-            logging.critical("This application needs a unix like system to work")
-            logging.critical("Seems like wsl is not installed - Quitting installation")
-            return False
+            is_wls = subprocess.Popen("wsl ls", shell=True, stdout=subprocess.PIPE)
+            answer = str(is_wls.stdout.read())
+            logging.warning("This application needs a unix like system to work")
+            if "log" in answer:
+                logging.critical("Seems like wsl is installed - Continuing installation")
+                return True
+            else:
+                logging.critical("Seems like wsl is not installed - Quitting installation")
+                print("Installation stopped: Check to see if wsl is installed")
+                return False
         else:
             return True
 
@@ -58,6 +68,7 @@ class Install():
         """
         This method is the main install method
         """
+        logging.info("***********************Installation Log************************")
         logging.info(f"System platform detected: {self.system_version}")
         logging.info(f"Starting installation of {self.installation_package}")
         test = self.check_master()
@@ -73,6 +84,9 @@ class InstallSIESTA(Install):
         self.installation_package = "SIESTA"
         super().__init__()
 
+    def check_daughter(self):
+        pass
+
     def check_this(self):
         pass
 
@@ -83,6 +97,9 @@ class InstallQuantumEspresso(Install):
     def __init__(self):
         self.installation_package = "Quantum Espresso"
         super().__init__(self)
+
+    def check_daughter(self):
+        pass
 
     def check_this(self):
         pass
