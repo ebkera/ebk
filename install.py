@@ -18,6 +18,12 @@ def install_openmpi():
     """
     pass
 
+def install_gfortran():
+    """
+    Attempts to install Open MPI
+    """
+    pass
+
 class Install():
     def __init__(self):
         self.source_folder = os.getcwd()
@@ -80,9 +86,28 @@ class Install():
         else:
             return True
 
+    def check_gfortran(self):
+        answer = self.system_call("gfortran --version")
+        logging.warning("This setting requires gfortran")
+        if "GNU" in answer:
+            logging.info("Seems like gfortran is installed - Continuing installation")
+            return True
+        else:
+            logging.warning("Seems like gfortran is not installed - Attempting to install")
+            install_gfortran()
+            answer = self.system_call("gfortran --version")
+            logging.info("Settings are set to use Parallel installation")
+            if "GNU" in answer:
+                logging.warning("Successfully installed gfortran - Continuing installation")
+                return True
+            else:
+                logging.critical("Seems like gfortran has not installed - Quitting installation (continuing with other checks)")
+                print("Installation stopped: Check to see if gfortran (continuing with other checks)")
+                return False
+
+
     def check_open_mpi(self):
         answer = self.system_call("mpirun --version")
-        print(answer)
         logging.warning("Settings are set to use Parallel installation")
         if "MPI" in answer:
             logging.info("Seems like Open MPI is installed - Continuing installation")
@@ -90,7 +115,7 @@ class Install():
         else:
             logging.warning("Seems like Open MPI is not installed - Attempting to install Open MPI")
             install_openmpi()
-            answer = subprocess.Popen("wsl mpirun --version", shell=True, stdout=subprocess.PIPE)
+            answer = self.system_call("mpirun --version")
             answer = str(answer.stdout.read())
             logging.info("Settings are set to use Parallel installation")
             if "MPI" in answer:
@@ -123,8 +148,7 @@ class InstallSIESTA(Install):
 
     def check_daughter(self):
         check_var = []
-
-
+        check_var.append(self.check_gfortran())
         return check_var
 
     def check_this(self):
