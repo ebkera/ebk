@@ -12,10 +12,17 @@ def get_system_version():
     """Gets the system version."""
     return sys.platform
 
+def install_openmpi():
+    """
+    Attempts to install Open MPI
+    """
+    pass
+
 class Install():
     def __init__(self):
         self.source_folder = os.getcwd()
         self.system_version = get_system_version()
+        self.parallel_installation = True
 
     def system_call(self, command):
         """
@@ -39,10 +46,11 @@ class Install():
             If they also return true then the installation can proceed
         """
         check_var = []
+        # First checking the master settings and installations
         check_var.append(self.check_system_version())
+        if self.parallel_installation: check_var.append(self.check_open_mpi())
+        # Then checking daughter specific settings and installations
         check_var.extend(self.check_daughter())
-
-
         if False in check_var: return False
         else: return True
 
@@ -59,11 +67,32 @@ class Install():
                 logging.info("Seems like wsl is installed - Continuing installation")
                 return True
             else:
-                logging.critical("Seems like wsl is not installed - Quitting installation")
-                print("Installation stopped: Check to see if wsl is installed")
+                logging.critical("Seems like wsl is not installed - Quitting installation (continuing with other checks)")
+                print("Installation stopped: Check to see if wsl is installed (continuing with other checks)")
                 return False
         else:
             return True
+
+    def check_open_mpi(self):
+        answer = subprocess.Popen("wsl mpirun --version", shell=True, stdout=subprocess.PIPE)
+        answer = str(answer.stdout.read())
+        logging.info("Settings are set to use Parallel installation")
+        if "MPI" in answer:
+            logging.info("Seems like Open MPI is installed - Continuing installation")
+            return True
+        else:
+            logging.warning("Seems like Open MPI is not installed - Attempting to install Open MPI")
+            install_openmpi()
+            answer = subprocess.Popen("wsl mpirun --version", shell=True, stdout=subprocess.PIPE)
+            answer = str(answer.stdout.read())
+            logging.info("Settings are set to use Parallel installation")
+            if "MPI" in answer:
+                logging.warning("Successfully installed Open MPI is installed - Continuing installation")
+                return True
+            else:
+                logging.critical("Seems like Open MPI has not installed - Quitting installation (continuing with other checks)")
+                print("Installation stopped: Check to see if OpenMPI is installed (continuing with other checks)")
+                return False
 
     def install(self):
         """
