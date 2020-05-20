@@ -40,6 +40,7 @@ class Install():
         """
         check_var = []
         check_var.append(self.check_system_version())
+        check_var.extend(self.check_daughter())
 
 
         if False in check_var: return False
@@ -55,7 +56,7 @@ class Install():
             answer = str(is_wls.stdout.read())
             logging.warning("This application needs a unix like system to work")
             if "log" in answer:
-                logging.critical("Seems like wsl is installed - Continuing installation")
+                logging.info("Seems like wsl is installed - Continuing installation")
                 return True
             else:
                 logging.critical("Seems like wsl is not installed - Quitting installation")
@@ -85,7 +86,10 @@ class InstallSIESTA(Install):
         super().__init__()
 
     def check_daughter(self):
-        pass
+        check_var = []
+        
+
+        return check_var
 
     def check_this(self):
         pass
