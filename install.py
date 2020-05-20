@@ -8,14 +8,13 @@ logging.basicConfig(filename='installation.log.era', level=logging.DEBUG, format
 
 def get_system_version():
     version = sys.platform
-    print(f"System version: {version}")
     logging.info(f"System platform detected: {version}")
     return version
 
 class Install():
     def __init__(self, source_folder):
         self.source_folder = source_folder
-        self.system_version = "windows"
+        self.system_version = get_system_version()
 
     def check(self):
         pass
