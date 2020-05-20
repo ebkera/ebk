@@ -35,7 +35,12 @@ class Install():
         else:
             call = subprocess.Popen(f"{command}", shell=True, stdout=subprocess.PIPE)
         answer = call.stdout.read()
-        return answer
+        return str(answer)
+
+    def update_packages(self):
+        print("Updating system first")
+        self.system_call("sudo apt-get update")
+        self.system_call("sudo apt-get upgrade")
 
     def check_master(self):
         """
@@ -46,6 +51,8 @@ class Install():
             If they also return true then the installation can proceed
         """
         check_var = []
+        # Updating system first
+        self.update_packages()
         # First checking the master settings and installations
         check_var.append(self.check_system_version())
         if self.parallel_installation: check_var.append(self.check_open_mpi())
@@ -74,9 +81,9 @@ class Install():
             return True
 
     def check_open_mpi(self):
-        answer = subprocess.Popen("wsl mpirun --version", shell=True, stdout=subprocess.PIPE)
-        answer = str(answer.stdout.read())
-        logging.info("Settings are set to use Parallel installation")
+        answer = self.system_call("mpirun --version")
+        print(answer)
+        logging.warning("Settings are set to use Parallel installation")
         if "MPI" in answer:
             logging.info("Seems like Open MPI is installed - Continuing installation")
             return True
@@ -116,7 +123,7 @@ class InstallSIESTA(Install):
 
     def check_daughter(self):
         check_var = []
-        
+
 
         return check_var
 
