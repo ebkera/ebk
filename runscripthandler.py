@@ -651,7 +651,6 @@ class ReadOutfiles():
                                 if float(folder["KE"]) in self.KE_cut or self.KE_cut == []:
                                     if float(folder["K"]) in self.k or self.k == []:
                                         if folder["type"] == self.calculation or self.calculation == []:
-                                            print(folder["type"])
                                             # print(f"This is self.calculation:{self.calculation}")
                                             self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
                                             self.required_folder_data.append(self.folder_data[self.folder_data.index(folder)])
@@ -668,7 +667,6 @@ class ReadOutfiles():
             dir (string): Can be "thesis", "sivalabs", or here"here"
             This will determine which folders to open. some folders default locations are hard coded.
         """
-
         # For debugging purposses below lines will be helpful
         # print("folders detected")
         # for x in self.directory_list:
@@ -696,7 +694,7 @@ class ReadOutfiles():
             path = os.path.join(mydir, self.required_folders_list[x], self.identifier[0])
             try:
                 if self.folder_data[x]["Calc"].lower() == "qe":
-                    # Opening Quatnum Espresso Files
+                    # Opening Quantum Espresso Files
                     try:
                         file = ase.io.read(f"{path}.out", format = "espresso-out")  # Retains legacy code.
                         if self.high_verbosity:
