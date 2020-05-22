@@ -118,7 +118,6 @@ class BandPlotterASE():
         This method gets the dos parameters for plotting
         This can be an ordinary function and does not have to be a method for this class but I have included it as such so that we can be more flexible in the future
         """
-
         calc = readoutfilesobj.atoms_nscf_objects[0].calc
         dos = DOS(calc, width=0.2)
         self.dos.append(dos.get_dos())
@@ -129,7 +128,6 @@ class BandPlotterASE():
         |All the features of the band plot are set here
         |Inputs: None
         """
-
         # Setting the dimensions of the saved image
         plt.rcParams["figure.figsize"] = (18,9)
         if self.include_dos:
@@ -219,7 +217,7 @@ class BandPlotterASE():
         if self.include_dos or self.plot_only_dos:
             # we are here getting the required information for DOS
             self.get_dos(readoutfilesobj)
-
+            
         # Test space for k path and k high symmetry points
         # print(kpts)
         # if self.plot_only_dos == True:
