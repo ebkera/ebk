@@ -173,7 +173,15 @@ class InstallSIESTA(Install):
 
     def install_daughter(self):
         self.untar()
-        self.acquire_target_folder()
+        self.package_folder = self.acquire_target_folder()
+        self.package_folder_path = os.path.join(self.source_folder, self.package_folder)
+        default_make_file = open(f"{os.join(self.package_folder_path, '/Obj/DOCUMENTED-TEMPLATE.make')}")
+        default_make_file.read()
+        with open(f"{os.join(self.package_folder_path, '/Obj/mymakefile.make')}") as make_file:
+            for line in default_make_file:
+                #Stopped wotking here
+                if "FPPFLAGS = $(DEFS_PREFIX)-DFC_HAVE_ABORT" in line:
+                    make_file.write("FPPFLAGS = $(DEFS_PREFIX)-DFC_HAVE_ABORT")
 
 class InstallQuantumEspresso(Install):
     def __init__(self):
