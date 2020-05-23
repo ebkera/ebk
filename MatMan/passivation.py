@@ -2,6 +2,38 @@
 Here all the passivation in volved things can be found
 """
 from ase.build import cut
+import numpy as np
+
+def passivate_zincblende_slab_001(slab, passivant):
+    """
+    Passivates zincblende slabs (Only conventional unit cell distances accepted in the non 001 direction) with the type of atoms given in the inputs
+    Inputs:
+        slab: Atoms object which is a conventional unit cell of the slab that you would like to passivate
+              Can be any number of unit cells in teh z direction.
+        passivant: String object with the species that you would like to passivate the slab with
+    return: Atoms object
+    """
+    slab = slab.copy()  # To prevent any previous instances lurking
+    # we need to get atoms that match these ones
+    move_up = [0,2]
+    # move_down = [5,7]
+    move_down = [len(slab.get_positions())-1, len(slab.get_positions())-3]
+    xy = 1
+    d = slab.get_cell()[2][2]
+    for v in move_up:
+        if passivant == "H":
+            slab.append(f"{passivant}")
+            slab[-1].position = np.array([slab[v].position[0] + xy, slab[v].position[1] - xy, slab[v].position[2] + d], dtype=float)
+            slab.append(f"{passivant}")
+            slab[-1].position = np.array([slab[v].position[0] - xy, slab[v].position[1] + xy, slab[v].position[2] + d], dtype=float)
+    for v in move_down:
+        if passivant == "H":
+            slab.append(f"{passivant}")
+            slab[-1].position = np.array([slab[v].position[0] + xy, slab[v].position[1] - xy, slab[v].position[2] - d], dtype=float)
+            slab.append(f"{passivant}")
+            slab[-1].position = np.array([slab[v].position[0] - xy, slab[v].position[1] + xy, slab[v].position[2] - d], dtype=float)
+    # slab.edit()
+    return slab
 
 def passivate_zinc_blende_slab(slab, passivant):
     """
@@ -13,6 +45,7 @@ def passivate_zinc_blende_slab(slab, passivant):
     """
     slab = slab.copy()  # To prevent any previous instances lurking
     slab *= (1, 1, 2)  # we are here doubling the slab to get those top atoms that we can convert to other atoms.
+
     # slab.rotate(90, '-x')
     # print(f"Number of atoms before deletion: {len(slab)}")
 
