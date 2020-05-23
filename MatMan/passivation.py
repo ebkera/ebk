@@ -1,6 +1,7 @@
 """
 Here all the passivation in volved things can be found
 """
+from ase.build import cut
 
 def passivate_zinc_blende_slab(slab, passivant):
     """
@@ -11,7 +12,7 @@ def passivate_zinc_blende_slab(slab, passivant):
     return: Atoms object
     """
     slab = slab.copy()  # To prevent any previous instances lurking
-    slab *= (1, 1, 2)  # we are here doubling the slab to get thorse top atoms that we can convert to other atoms.
+    slab *= (1, 1, 2)  # we are here doubling the slab to get those top atoms that we can convert to other atoms.
     # slab.rotate(90, '-x')
     # print(f"Number of atoms before deletion: {len(slab)}")
 
@@ -38,5 +39,49 @@ def passivate_zinc_blende_slab(slab, passivant):
         coords[n+2] = [coords[n][0]+d, coords[n][1]-d, coords[n][2]-d]
         coords[n] = [coords[n][0]-d, coords[n][1]+d, coords[n][2]-d]
     slab.set_positions(coords)
-
+    slab.edit()
     return slab
+
+
+def passivate_zinc_blende_slab_2(slab, passivant, direction):
+    """
+    The idea is to have the slabs passivated with passivant in the direction.
+    right now only works for the 110 direction
+    default zinc blende sturcture should be input as slab if not in the 001 direction
+    """
+    import numpy as np
+    
+    if direction == (0,0,1):
+        return passivate_zinc_blende_slab(slab, passivant)
+    else:
+        c = np.array(direction, dtype=float)
+        b = np.array((0,0,1), dtype=float)
+        a = np.cross(b, direction)
+        y = cut(slab, a, b*(1/2), nlayers=5)
+        y.edit()
+        # coords = y.get_positions()
+        
+        d = 2  # displace by this amount
+        xy = .75
+        if passivant == "H":
+            harcoded_atom_numbers = [18, 19, 14, 16]
+            for num in harcoded_atom_numbers:
+                y[num].symbol = f"{passivant}"
+                # print("before")
+                # print(y[num].position)
+                # y[num].position = [y[num].position[0], y[num].position[1], y[num].position[2] - d]
+                y[num].position = [y[num].position[0] - xy, y[num].position[1] - xy, y[num].position[2]]
+
+                # # New replaced atoms since H has two coordinations to take care of now
+                # # since we have displaced through the xy directions already as above we dont need to do the new atoms since we have already got the right xy
+                # y.append(f"{passivant}")
+                # y[-1].position = [y[num].position[0], y[num].position[1], y[num].position[2] + 2*d]
+                # print("after")
+                # print(y[num].position)
+                # print(y[-1].position)
+        
+        
+        elif passivant == "O":
+            pass
+            
+        return y
