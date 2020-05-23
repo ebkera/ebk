@@ -220,7 +220,7 @@ class RunScriptHandler():
         return (len(self.KE_cut)*len(self.a0)*len(self.k)*len(self.R))
 
     def create_torque_job(self):
-    # Worikng example but now obsolete
+    # Working example but now obsolete
         """
         This is the torque job creator and it specifically has PBS lines that torque can understand. 
         The difference between this and the generic job creator is that the generic job creator does not rely on torque.
@@ -275,7 +275,7 @@ class RunScriptHandler():
             file_torque.write(f"    #PBS -m bea\n")
             file_torque.write("\n")
             # file_torque.write(f"    # change into the directory where qsub will be executed\n")
-            # file_torque.write(f"    cd \$PBS_O_WORKDIR\n\n")
+            file_torque.write(f"    cd \$PBS_O_WORKDIR\n\n")
             file_torque.write(f"    # use a per-job lineup of modules; stern\n")
             file_torque.write(f"    module purge\n")
             file_torque.write(f"    module load intel\n")
@@ -331,13 +331,12 @@ class RunScriptHandler():
             file_torque.write(f"    # necessary here, though, because the chars '^+' are not special -- in the\n")
             file_torque.write(f"    # circumstances used here.)\n")
             file_torque.write(f'    echo "*********** New Job ***********" >> all_jobs.log\n')
-            file_torque.write(f'    cd "$PWD/$dir"\n')
-            file_torque.write(f"\n")
             file_torque.write(f"    #!/bin/bash\n")
             file_torque.write(f"    now=$(date)\n")
-            file_torque.write(f'    echo "$now: Entering $dir" >> ../all_jobs.log\n')
+            file_torque.write(f'    echo "$now: Entering $dir" >> all_jobs.log\n')
 
             if self.job_handler == "torque":
+                file_torque.write(f'    qsub -w "$PWD/$dir" -N "$job_name" <<-END_JOB_SCRIPT\n')
                 file_torque.write(f"    #  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
                 file_torque.write(f"    #PBS -l nodes={self.nodes}:ppn={self.procs}\n")
                 file_torque.write(f"    #PBS -l walltime={self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
@@ -352,7 +351,7 @@ class RunScriptHandler():
                 file_torque.write(f"    #PBS -m bea\n")
                 file_torque.write("\n")
                 # file_torque.write(f"    # change into the directory where qsub will be executed\n")
-                # file_torque.write(f"    cd \$PBS_O_WORKDIR\n\n")
+                file_torque.write(f"    cd \$PBS_O_WORKDIR\n\n")
                 file_torque.write(f"    # use a per-job lineup of modules; stern\n")
                 file_torque.write(f"    module purge\n")
                 file_torque.write(f"    module load intel\n")
@@ -372,7 +371,11 @@ class RunScriptHandler():
                     file_torque.write(f"    mpirun -np {self.ntasks} pw.x < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
                     file_torque.write(f"    now=$(date)\n")
                     file_torque.write(f'    echo "$now: completed nscf" >> ../all_jobs.log\n')
+                file_torque.write(f"END_JOB_SCRIPT\n")
+
             else:
+                file_torque.write(f'    cd "$PWD/$dir"\n')
+                file_torque.write(f"\n")
                 file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npool {self.npool} < {self.identifier}.scf.in | tee {self.identifier}.scf.out\n")
                 file_torque.write(f"    now=$(date)\n")
                 file_torque.write(f'    echo "$now: completed scf" >> ../all_jobs.log\n')
@@ -384,8 +387,8 @@ class RunScriptHandler():
                     file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x < {self.identifier}.nscf.in | tee {self.identifier}.nscf.out\n")
                     file_torque.write(f"    now=$(date)\n")
                     file_torque.write(f'    echo "$now: completed nscf" >> ../all_jobs.log\n')
-            file_torque.write("    cp ../all_jobs.log all_jobs.log\n")
-            file_torque.write("    cd .. \n")
+                file_torque.write("    cd .. \n")
+            file_torque.write('    cp all_jobs.log "$PWD/$dir/all_jobs.log"\n')
             file_torque.write(f"\n")
             file_torque.write(f"done <<'END_TASKLIST'\n")
             file_torque.write(f"    # Single quoting the limit string 'EOT' will pass strings without shell variable and execution expansion.\n")
