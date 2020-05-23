@@ -306,14 +306,14 @@ class RunScriptHandler():
 
         def create_runline(self):
             """On going project for bringing in all the line creators together. Not implemented"""
-                if "bands" in self.calculation:
-                    file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
-                    file_torque.write(f"    now=$(date)\n")
-                    file_torque.write(f'    echo "$now: $dir : completed bands" >> ../all_jobs.log\n')
-                if "nscf" in self.calculation:
-                    file_torque.write(f"    mpirun -np {self.ntasks} pw.x < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
-                    file_torque.write(f"    now=$(date)\n")
-                    file_torque.write(f'    echo "$now: $dir : completed nscf" >> ../all_jobs.log\n')
+            if "bands" in self.calculation:
+                file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
+                file_torque.write(f"    now=$(date)\n")
+                file_torque.write(f'    echo "$now: $dir : completed bands" >> ../all_jobs.log\n')
+            if "nscf" in self.calculation:
+                file_torque.write(f"    mpirun -np {self.ntasks} pw.x < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
+                file_torque.write(f"    now=$(date)\n")
+                file_torque.write(f'    echo "$now: $dir : completed nscf" >> ../all_jobs.log\n')
 
 
         with open (f"{self.base_folder}/{self.identifier}.{self.calculation}.job", "w+") as file_torque:
