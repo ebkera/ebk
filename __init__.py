@@ -103,6 +103,8 @@ def get_pseudopotential(id):
         pseudopotential = {'Sn': f"Sn_ONCV_PBE_FR-1.1.upf", "H":"H_ONCV_PBE_FR-1.0.upf"}
     elif identifier == "Sn_slab_SR1.1":
         pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.1.upf", "H":"H_ONCV_PBE_FR-1.0.upf"}
+    elif identifier == "Sn_slab_SR1.2":
+        pseudopotential = {'Sn': f"Sn_ONCV_PBE-1.2.upf", "H":"H_ONCV_PBE_FR-1.0.upf"}
     elif identifier == "Sn_slabs":
         pseudopotential = {'Sn': f"Sn_ONCV_PBE_FR-1.1.upf", "H":"H_ONCV_PBE_FR-1.0.upf"}
     # PBE pps
