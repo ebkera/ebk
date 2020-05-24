@@ -132,9 +132,9 @@ def get_pseudopotential(id):
             pseudopotential = {'Sn': f"Sn.rel-pz-dn-kjpaw_psl.0.2.UPF"}
     elif identifier == "MCT_Slab_EDT" or identifier == "MCT_Slab_BDT12" or identifier == "MCT_Slab_BDT14":
         pseudopotential = {'C': f"c_pbe_v1.2.uspp.F.UPF", "H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "S":"s_pbe_v1.4.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF"}
-    elif identifier == "Slabs_passivation":
+    elif identifier == "Slabs_passivation" or identifier == "Slabs_passivation_110":
         # This is for the relaxation of slabs
-        pseudopotential = {'C': f"c_pbe_v1.2.uspp.F.UPF", "H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "S":"s_pbe_v1.4.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF"}
+        pseudopotential = {'C': f"c_pbe_v1.2.uspp.F.UPF", "H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF"}
     elif identifier == "Slabs_passivation_TeTop" or identifier == "Slabs_passivation_HgTop":
         # This is for the relaxation of slabs
         pseudopotential = {"H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF"}
