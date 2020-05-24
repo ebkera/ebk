@@ -35,7 +35,7 @@ def passivate_zincblende_slab_001(slab, passivant):
     # slab.edit()
     return slab
 
-def passivate_zinc_blende_slab_2(slab, passivant, direction):
+def passivate_zinc_blende_slab_nonprimitive(slab, passivant, direction):
     """
     The idea is to have the slabs passivated with passivant in the direction.
     right now only works for the 110 direction
@@ -60,6 +60,49 @@ def passivate_zinc_blende_slab_2(slab, passivant, direction):
         if passivant == "H":
             atoms_up = [20, 15, 23, 22]  # These are atoms that were coreated using an extra layer at the top
             atoms_down = [0, 6, 3, 2]  # These are atoms that were coreated using an extra layer at the bottom
+            for num in atoms_up:
+                y[num].symbol = f"{passivant}"
+                # Since in the 110 direction we have only the one bond to take care of in zincblende we need only replace the atoms with all of these
+                y[num].position = [y[num].position[0], y[num].position[1], y[num].position[2]]
+            for num in atoms_down:
+                y[num].symbol = f"{passivant}"
+                # Since in the 110 direction we have only the one bond to take care of in zincblende we need only replace the atoms with all of these
+                y[num].position = [y[num].position[0], y[num].position[1], y[num].position[2]]
+        elif passivant == "O":
+            pass
+        return y
+
+def passivate_zinc_blende_slab(slab, passivant, direction, n_bilayers, primtive = True):
+    """
+    The idea is to have the slabs passivated with passivant in the direction.
+    right now only works for the 110 direction
+    default zinc blende sturcture should be input as slab if not in the 001 direction
+    n_bilayers is the number of bilayers in the slab
+    """
+    import numpy as np
+
+    if direction == (0,0,1):
+        return passivate_zincblende_slab_001(slab, passivant)
+    else:
+        c = np.array(direction, dtype=float)
+        b = np.array((0,0,1), dtype=float)
+        a = np.cross(b, direction)
+
+        # here we set the scale of the xy directions
+        if primtive == True: xy_scale = 1
+        if primtive == False: xy_scale = 2
+
+        y = cut(slab, xy_scale*a/2, b, nlayers=2*n_bilayers+2)
+        y.edit()
+        # coords = y.get_positions()
+        
+        # Fixing the amount that you want to displace by
+        d = 2  # displace by this amount
+        xy = .75
+
+        if passivant == "H":
+            atoms_up = [-1, -2]  # These are atoms that were coreated using an extra layer at the top
+            atoms_down = [0, 1]  # These are atoms that were coreated using an extra layer at the bottom
             for num in atoms_up:
                 y[num].symbol = f"{passivant}"
                 # Since in the 110 direction we have only the one bond to take care of in zincblende we need only replace the atoms with all of these
