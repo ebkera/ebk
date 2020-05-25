@@ -93,7 +93,7 @@ def passivate_zinc_blende_slab(slab, passivant, direction, n_bilayers, primtive 
         if primtive == False: xy_scale = 2
 
         y = cut(slab, xy_scale*a/2, b, nlayers=2*n_bilayers+2)
-        y.edit()
+        # y.edit()
         # coords = y.get_positions()
         
         # Fixing the amount that you want to displace by
@@ -101,8 +101,12 @@ def passivate_zinc_blende_slab(slab, passivant, direction, n_bilayers, primtive 
         xy = .75
 
         if passivant == "H":
-            atoms_up = [-1, -2]  # These are atoms that were coreated using an extra layer at the top
-            atoms_down = [0, 1]  # These are atoms that were coreated using an extra layer at the bottom
+            if primtive == True:
+                atoms_up = [-1, -2]  # These are atoms that were coreated using an extra layer at the top
+                atoms_down = [0, 1]  # These are atoms that were coreated using an extra layer at the bottom
+            if primtive == False:
+                atoms_up = [-4, -9, -1, -2]  # These are atoms that were coreated using an extra layer at the top
+                atoms_down = [0, 6, 3, 2]  # These are atoms that were coreated using an extra layer at the bottom                
             for num in atoms_up:
                 y[num].symbol = f"{passivant}"
                 # Since in the 110 direction we have only the one bond to take care of in zincblende we need only replace the atoms with all of these
