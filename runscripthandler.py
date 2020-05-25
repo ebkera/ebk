@@ -167,31 +167,31 @@ class RunScriptHandler():
         self.espresso_inputs.update({"label" : f"{run_name}"})
         self.espresso_inputs.update({"ecutwfc" : KE_cut_i})
         if type(k_i) == list:
+            # print(f"inside lists")
+            # print(k_i)
             self.espresso_inputs.update({"kpts" : (k_i[0], k_i[1], k_i[2])})
         else:
             self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
         if R_i != None: self.espresso_inputs.update({"ecutrho" : R_i})
 
-        if "bands" in self.calculation:
-            # First we deal with the scf run. One thing to note is that this file will be overwritten if nscf run is present
+        if "scf" in self.calculation or "relax" in self.calculation or "bands" in self.calculation or "nscf" in self.calculation:
+            # First we deal with the scf run.
+            # The relax runs will also be saved with the .scf.out extension
             self.espresso_inputs.update({"calculation" : "scf"})
             ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
-            # Then here we take care of the bands run
+            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
+        if "bands" in self.calculation:
+            # Then with the bands file
             self.espresso_inputs.update({"calculation" : "bands"})
             self.espresso_inputs.update({"kpts" : self.k_path})
             ase.io.write(f"{self.identifier}.bands.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             os.rename(f"{self.identifier}.bands.in", f"./{self.base_folder}/{run_name}/{self.identifier}.bands.in")
-            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
         if "nscf" in self.calculation:
             # First we deal with the scf run. This will overwrite any scf runs produced during bands file creation.
-            if os.path.exists(f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in"):
-                os.remove(f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
-            self.espresso_inputs.update({"calculation" : "scf"})
-            if self.espresso_inputs["occupations"] == "tetrahedra":
-                # print(f"meka wada")
-                del(self.espresso_inputs["smearing"])
-                del(self.espresso_inputs["degauss"])
-            ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            # if os.path.exists(f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in"):
+            #     os.remove(f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
+            # self.espresso_inputs.update({"calculation" : "scf"})
+
             # Then here we take care of the nscf run
             self.espresso_inputs.update({"calculation" : "nscf"})
             if type(self.k_nscf) == list:
@@ -205,10 +205,9 @@ class RunScriptHandler():
             ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             # Putting files into folders
             os.rename(f"{self.identifier}.nscf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.nscf.in")
-            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
-        else:
-            ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
-            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
+        # else:
+        #     ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+        #     os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
 
     def write_SIESTA_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
         """
@@ -451,7 +450,11 @@ class RunScriptHandler():
                                 R_name = f"{4*KE_cut_i}"
                             else:
                                 R_name = R_i
-                            run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i}{self.d}R{self.equals}{R_name}{self.d}a{self.equals}{a0_i}{self.d}type{self.equals}{self.calculation}"
+                            if type(k_i) == list:
+                                k_i_name = f"{k_i[0]}-{k_i[1]}-{k_i[2]}"
+                            else:
+                                k_i_name = f"k_i"
+                            run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i_name}{self.d}R{self.equals}{R_name}{self.d}a{self.equals}{a0_i}{self.d}type{self.equals}{self.calculation}"
                             if self.structure == 0:
                                 # cell has been set from outside
                                 pass
