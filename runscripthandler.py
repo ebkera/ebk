@@ -620,7 +620,8 @@ class ReadOutfiles():
                 # Adjusting for nonsymmetric monkhorst pack grids and basing the calling method to chose from "x", "y" or "z" directions in the Monkhorst Pack grid
                 x = run_parameters["K"]
                 if type(x) == str:  # This means the above except statement was executed
-                    x = x.strip("]").strip("[").split(",")
+                    if "," in x: x = x.strip("]").strip("[").split(",")  # Legacy
+                    elif "-" in x: x = x.split("-")  # Current
                     if self.MHP_base == "x": x = int(x[0])
                     if self.MHP_base == "y": x = int(x[1])
                     if self.MHP_base == "z": x = int(x[2])
