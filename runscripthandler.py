@@ -219,85 +219,85 @@ class RunScriptHandler():
     def get_number_of_calculations(self):
         return (len(self.KE_cut)*len(self.a0)*len(self.k)*len(self.R))
 
-    def create_torque_job(self):
-    # Working example but now obsolete
-        """
-        This is the torque job creator and it specifically has PBS lines that torque can understand. 
-        The difference between this and the generic job creator is that the generic job creator does not rely on torque.
-        """
-        # Creating the scf run for bands runs if self.calculation bands
-        # if self.calculation == "bands":
-        #     self.calculation = "scf"
-        #     self.create_torque_job()
-        #     self.calculation = "bands"
+    # def create_torque_job(self):
+    # # Working example but now obsolete
+    #     """
+    #     This is the torque job creator and it specifically has PBS lines that torque can understand. 
+    #     The difference between this and the generic job creator is that the generic job creator does not rely on torque.
+    #     """
+    #     # Creating the scf run for bands runs if self.calculation bands
+    #     # if self.calculation == "bands":
+    #     #     self.calculation = "scf"
+    #     #     self.create_torque_job()
+    #     #     self.calculation = "bands"
 
-        with open (f"{self.identifier}.{self.calculation}.job", "w+") as file_torque:
-            file_torque.write(f"#!/bin/bash\n")
-            file_torque.write(f"# Submit jobs from explicitly specified directories;\n")
-            file_torque.write(f"# stern, 2020-02-18 - Edited Eranjan\n")
-            file_torque.write(f"\n")
-            file_torque.write(f'shopt -s extglob	# handle "+()" patterns\n')
-            file_torque.write(f"\n")
-            file_torque.write(f"# Let's use a shell loop to read a list of tasks from a 'Here-Document' (at the\n")
-            file_torque.write(f"# end of the loop).  See also: http://www.tldp.org/LDP/abs/html/here-docs.html\n")
-            file_torque.write(f"while read dir\n")
-            file_torque.write(f"do\n")
-            file_torque.write(f"    # Skip empty lines and comments\n")
-            file_torque.write(f'    [[ $dir == +(""|"#"*) ]] && continue\n')
-            file_torque.write(f"    # Let's use some basic shell variable string operations to remove the\n")
-            file_torque.write(f"    # leading and trailing parts of the dir names that are the same, isolating\n")
-            file_torque.write(f"    # the changing middle section as a useful short name.\n")
-            file_torque.write("    job_name=${dir#*KE=}\n")
-            file_torque.write("    job_name=${job_name%^a*}\n")
-            file_torque.write(f"    # Use another here-doc to read the job script, to obviate individual files\n")
-            file_torque.write(f"    # in each data directory.\n")
-            file_torque.write(f"\n")
-            file_torque.write(f"    # A here-doc with leading '-' will get leading TABs removed.  (unwise to\n")
-            file_torque.write(f"    # use, however, if your editor munges TABs.)\n")
-            file_torque.write(f"\n")
-            file_torque.write(f"    # Double-quote $dir to avoid parameter substitution.  (This is not strictly\n")
-            file_torque.write(f"    # necessary here, though, because the chars '^+' are not special -- in the\n")
-            file_torque.write(f"    # circumstances used here.)\n")
-            file_torque.write(f'    qsub -w "$PWD/$dir" -N "$job_name" <<-END_JOB_SCRIPT\n')
-            file_torque.write(f"\n")
-            file_torque.write(f"    #!/bin/bash\n")
-            file_torque.write(f"    #  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
-            file_torque.write(f"    #PBS -l nodes={self.nodes}:ppn={self.procs}\n")
-            file_torque.write(f"    #PBS -l walltime={self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
-            # file.write(f"    #PBS -N {run_name}\n")
-            file_torque.write(f"    #PBS -A cnm66441\n")
-            file_torque.write(f"    #  File names for stdout and stderr.  If not set here, the defaults\n")
-            file_torque.write(f"    #  are <JOBNAME>.o<JOBNUM> and <JOBNAME>.e<JOBNUM>\n")
-            # file.write(f"    #PBS -o job.out\n")
-            file_torque.write(f"    #PBS -e $PWD/$dir/job.err\n")
-            file_torque.write(f"    #PBS -j eo\n")
-            file_torque.write(f"    # Send mail at begin, end, abort, or never (b, e, a, n). Default is 'a'.\n")
-            file_torque.write(f"    #PBS -m bea\n")
-            file_torque.write("\n")
-            # file_torque.write(f"    # change into the directory where qsub will be executed\n")
-            file_torque.write(f"    cd \$PBS_O_WORKDIR\n\n")
-            file_torque.write(f"    # use a per-job lineup of modules; stern\n")
-            file_torque.write(f"    module purge\n")
-            file_torque.write(f"    module load intel\n")
-            file_torque.write(f"    module load openmpi/1.10/intel-17\n")
-            file_torque.write(f"    module load quantum-espresso/5.4/openmpi-1.10\n")
-            file_torque.write(f"    module list\n\n")
-            # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
-            # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
-            file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
-            if self.calculation == "bands":
-                file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
-            elif self.calculation == "nscf":
-                file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
-            file_torque.write(f"END_JOB_SCRIPT\n")
-            file_torque.write(f"\n")
-            file_torque.write(f"done <<'END_TASKLIST'\n")
-            file_torque.write(f"    # Single quoting the limit string 'EOT' will pass strings without shell variable and execution expansion.\n")
-            file_torque.write(f"    # Comments and empty line are fine because we explicitly skip them.\n\n")
-            for run in self.all_runs_list:
-                file_torque.write(f"    {run}\n")
-            file_torque.write(f"END_TASKLIST\n")
-        # os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
+    #     with open (f"{self.identifier}.{self.calculation}.job", "w+") as file_torque:
+    #         file_torque.write(f"#!/bin/bash\n")
+    #         file_torque.write(f"# Submit jobs from explicitly specified directories;\n")
+    #         file_torque.write(f"# stern, 2020-02-18 - Edited Eranjan\n")
+    #         file_torque.write(f"\n")
+    #         file_torque.write(f'shopt -s extglob	# handle "+()" patterns\n')
+    #         file_torque.write(f"\n")
+    #         file_torque.write(f"# Let's use a shell loop to read a list of tasks from a 'Here-Document' (at the\n")
+    #         file_torque.write(f"# end of the loop).  See also: http://www.tldp.org/LDP/abs/html/here-docs.html\n")
+    #         file_torque.write(f"while read dir\n")
+    #         file_torque.write(f"do\n")
+    #         file_torque.write(f"    # Skip empty lines and comments\n")
+    #         file_torque.write(f'    [[ $dir == +(""|"#"*) ]] && continue\n')
+    #         file_torque.write(f"    # Let's use some basic shell variable string operations to remove the\n")
+    #         file_torque.write(f"    # leading and trailing parts of the dir names that are the same, isolating\n")
+    #         file_torque.write(f"    # the changing middle section as a useful short name.\n")
+    #         file_torque.write("    job_name=${dir#*KE=}\n")
+    #         file_torque.write("    job_name=${job_name%^a*}\n")
+    #         file_torque.write(f"    # Use another here-doc to read the job script, to obviate individual files\n")
+    #         file_torque.write(f"    # in each data directory.\n")
+    #         file_torque.write(f"\n")
+    #         file_torque.write(f"    # A here-doc with leading '-' will get leading TABs removed.  (unwise to\n")
+    #         file_torque.write(f"    # use, however, if your editor munges TABs.)\n")
+    #         file_torque.write(f"\n")
+    #         file_torque.write(f"    # Double-quote $dir to avoid parameter substitution.  (This is not strictly\n")
+    #         file_torque.write(f"    # necessary here, though, because the chars '^+' are not special -- in the\n")
+    #         file_torque.write(f"    # circumstances used here.)\n")
+    #         file_torque.write(f'    qsub -w "$PWD/$dir" -N "$job_name" <<-END_JOB_SCRIPT\n')
+    #         file_torque.write(f"\n")
+    #         file_torque.write(f"    #!/bin/bash\n")
+    #         file_torque.write(f"    #  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
+    #         file_torque.write(f"    #PBS -l nodes={self.nodes}:ppn={self.procs}\n")
+    #         file_torque.write(f"    #PBS -l walltime={self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
+    #         # file.write(f"    #PBS -N {run_name}\n")
+    #         file_torque.write(f"    #PBS -A cnm66441\n")
+    #         file_torque.write(f"    #  File names for stdout and stderr.  If not set here, the defaults\n")
+    #         file_torque.write(f"    #  are <JOBNAME>.o<JOBNUM> and <JOBNAME>.e<JOBNUM>\n")
+    #         # file.write(f"    #PBS -o job.out\n")
+    #         file_torque.write(f"    #PBS -e $PWD/$dir/job.err\n")
+    #         file_torque.write(f"    #PBS -j eo\n")
+    #         file_torque.write(f"    # Send mail at begin, end, abort, or never (b, e, a, n). Default is 'a'.\n")
+    #         file_torque.write(f"    #PBS -m bea\n")
+    #         file_torque.write("\n")
+    #         # file_torque.write(f"    # change into the directory where qsub will be executed\n")
+    #         file_torque.write(f"    cd \$PBS_O_WORKDIR\n\n")
+    #         file_torque.write(f"    # use a per-job lineup of modules; stern\n")
+    #         file_torque.write(f"    module purge\n")
+    #         file_torque.write(f"    module load intel\n")
+    #         file_torque.write(f"    module load openmpi/1.10/intel-17\n")
+    #         file_torque.write(f"    module load quantum-espresso/5.4/openmpi-1.10\n")
+    #         file_torque.write(f"    module list\n\n")
+    #         # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
+    #         # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
+    #         file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
+    #         if self.calculation == "bands":
+    #             file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
+    #         elif self.calculation == "nscf":
+    #             file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
+    #         file_torque.write(f"END_JOB_SCRIPT\n")
+    #         file_torque.write(f"\n")
+    #         file_torque.write(f"done <<'END_TASKLIST'\n")
+    #         file_torque.write(f"    # Single quoting the limit string 'EOT' will pass strings without shell variable and execution expansion.\n")
+    #         file_torque.write(f"    # Comments and empty line are fine because we explicitly skip them.\n\n")
+    #         for run in self.all_runs_list:
+    #             file_torque.write(f"    {run}\n")
+    #         file_torque.write(f"END_TASKLIST\n")
+    #     # os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
 
     def create_job(self):
         """
@@ -346,7 +346,8 @@ class RunScriptHandler():
             file_torque.write(f'    echo "*********** New Job ***********" >> all_jobs.log\n')
             file_torque.write(f"    #!/bin/bash\n")
             file_torque.write(f"    now=$(date)\n")
-            file_torque.write(f'    echo "$now: $dir : Starting " >> all_jobs.log\n')
+            file_torque.write(f'    echo "$now: $dir" >> all_jobs.log\n')
+            file_torque.write(f'    echo "                      Event : Starting " >> all_jobs.log\n')
 
             if self.job_handler == "torque":
                 file_torque.write(f'    qsub -w "$PWD/$dir" -N "$job_name" <<-END_JOB_SCRIPT\n')
