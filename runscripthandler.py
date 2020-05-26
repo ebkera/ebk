@@ -342,10 +342,9 @@ class RunScriptHandler():
             file_torque.write(f"    # Double-quote $dir to avoid parameter substitution.  (This is not strictly\n")
             file_torque.write(f"    # necessary here, though, because the chars '^+' are not special -- in the\n")
             file_torque.write(f"    # circumstances used here.)\n")
-            file_torque.write(f'    echo "*********** New Job ***********" >> all_jobs.log\n')
             file_torque.write(f"    #!/bin/bash\n")
             file_torque.write(f"    now=$(date)\n")
-            file_torque.write(f'    echo "$now: $dir: Starting" >> all_jobs.log\n')
+            file_torque.write(f'    echo "$now : $dir : Starting" >> all_jobs.log\n')
             if self.job_handler == "torque":
                 file_torque.write(f'    qsub -w "$PWD/$dir" -N "$job_name" <<-END_JOB_SCRIPT\n')
                 file_torque.write(f"    #  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
