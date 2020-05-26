@@ -82,7 +82,61 @@ def passivate_zinc_blende_slab(slab, passivant, direction, n_bilayers, primtive 
     import numpy as np
 
     if direction == (0,0,1):
-        return passivate_zincblende_slab_001(slab, passivant)
+        c = np.array(direction, dtype=float)
+        a = np.array((1,0,0), dtype=float)
+        b = np.cross(c, a)
+        # here we set the scale of the xy directions
+        if primtive == True: xy_scale = 1
+        if primtive == False: xy_scale = 2
+        y = cut(slab, xy_scale*a/2, xy_scale*b/2, nlayers=2*n_bilayers+2)
+        # Fixing the amount that you want to displace by
+        d = .5  # displace by this amount
+        xy = slab.get_cell()[0][0]
+        # print(xy)
+        # xy = .75
+        # y.edit()
+
+        if passivant == "H":
+            if primtive == True:
+                atoms_up = [-1]  # These are atoms that were coreated using an extra layer at the top
+                atoms_down = [0]  # These are atoms that were coreated using an extra layer at the bottom
+
+                up_pos = [y[atoms_up[0]].position[0], y[atoms_up[0]].position[1], y[atoms_up[0]].position[2]]
+                dwn_pos = [y[atoms_down[0]].position[0], y[atoms_down[0]].position[1], y[atoms_down[0]].position[2]]
+
+            if primtive == False:
+                pass
+                atoms_up = [-4, -9, -1, -2]  # These are atoms that were coreated using an extra layer at the top
+                atoms_down = [0, 6, 3, 2]  # These are atoms that were coreated using an extra layer at the bottom
+            for num in atoms_up:
+                y[num].symbol = f"{passivant}"
+                # Since in the 110 direction we have only the one bond to take care of in zincblende we need only replace the atoms with all of these
+                y[num].position = [up_pos[0]-xy/8, up_pos[1]-xy/8, up_pos[2]]
+                # y[num].position = [y[num].position[0]-xy, y[num].position[1]+xy, y[num].position[2]]
+            for num in atoms_down:
+                y[num].symbol = f"{passivant}"
+                # Since in the 110 direction we have only the one bond to take care of in zincblende we need only replace the atoms with all of these
+                y[num].position = [dwn_pos[0]+xy/8, dwn_pos[1]+xy/8, dwn_pos[2]]
+                # y[num].position = [y[num].position[0]-xy, y[num].position[1]+xy, y[num].position[2]]
+
+            # # adding extra atoms for up
+            for num in atoms_up:
+                y.append(f"{passivant}")
+                y[-1].position = [up_pos[0]-3*xy/8, up_pos[1]-3*xy/8, up_pos[2]]
+                # y[-1].position = [y[num].position[0]+2*xy, y[num].position[1]-2*xy, y[num].position[2]]
+
+            for num in atoms_down:
+                y.append(f"{passivant}")
+                y[-1].position = [dwn_pos[0]+3*xy/8, dwn_pos[1]+3*xy/8, dwn_pos[2]]
+                # y[-1].position = [y[num].position[0]+2*xy, y[num].position[1]-2*xy, y[num].position[2]]
+
+        elif passivant == "O":
+            pass
+        # y.edit()
+        # y*= (3,3,1)
+        # y.edit()
+
+        return y
     else:
         c = np.array(direction, dtype=float)
         b = np.array((0,0,1), dtype=float)
