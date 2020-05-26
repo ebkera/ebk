@@ -21,6 +21,7 @@ class LatticeConstantOptimize():
         self.name = name
         #Any other parameters you can set here:
         self.graph_title = "Optimization of lattice constant"
+        self.xlabel = 'Lattice Constant ($\\AA$)'
 
     def compute_fit(self):
         """
@@ -56,7 +57,7 @@ class LatticeConstantOptimize():
         plt.rcParams["figure.figsize"] = (14,9)
         fit_label = f"a$_0$: {round(self.a0_optimized,3)} $\\AA$, B$_0$: {round(self.B,3)} GPa, $\\Omega_0$:{round(self.v0_optimized,3)} $\\AA^3$"
         plt.ylabel('Total Energy (eV)')
-        plt.xlabel('Lattice Constant ($\\AA$)')
+        plt.xlabel(self.xlabel)
         plt.plot(self.a, self.e, 'x', label="Data")
         plt.plot(self.x_fit, self.y_fit, '--', label=fit_label)
         plt.title(self.graph_title)
