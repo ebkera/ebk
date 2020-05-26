@@ -11,7 +11,7 @@ import numpy as np
 from ebk import eVA32GPa
 
 class LatticeConstantOptimize():
-    def __init__(self, a, E, name="a_optimization"):
+    def __init__(self, a, E, name="a_optimization", **kwargs):
         """
         Takes the lattice constants[list in Angstroms], energies[list in eV] and a name[for .out files] as inputs
         """
@@ -20,8 +20,9 @@ class LatticeConstantOptimize():
         self.v = [0.25*n**3 for n in self.a]   # There are four primitive cells in a single conventional cell this is for a diamond/zinc blende structure
         self.name = name
         #Any other parameters you can set here:
-        self.graph_title = "Optimization of lattice constant"
-        self.xlabel = 'Lattice Constant ($\\AA$)'
+        self.graph_title = kwargs.get("graph_title", "Optimization of lattice constant")
+        self.xlabel = kwargs.get("xlabel", 'Lattice Constant ($\\AA$)')
+        self.show_data_in_legend = kwargs.get("show_data_in_legend", True)
 
     def compute_fit(self):
         """
@@ -55,7 +56,10 @@ class LatticeConstantOptimize():
 
     def plot(self):
         plt.rcParams["figure.figsize"] = (14,9)
-        fit_label = f"a$_0$: {round(self.a0_optimized,3)} $\\AA$, B$_0$: {round(self.B,3)} GPa, $\\Omega_0$:{round(self.v0_optimized,3)} $\\AA^3$"
+        if self.show_data_in_legend == False:
+            fit_label = f"a$_0$: {round(self.a0_optimized,3)} $\\AA$"
+        else:
+            fit_label = f"a$_0$: {round(self.a0_optimized,3)} $\\AA$, B$_0$: {round(self.B,3)} GPa, $\\Omega_0$:{round(self.v0_optimized,3)} $\\AA^3$"
         plt.ylabel('Total Energy (eV)')
         plt.xlabel(self.xlabel)
         plt.plot(self.a, self.e, 'x', label="Data")
