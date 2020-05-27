@@ -372,15 +372,15 @@ class RunScriptHandler():
                 # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
                 file_torque.write(f"    mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
                 file_torque.write(f"    now=$(date)\n")
-                file_torque.write(f'    echo "$now : $dir : completed scf" >> ../all_jobs.log\n')
+                # file_torque.write(f'    echo "$now : $dir : completed scf" >> ../all_jobs.log\n')
                 if "bands" in self.calculation:
                     file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
                     file_torque.write(f"    now=$(date)\n")
-                    file_torque.write(f'    echo "$now : $dir : completed bands" >> ../all_jobs.log\n')
+                    # file_torque.write(f'    echo "$now : $dir : completed bands" >> ../all_jobs.log\n')
                 if "nscf" in self.calculation:
                     file_torque.write(f"    mpirun -np {self.ntasks} pw.x < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
                     file_torque.write(f"    now=$(date)\n")
-                    file_torque.write(f'    echo "$now : $dir : completed nscf" >> ../all_jobs.log\n')
+                    # file_torque.write(f'    echo "$now : $dir : completed nscf" >> ../all_jobs.log\n')
                 file_torque.write(f"END_JOB_SCRIPT\n")
             else:
                 file_torque.write(f'    cd "$PWD/$dir"\n')
