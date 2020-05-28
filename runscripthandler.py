@@ -175,12 +175,18 @@ class RunScriptHandler():
             self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
         if R_i != None: self.espresso_inputs.update({"ecutrho" : R_i})
 
-        if "scf" in self.calculation or "relax" in self.calculation or "bands" in self.calculation or "nscf" in self.calculation:
+        if "scf" in self.calculation or "bands" in self.calculation or "nscf" in self.calculation:
             # First we deal with the scf run.
             # The relax runs will also be saved with the .scf.out extension
             self.espresso_inputs.update({"calculation" : "scf"})
             ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
+        if "relax" in self.calculation:
+            # First we deal with the scf run.
+            # The relax runs will also be saved with the .scf.out extension
+            self.espresso_inputs.update({"calculation" : "scf"})
+            ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")            
         if "bands" in self.calculation:
             # Then with the bands file
             self.espresso_inputs.update({"calculation" : "bands"})
@@ -415,10 +421,10 @@ class RunScriptHandler():
             file.write(f"#SBATCH --time={self.walltime_days}-{self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
             file.write(f"#SBATCH --nodes={self.nodes}\n")
             file.write(f"#SBATCH --ntasks={self.procs}\n")
-            # file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
-            # file.write(f"#SBATCH --mail-type=ALL\n")
-            file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
-        os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
+            file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
+            file.write(f"#SBATCH --mail-type=ALL\n")
+            file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.{self.calculation}.in > {self.identifier}.{self.calculation}.out\n")
+        os.rename(f"{self.identifier}.job", f"./{self.base_folder}/{run_name}/{self.identifier}.job")
 
     def make_runs(self):
         """This method makes the runs. The inputs files are created in a method that handles the relevant file type
