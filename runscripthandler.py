@@ -149,7 +149,7 @@ class RunScriptHandler():
                         "era_pc":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         "era_ubuntu":"../PseudopotentialDatabase",  # the pw - "/home/era/Downloads/qe-6.5/bin"
                         "sl_laptop": "/mnt/c/Users/erathnayake/Desktop/PseudopotentialDatabase",
-                        "slurm": "/home/erathnayake/Synced/PseudopotentialDatabase",
+                        # "slurm": "/home/erathnayake/Synced/PseudopotentialDatabase",
                         }
         self.espresso_inputs.update({"pseudo_dir" : pseudo_database_path[machine]})
 
