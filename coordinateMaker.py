@@ -63,7 +63,7 @@ class CoordinateMaker():
         """
         This creates a bulk block of the required material and then has other functions that can act on it and change the shape to get desired geometry
         |Inputs:
-        |    radius            :(int) The radius is the half-length (0 to positive x,y,z) if a side of a cube that will be created. This has to be a multiple of a lattice constant since it will create conventional unit cells
+        |    radius            :(list of 3 ints) The radius is the half-length (0 to positive x,y,z) if a side of a cube that will be created. This has to be a multiple of a lattice constant since it will create conventional unit cells
         |    coordinate_format :(Str) "Ang" for angstroms, "Fractional" for fractional
         |    lattice_constant  :(List of 3 floats or a single float) is the directional or single lattice constant
         |    replicate:        :(Bool) For replicating the created block in 3D
@@ -87,7 +87,7 @@ class CoordinateMaker():
         self.conventional_cell.append([0.500, 0.500, 1.000, "A"])  # Index:11,13
 
         self.conventional_cell_alloy_1 = []
-        # This is the conventional (FCC) unit cell for a diamond lattice
+        # This is the conventional (FCC) unit cell for an alloy lattice
         self.conventional_cell_alloy_1.append([0.000, 0.000, 0.000, "A"])  # Index:0 atom at 000 (fcc_a)
         self.conventional_cell_alloy_1.append([0.250, 0.250, 0.250, "C"])  # Index:1 basis atom connected to (fcc_b)
         # self.conventional_cell_alloy_1.append([0.000, 0.500, 0.500, "A"])  # Index:2 three atoms forming the lattice vectors (fcc_a). # This atom can be removed since slotting another box will duplicate this atom
@@ -108,7 +108,7 @@ class CoordinateMaker():
         # self.conventional_cell_alloy_1.append([1.000, 1.000, 1.000, "A"])  # Index:0 atom at 000 (fcc_a)
 
         self.conventional_cell_zinc_blende = []
-        # This is the conventional (FCC) unit cell for a diamond lattice
+        # This is the conventional (FCC) unit cell for a zincblnde lattice
         self.conventional_cell_zinc_blende.append([0.000, 0.000, 0.000, "A"])  # Index:0 atom at 000 (fcc_a)
         self.conventional_cell_zinc_blende.append([0.250, 0.250, 0.250, "C"])  # Index:1 basis atom connected to (fcc_b)
         # self.conventional_cell_zinc_blende.append([0.000, 0.500, 0.500, "A"])  # Index:2 three atoms forming the lattice vectors (fcc_a). # This atom can be removed since slotting another box will duplicate this atom
