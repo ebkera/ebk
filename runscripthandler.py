@@ -148,7 +148,8 @@ class RunScriptHandler():
                         "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         "era_pc":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         "era_ubuntu":"../PseudopotentialDatabase",  # the pw - "/home/era/Downloads/qe-6.5/bin"
-                        "sl_laptop": "/mnt/c/Users/erathnayake/Desktop/PseudopotentialDatabase"
+                        "sl_laptop": "/mnt/c/Users/erathnayake/Desktop/PseudopotentialDatabase",
+                        "slurm": "/home/erathnayake/PseudopotentialDatabase",
                         }
         self.espresso_inputs.update({"pseudo_dir" : pseudo_database_path[machine]})
 
