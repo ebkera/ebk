@@ -374,7 +374,7 @@ class RunScriptHandler():
                 file_torque.write(f"    now=$(date)\n")
                 # file_torque.write(f'    echo "$now : $dir : completed scf" >> ../all_jobs.log\n')
                 if "bands" in self.calculation:
-                    file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
+                    file_torque.write(f"    mpirun -np {self.ntasks} pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
                     file_torque.write(f"    now=$(date)\n")
                     # file_torque.write(f'    echo "$now : $dir : completed bands" >> ../all_jobs.log\n')
                 if "nscf" in self.calculation:
@@ -389,7 +389,7 @@ class RunScriptHandler():
                 file_torque.write(f"    now=$(date)\n")
                 file_torque.write(f'    echo "$now : $dir : completed scf" >> ../all_jobs.log\n')
                 if "bands" in self.calculation:
-                    file_torque.write(f"    mpirun {self.executable_path[self.job_handler]}pw.x < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
+                    file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
                     file_torque.write(f"    now=$(date)\n")
                     file_torque.write(f'    echo "$now : $dir : completed bands" >> ../all_jobs.log\n')
                 if "nscf" in self.calculation:
