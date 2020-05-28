@@ -184,7 +184,7 @@ class RunScriptHandler():
         if "relax" in self.calculation:
             # First we deal with the scf run.
             # The relax runs will also be saved with the .scf.out extension
-            self.espresso_inputs.update({"calculation" : "scf"})
+            self.espresso_inputs.update({"calculation" : "relax"})
             ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")            
         if "bands" in self.calculation:
