@@ -151,7 +151,10 @@ class RunScriptHandler():
                         "sl_laptop": "/mnt/c/Users/erathnayake/Desktop/PseudopotentialDatabase",
                         # "slurm": "/home/erathnayake/Synced/PseudopotentialDatabase",
                         }
-        self.espresso_inputs.update({"pseudo_dir" : pseudo_database_path[machine]})
+        if machine in pseudo_database_path:
+            # This means that if machine is not in above dict the pseudo path will not be updated.
+            # This means that the system specific default folder will be chosen
+            self.espresso_inputs.update({"pseudo_dir" : pseudo_database_path[machine]})
 
     def set_pseudopotentials(self, pseudos):
         """
@@ -420,7 +423,7 @@ class RunScriptHandler():
             file.write(f"#SBATCH --partition={self.partition}\n")
             file.write(f"#SBATCH --time={self.walltime_days}-{self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
             file.write(f"#SBATCH --nodes={self.nodes}\n")
-            file.write(f"#SBATCH --ntasks={self.procs}\n")
+            file.write(f"#SBATCH --ntasks={self.ntasks}\n")
             file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
             file.write(f"#SBATCH --mail-type=ALL\n")
             file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.{self.calculation}.in > {self.identifier}.{self.calculation}.out\n")
