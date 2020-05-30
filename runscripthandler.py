@@ -71,7 +71,7 @@ class RunScriptHandler():
         self.k_path           = {"path":self.path, "density": self.density}
         self.R                = kwargs.get("R", [None])
         self.base_folder      = kwargs.get("base_folder", "Runs")
-        self.occupations      = kwargs.get("occupations",'smearing')
+        if "occupations" in kwargs: self.occupations      = kwargs.get("occupations",'smearing')
         self.occupations_nscf = kwargs.get("occupations_nscf", self.occupations)
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
@@ -79,10 +79,7 @@ class RunScriptHandler():
                                 "calculation"     : self.calculation,
                                 "lspinorb"        : kwargs.get("lspinorb", False),
                                 "noncolin"        : kwargs.get("noncolin", False),
-                                "occupations"     : self.occupations,
                                 "diagonalization" : kwargs.get("diagonalization",'david'),
-                                "smearing"        : kwargs.get("smearing",'gaussian'),
-                                "degauss"         : kwargs.get("degauss", 0.01),
                                 "mixing_beta"     : kwargs.get("mixing_beta", 0.7),
                                 "Title"           : kwargs.get("Title",'Sn'),
                                 "prefix"          : kwargs.get("prefix",'Sn'),
@@ -103,6 +100,12 @@ class RunScriptHandler():
         # Here are all initializations of the self.espresso_inputs variable that should be set only if explicitly given by user
         if "nbnd" in kwargs:
             self.espresso_inputs.update({"nbnd"            : kwargs.get("nbnd", 40)})
+        if "degauss" in kwargs:
+            self.espresso_inputs.update({"degauss"         : kwargs.get("degauss", 0.01)})
+        if "occupations" in kwargs:
+            self.espresso_inputs.update({"occupations"     : kwargs.get("occupations", "smearing")})
+        if "smearing" in kwargs:
+            self.espresso_inputs.update({"smearing"        : kwargs.get("smearing", "gaussian")})
 
         if self.pseudo_dir != False:
             # Since if not set we want the value to be the default value Thereby reading in machine defaults and not appearing in the .in file
@@ -209,8 +212,14 @@ class RunScriptHandler():
             else:
                 self.espresso_inputs.update({"kpts" : (self.k_nscf, self.k_nscf, self.k_nscf)})
             if self.occupations_nscf == "tetrahedra":
-                del(self.espresso_inputs["smearing"])
-                del(self.espresso_inputs["degauss"])
+                try:
+                    # A try here since smearing might not be present.
+                    del(self.espresso_inputs["smearing"])
+                except: pass
+                try:
+                    # A try here since smearing might not be present.
+                    del(self.espresso_inputs["degauss"])
+                except: pass
             self.espresso_inputs.update({"occupations" : "tetrahedra"})
             ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             # Putting files into folders
@@ -353,8 +362,8 @@ class RunScriptHandler():
             file_torque.write(f"    # necessary here, though, because the chars '^+' are not special -- in the\n")
             file_torque.write(f"    # circumstances used here.)\n")
             file_torque.write(f"    #!/bin/bash\n")
-            file_torque.write(f"    now=$(date)\n")
-            file_torque.write(f'    echo "$now : $dir : Starting" >> all_jobs.log\n')
+            # file_torque.write(f"    now=$(date)\n")
+            # file_torque.write(f'    echo "$now : $dir : Starting" >> all_jobs.log\n')
             if self.job_handler == "torque":
                 file_torque.write(f'    qsub -w "$PWD/$dir" -N "$job_name" <<-END_JOB_SCRIPT\n')
                 file_torque.write(f"    #  Basics: Number of nodes, processors per node (ppn), and walltime (hhh:mm:ss)\n")
@@ -380,17 +389,17 @@ class RunScriptHandler():
                 file_torque.write(f"    module list\n\n")
                 # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
                 # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
-                file_torque.write(f"    mpirun pw.x -npool {self.npool} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
-                file_torque.write(f"    now=$(date)\n")
-                file_torque.write(f'    echo "$now : $dir : completed scf" >> ../all_jobs.log\n')
+                file_torque.write(f"    mpirun pw.x -in {self.identifier}.scf.in -out {self.identifier}.scf.out\n")
+                # file_torque.write(f"    now=$(date)\n")
+                # file_torque.write(f'    echo "$now : $dir : completed scf" >> ../all_jobs.log\n')
                 if "bands" in self.calculation:
-                    file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
-                    file_torque.write(f"    now=$(date)\n")
-                    file_torque.write(f'    echo "$now : $dir : completed bands" >> ../all_jobs.log\n')
+                    file_torque.write(f"    mpirun pw.x -in {self.identifier}.bands.in -out {self.identifier}.bands.out\n")
+                    # file_torque.write(f"    now=$(date)\n")
+                    # file_torque.write(f'    echo "$now : $dir : completed bands" >> ../all_jobs.log\n')
                 if "nscf" in self.calculation:
-                    file_torque.write(f"    mpirun pw.x < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
-                    file_torque.write(f"    now=$(date)\n")
-                    file_torque.write(f'    echo "$now : $dir : completed nscf" >> ../all_jobs.log\n')
+                    file_torque.write(f"    mpirun pw.x -in {self.identifier}.nscf.in -out {self.identifier}.nscf.out\n")
+                    # file_torque.write(f"    now=$(date)\n")
+                    # file_torque.write(f'    echo "$now : $dir : completed nscf" >> ../all_jobs.log\n')
                 file_torque.write(f"END_JOB_SCRIPT\n")
             else:
                 file_torque.write(f'    cd "$PWD/$dir"\n')
@@ -407,7 +416,7 @@ class RunScriptHandler():
                     file_torque.write(f"    now=$(date)\n")
                     file_torque.write(f'    echo "$now : $dir : completed nscf" >> ../all_jobs.log\n')
                 file_torque.write("    cd .. \n")
-            file_torque.write('    cp all_jobs.log "$PWD/$dir/all_jobs.log"\n')
+            # file_torque.write('    cp all_jobs.log "$PWD/$dir/all_jobs.log"\n')
             file_torque.write(f"\n")
             file_torque.write(f"done <<'END_TASKLIST'\n")
             file_torque.write(f"    # Single quoting the limit string 'EOT' will pass strings without shell variable and execution expansion.\n")
