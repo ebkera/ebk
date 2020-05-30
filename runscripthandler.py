@@ -389,15 +389,15 @@ class RunScriptHandler():
                 file_torque.write(f"    module list\n\n")
                 # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
                 # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
-                file_torque.write(f"    mpirun pw.x -in {self.identifier}.scf.in -out {self.identifier}.scf.out\n")
+                file_torque.write(f"    mpirun pw.x < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
                 # file_torque.write(f"    now=$(date)\n")
                 # file_torque.write(f'    echo "$now : $dir : completed scf" >> ../all_jobs.log\n')
                 if "bands" in self.calculation:
-                    file_torque.write(f"    mpirun pw.x -in {self.identifier}.bands.in -out {self.identifier}.bands.out\n")
+                    file_torque.write(f"    mpirun pw.x < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
                     # file_torque.write(f"    now=$(date)\n")
                     # file_torque.write(f'    echo "$now : $dir : completed bands" >> ../all_jobs.log\n')
                 if "nscf" in self.calculation:
-                    file_torque.write(f"    mpirun pw.x -in {self.identifier}.nscf.in -out {self.identifier}.nscf.out\n")
+                    file_torque.write(f"    mpirun pw.x < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
                     # file_torque.write(f"    now=$(date)\n")
                     # file_torque.write(f'    echo "$now : $dir : completed nscf" >> ../all_jobs.log\n')
                 file_torque.write(f"END_JOB_SCRIPT\n")
