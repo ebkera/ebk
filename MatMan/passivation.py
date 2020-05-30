@@ -1,5 +1,5 @@
 """
-Here all the passivation in volved things can be found
+Here all the passivation involved things can be found
 """
 from ase.build import cut
 import numpy as np
@@ -108,6 +108,8 @@ def passivate_zinc_blende_slab(slab, passivant, direction, n_bilayers, primtive 
                 pass
                 atoms_up = [-4, -9, -1, -2]  # These are atoms that were coreated using an extra layer at the top
                 atoms_down = [0, 6, 3, 2]  # These are atoms that were coreated using an extra layer at the bottom
+
+
             for num in atoms_up:
                 y[num].symbol = f"{passivant}"
                 # Since in the 110 direction we have only the one bond to take care of in zincblende we need only replace the atoms with all of these

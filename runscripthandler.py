@@ -148,9 +148,13 @@ class RunScriptHandler():
                         "siva_labs_wsl":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         "era_pc":"/mnt/c/Users/Eranjan/Desktop/PseudopotentialDatabase",
                         "era_ubuntu":"../PseudopotentialDatabase",  # the pw - "/home/era/Downloads/qe-6.5/bin"
-                        "sl_laptop": "/mnt/c/Users/erathnayake/Desktop/PseudopotentialDatabase"
+                        "sl_laptop": "/mnt/c/Users/erathnayake/Desktop/PseudopotentialDatabase",
+                        # "slurm": "/home/erathnayake/Synced/PseudopotentialDatabase",
                         }
-        self.espresso_inputs.update({"pseudo_dir" : pseudo_database_path[machine]})
+        if machine in pseudo_database_path:
+            # This means that if machine is not in above dict the pseudo path will not be updated.
+            # This means that the system specific default folder will be chosen
+            self.espresso_inputs.update({"pseudo_dir" : pseudo_database_path[machine]})
 
     def set_pseudopotentials(self, pseudos):
         """
@@ -174,12 +178,18 @@ class RunScriptHandler():
             self.espresso_inputs.update({"kpts" : (k_i, k_i, k_i)})
         if R_i != None: self.espresso_inputs.update({"ecutrho" : R_i})
 
-        if "scf" in self.calculation or "relax" in self.calculation or "bands" in self.calculation or "nscf" in self.calculation:
+        if "scf" in self.calculation or "bands" in self.calculation or "nscf" in self.calculation:
             # First we deal with the scf run.
             # The relax runs will also be saved with the .scf.out extension
             self.espresso_inputs.update({"calculation" : "scf"})
             ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
+        if "relax" in self.calculation:
+            # First we deal with the scf run.
+            # The relax runs will also be saved with the .scf.out extension
+            self.espresso_inputs.update({"calculation" : "relax"})
+            ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")            
         if "bands" in self.calculation:
             # Then with the bands file
             self.espresso_inputs.update({"calculation" : "bands"})
@@ -413,11 +423,11 @@ class RunScriptHandler():
             file.write(f"#SBATCH --partition={self.partition}\n")
             file.write(f"#SBATCH --time={self.walltime_days}-{self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
             file.write(f"#SBATCH --nodes={self.nodes}\n")
-            file.write(f"#SBATCH --ntasks={self.procs}\n")
-            # file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
-            # file.write(f"#SBATCH --mail-type=ALL\n")
-            file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.in > {self.identifier}.out\n")
-        os.rename(f"{self.identifier}.job", f"./{run_name}/{self.identifier}.job")
+            file.write(f"#SBATCH --ntasks={self.ntasks}\n")
+            file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
+            file.write(f"#SBATCH --mail-type=ALL\n")
+            file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.{self.calculation}.in > {self.identifier}.{self.calculation}.out\n")
+        os.rename(f"{self.identifier}.job", f"./{self.base_folder}/{run_name}/{self.identifier}.job")
 
     def make_runs(self):
         """This method makes the runs. The inputs files are created in a method that handles the relevant file type
@@ -450,7 +460,7 @@ class RunScriptHandler():
                             if type(k_i) == list:
                                 k_i_name = f"{k_i[0]}-{k_i[1]}-{k_i[2]}"
                             else:
-                                k_i_name = f"k_i"
+                                k_i_name = f"{k_i}"
                             run_name = f"{self.identifier}{self.d}Calc{self.equals}{self.calculator}{self.d}Struct{self.equals}{self.structure_type}{self.d}Specie{self.equals}{self.specie}{self.d}KE{self.equals}{KE_cut_i}{self.d}K{self.equals}{k_i_name}{self.d}R{self.equals}{R_name}{self.d}a{self.equals}{a0_i}{self.d}type{self.equals}{self.calculation}"
                             if self.structure == 0:
                                 # cell has been set from outside
@@ -502,6 +512,14 @@ class RunScriptHandler():
             bat_file.write(f'wsl rsync -avtuz --max-size=5m -e ssh era@192.168.0.23:~/Documents/Run_files/ ./')
             bat_file.close()
             self.create_job()
+        elif self.job_handler == "slurm":
+            bat_file = open(f"{self.base_folder}/rsyn_out_slurm.bat", "w+")
+            bat_file.write(f'wsl rsync -avtuz -e ssh cluster ./ cluster:/home/erathnayake/Synced')
+            bat_file.close()
+            bat_file = open(f"{self.base_folder}/rsyn_in_slurm.bat", "w+")
+            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e ssh cluster:/home/erathnayake/Synced/ ./')
+            bat_file.close()
+            # self.create_slurm_job()   already done   
         elif self.job_handler == "era_pc" or self.job_handler == "sl_laptop":
             self.create_job()  # since they are identical
         else:
@@ -512,7 +530,7 @@ class RunScriptHandler():
         This script creates bash files so that you can run a batch of the runs that need to be done
         """
         print(f"create_bash_file: job_handler is set to: {self.job_handler}")
-        bash_file = open(f"run_{self.identifier}.sh", "w+")
+        bash_file = open(f"{self.base_folder}/run_{self.identifier}.sh", "w+")
         bash_file.write(f"#!/bin/bash\n\n")
         bash_file.write(f"dir_list=(")
         for x in self.all_runs_list:

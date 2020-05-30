@@ -135,7 +135,7 @@ def get_pseudopotential(id):
     elif "Slabs_passivation" in identifier:
         # This is for the relaxation of slabs
         pseudopotential = {'C': f"c_pbe_v1.2.uspp.F.UPF", "H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF"}
-    elif identifier == "Slabs_passivation_TeTop" or identifier == "Slabs_passivation_HgTop":
+    elif identifier == "Slabs_passivation_TeTop" or identifier == "Slabs_passivation_HgTop" or identifier == "MCT_Slab":
         # This is for the relaxation of slabs
         pseudopotential = {"H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF"}
         #For the ligand: pps are ultrasoft
