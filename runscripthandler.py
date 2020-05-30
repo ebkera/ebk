@@ -489,7 +489,10 @@ class RunScriptHandler():
                                 shutil.rmtree(f"{self.base_folder}/{run_name}")
                                 print("make_runs: Warning! Path exists!! Overwriting")
                             os.makedirs(f"{self.base_folder}/{run_name}")
-                            self.write_QE_inputfile(run_name, KE_cut_i, R_i, a0_i, k_i)
+                            if self.calculator == "QE":
+                                self.write_QE_inputfile(run_name, KE_cut_i, R_i, a0_i, k_i)
+                            elif self.calculator == "SIESTA":
+                                self.write_SIESTA_inputfile(run_name, KE_cut_i, R_i, a0_i, k_i)
                             self.all_runs_list.append(run_name)
 
                         # Creating jobs
