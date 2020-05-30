@@ -62,7 +62,7 @@ class RunScriptHandler():
         self.k_nscf           = kwargs.get("k_nscf", self.k[0])
         self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn':'Sn_ONCV_PBE_FR-1.1.upf'})
         self.pseudo_dir       = kwargs.get("pseudo_dir", False)
-        self.calculator       = kwargs.get("calculator", "QE")
+        self.calculator       = kwargs.get("calculator", "QE").upper()
         self.structure_type   = kwargs.get("structure_type", "bulk")
         self.xc               = kwargs.get("xc", "pbe")
         self.calculation      = kwargs.get("calculation", "scf")
@@ -72,7 +72,7 @@ class RunScriptHandler():
         self.R                = kwargs.get("R", [None])
         self.base_folder      = kwargs.get("base_folder", "Runs")
         if "occupations" in kwargs: self.occupations      = kwargs.get("occupations",'smearing')
-        self.occupations_nscf = kwargs.get("occupations_nscf", self.occupations)
+        if "occupations_nscf" in kwargs: self.occupations      = kwargs.get("occupations_nscf",'tetrahedra')
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
