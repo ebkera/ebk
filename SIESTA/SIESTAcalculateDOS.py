@@ -6,11 +6,15 @@ import matplotlib
 matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 import sys
 import subprocess
+import pathlib
+from pathlib import Path
+
 
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
 from matplotlib import gridspec
+# import ebk.SIESTA.eig2dos as eig2dos
 
 def latexify(inputlist):
     """This method will convert a list of strings into it's latex form"""
@@ -19,15 +23,15 @@ def latexify(inputlist):
             inputlist[index] = '$\Gamma$'
     return inputlist
 
-def plotter(*args, **kwargs):
+def plotter(figure_name = "DOS", *args, **kwargs):
     plt.figure(1)
     for Set in args:
         plt.plot( Set.band_data_x, Set.band_data_y, linewidth=0.4, label=Set.name)
     plt.xlabel('Energy in eV (E - E$_f$)')
     plt.ylabel('DOS')
     plt.legend(loc='upper left')
-    plt.title("DOS comparison")
-    plt.savefig("Comparison.pdf")
+    plt.title(f"DOS comparison_{figure_name}")
+    plt.savefig(f"Comparison.pdf_{figure_name}")
 
     plt.figure(2)
     for Set in args:
@@ -148,7 +152,25 @@ class Band():
         file2.close()
     
     def make_DOS_file(self):
-        os.system("./eig2dos  < " + self.file_name_eig + " > " + self.file_name_dos)
+        self.system_version = sys.platform
+        # self.eig2dos_path = os.path.abspath(__file__)
+        self.eig2dos_path = pathlib.Path(__file__).parent.absolute()
+        # print(f"System detected: {self.system_version}")
+        # print(f"The required eig2dos file is expected to be in: {self.eig2dos_path}")
+        # filename = Path("source_data/text_files/raw_data.txt")
+        # self.eig2dos_path = Path(self.eig2dos_path) / "eig2dos"
+        # print(f"Os.path {Path(self.eig2dos_path)}")
+        if self.system_version == "win32":
+            # print(f"wsl {self.eig2dos_path}")
+            # os.system(f"wsl {self.eig2dos_path} < {self.file_name_eig} > {self.file_name_dos}")
+            os.system("wsl ./eig2dos  < " + self.file_name_eig + " > " + self.file_name_dos)
+        else:
+            os.system("eig2dos  < " + self.file_name_eig + " > " + self.file_name_dos)
+
+
+    def calculate_badn_gap(self):
+        pass
+
 
     def load_from_dos(self):
         """Opens the files to read"""
@@ -158,7 +180,7 @@ class Band():
             rows.append(line)
         file.close()
 
-        # Delete the first 11 rows
+        # Delete the first 11 rows Since it just contains meta data
         for x in range(0,11):
             del rows[0]
         
