@@ -31,7 +31,7 @@ def plotter(figure_name = "DOS", *args, **kwargs):
     plt.ylabel('DOS')
     plt.legend(loc='upper left')
     plt.title(f"DOS comparison_{figure_name}")
-    plt.savefig(f"Comparison.pdf_{figure_name}")
+    plt.savefig(f"Comparison_{figure_name}.pdf")
 
     plt.figure(2)
     for Set in args:
@@ -41,7 +41,7 @@ def plotter(figure_name = "DOS", *args, **kwargs):
     plt.ylabel('DOS')
     plt.legend(loc='upper left')
     plt.title("DOS comparison")
-    plt.savefig("Comparison_log.pdf")
+    plt.savefig(f"Comparison_log_{figure_name}.pdf")
 
 def plotter_vertical(*args, **kwargs):
     plt.figure()
@@ -168,29 +168,31 @@ class Band():
             os.system("eig2dos  < " + self.file_name_eig + " > " + self.file_name_dos)
 
 
-    def calculate_band_gap(self):
-        # index_of_fermi_level = self.band_data_x[]
-        E_of_non_zeros = [i for i,v in enumerate(self.band_data_x) if self.band_data_y[i] == 0]
-        # E_of_peaks = [i for i,v in enumerate(self.band_data_y) if self.band_data_y[i] < self.band_data_y[i+1]]
-        # for i in E_of_non_zeros:
-        #     print(self.band_data_y[i])
+    def calculate_band_gap(self, calculate_using_peaks = False):
+        """calculates teh band gaps"""
+        if calculate_using_peaks:
+            pass
+        else:
+            E_of_non_zeros = [i for i,v in enumerate(self.band_data_x) if self.band_data_y[i] == 0]
+            # E_of_peaks = [i for i,v in enumerate(self.band_data_y) if self.band_data_y[i] < self.band_data_y[i+1]]
+            # for i in E_of_non_zeros:
+            #     print(self.band_data_y[i])
 
-        #calculating the band gap
-        gap_low_index = E_of_non_zeros[0]
-        gap_low = self.band_data_x[gap_low_index]
-        for i in range(1,len(E_of_non_zeros)):
-            if E_of_non_zeros[i]-E_of_non_zeros[i-1] != 1:
-                gap_high_index = E_of_non_zeros[i-1]
-                gap_high = self.band_data_x[gap_high_index]
-                print(gap_low)
-                print(gap_high)
-                if gap_low <= 0 and gap_high >= 0:
-                    self.band_gap = gap_high - gap_low
-                    print(f"Band Gap for {self.name}: {self.band_gap} eV")
-                    print(f"Lower  edge: {gap_low} eV")
-                    print(f"Higher edge: {gap_low} eV")
-                    break
-
+            #calculating the band gap
+            gap_low_index = E_of_non_zeros[0]
+            gap_low = self.band_data_x[gap_low_index]
+            for i in range(1,len(E_of_non_zeros)):
+                if E_of_non_zeros[i]-E_of_non_zeros[i-1] != 1:
+                    gap_high_index = E_of_non_zeros[i-1]
+                    gap_high = self.band_data_x[gap_high_index]
+                    if gap_low <= 0 and gap_high >= 0:
+                        self.band_gap = gap_high - gap_low
+                        print(f"Band Gap for {self.name}: {self.band_gap} eV")
+                        print(f"Lower  edge: {gap_low} eV")
+                        print(f"Higher edge: {gap_high} eV")
+                        break
+                    gap_low_index = E_of_non_zeros[i]
+                    gap_low = self.band_data_x[gap_low_index]
 
     def load_from_dos(self):
         """Opens the files to read"""
