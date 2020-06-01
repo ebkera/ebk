@@ -179,7 +179,7 @@ if __name__ == "__main__":
     arg_list_length = len(sys.argv)
     bands_to_plot_main = [x for x in sys.argv if x.isdigit()]  # getting the bands to plot
     if "r" in sys.argv:  # r for "run seista"
-        os.system("./siesta < " + SystemLabel+".fdf | tee Sn.out ")
+        os.system("siesta < " + SystemLabel+".fdf | tee Sn.out ")
     if "g" in sys.argv:  # g for using gnubands file this will shift the values
         print("*** Starting to execute gnuplot for adjustment of values")
         os.system("./gnubands -F < " + SystemLabel+".bands > " + SystemLabel + ".bands.gnuplot.dat")
