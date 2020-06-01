@@ -24,24 +24,28 @@ def latexify(inputlist):
     return inputlist
 
 def plotter(figure_name = "DOS", *args, **kwargs):
-    plt.figure(1)
+    plt.figure()
     for Set in args:
-        plt.plot( Set.band_data_x, Set.band_data_y, linewidth=0.4, label=Set.name)
+        plt.plot( Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f}, $E_c-E_f$: {Set.gap_high:.3f}, $E_f - E_v$: {-Set.gap_low:.3f} eV")
     plt.xlabel('Energy in eV (E - E$_f$)')
     plt.ylabel('DOS')
-    plt.legend(loc='upper left')
-    plt.title(f"DOS comparison_{figure_name}")
+    # plt.legend(loc='upper left')
+    plt.legend()
+    plt.title(f"DOS")
     plt.savefig(f"Comparison_{figure_name}.pdf")
+    plt.close()
 
-    plt.figure(2)
+    plt.figure()
     for Set in args:
-        plt.plot( Set.band_data_x, Set.band_data_y, linewidth=0.4, label=Set.name)
+        plt.plot( Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f}, $E_c-E_f$: {Set.gap_high:.3f}, $E_f - E_v$: {-Set.gap_low:.3f} eV")
     plt.yscale('log')
     plt.xlabel('Energy in eV (E - E$_f$)')
     plt.ylabel('DOS')
-    plt.legend(loc='upper left')
-    plt.title("DOS comparison")
+    # plt.legend(loc='upper left')
+    plt.legend()
+    plt.title("DOS")
     plt.savefig(f"Comparison_log_{figure_name}.pdf")
+    plt.close()
 
 def plotter_vertical(*args, **kwargs):
     plt.figure()
@@ -174,10 +178,7 @@ class Band():
             pass
         else:
             E_of_non_zeros = [i for i,v in enumerate(self.band_data_x) if self.band_data_y[i] == 0]
-            # E_of_peaks = [i for i,v in enumerate(self.band_data_y) if self.band_data_y[i] < self.band_data_y[i+1]]
-            # for i in E_of_non_zeros:
-            #     print(self.band_data_y[i])
-
+            E_of_non_zeros.append(E_of_non_zeros[-1]+2)  # just in case there is only one badn gap and therefpre there are no extra dataponts where it all changes so that the change can be detected.
             #calculating the band gap
             gap_low_index = E_of_non_zeros[0]
             gap_low = self.band_data_x[gap_low_index]
@@ -187,9 +188,11 @@ class Band():
                     gap_high = self.band_data_x[gap_high_index]
                     if gap_low <= 0 and gap_high >= 0:
                         self.band_gap = gap_high - gap_low
-                        print(f"Band Gap for {self.name}: {self.band_gap} eV")
-                        print(f"Lower  edge: {gap_low} eV")
-                        print(f"Higher edge: {gap_high} eV")
+                        self.gap_high = gap_high
+                        self.gap_low = gap_low
+                        # print(f"Band Gap for {self.name}: {self.band_gap} eV")
+                        # print(f"Lower  edge: {gap_low} eV")
+                        # print(f"Higher edge: {gap_high} eV")
                         break
                     gap_low_index = E_of_non_zeros[i]
                     gap_low = self.band_data_x[gap_low_index]
