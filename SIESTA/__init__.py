@@ -1,3 +1,5 @@
+"""This file contails some utilities to be used with SIESTA"""
+
 def xyz2fdf(file_name, format):
     """
     This function takes a .xyz file and converts it into a fdf compliant format file
@@ -40,3 +42,26 @@ def xyz2fdf(file_name, format):
         file.write(f"{line}\n")
     file.write(f"%endblock AtomicCoordinatesAndAtomicSpecies")
     file.close()
+
+
+def siesta_convergence_checker(file_name):
+    import matplotlib.pyplot as plt
+    file = open(f"{file_name}", 'r')
+    data = [line for line in file]
+    file.close()
+    # print(data)
+    iteration_number = []
+    KS_energy = []
+    for line in data:
+        if "scf" in line and "compute" not in line and "siesta" not in line and "Eharris" not in line:
+            # print(line)
+            vals = line.split()
+            iteration_number.append(int(vals[1]))
+            KS_energy.append(float(vals[3]))
+
+    plt.plot(iteration_number, KS_energy)
+    plt.title("SCF Convergence")
+    plt.xlabel("Iteration")
+    plt.ylabel("Energy")
+    plt.show()
+    
