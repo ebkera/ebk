@@ -12,8 +12,9 @@ import scipy.constants
 # from matplotlib import pyplot as plt
 import matplotlib
 font = {'family' : "Times New Roman",
-        'weight' : 'bold',
-        'size'   : 22}
+        # 'weight' : 'bold',
+        # 'size'   : 22
+        }
 matplotlib.rc('font', **font)
 # plt.rcParams["font.family"] = "Times New Roman"
 
