@@ -5,7 +5,22 @@ It will also include functions that we would have to use all the time but does n
 anywhere else.
 """
 
+# import os
+import sys
 import scipy.constants
+
+# from matplotlib import pyplot as plt
+import matplotlib
+font = {'family' : "Times New Roman",
+        'weight' : 'bold',
+        'size'   : 22}
+matplotlib.rc('font', **font)
+# plt.rcParams["font.family"] = "Times New Roman"
+
+# Setting matplotlib to load non gui back end if not on a windows platform THis shoudl only be enabled for wsl systems
+# if sys.platform != "win32":
+#     matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
+
 
 # Universal constants
 Egap = 0.0

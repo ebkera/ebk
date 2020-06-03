@@ -3,7 +3,7 @@ This Files needs the eig2dos file to work
 """
 import os
 import matplotlib
-matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
+# matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 import sys
 import subprocess
 import pathlib
@@ -16,6 +16,11 @@ import numpy as np
 from matplotlib import gridspec
 # import ebk.SIESTA.eig2dos as eig2dos
 
+# plt.rcParams["font.family"] = "Times New Roman"
+font = {'size'   : 12}
+matplotlib.rc('font', **font)
+
+
 def latexify(inputlist):
     """This method will convert a list of strings into it's latex form"""
     for index, item in enumerate(inputlist):
@@ -26,18 +31,27 @@ def latexify(inputlist):
 def plotter(figure_name = "DOS", *args, **kwargs):
     plt.figure()
     for Set in args:
-        plt.plot( Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f}, $E_c-E_f$: {Set.gap_high:.3f}, $E_f - E_v$: {-Set.gap_low:.3f} eV")
+        if Set.band_gap != None:
+            # plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f}, $E_c-E_f$: {Set.gap_high:.3f}, $E_f - E_v$: {-Set.gap_low:.3f} eV")
+            plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.8, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f} eV")
+        else:
+            plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: None")
     plt.xlabel('Energy in eV (E - E$_f$)')
+    plt.text(-3, 100, r'(b)', fontsize=12)
     plt.ylabel('DOS')
-    # plt.legend(loc='upper left')
-    plt.legend()
+    plt.legend(loc='upper right')
+    # plt.legend()
     plt.title(f"DOS")
     plt.savefig(f"Comparison_{figure_name}.pdf")
+    plt.show()
     plt.close()
 
     plt.figure()
     for Set in args:
-        plt.plot( Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f}, $E_c-E_f$: {Set.gap_high:.3f}, $E_f - E_v$: {-Set.gap_low:.3f} eV")
+        if Set.band_gap != None:
+            plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f}, $E_c-E_f$: {Set.gap_high:.3f}, $E_f - E_v$: {-Set.gap_low:.3f} eV")
+        else:
+            plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: None")
     plt.yscale('log')
     plt.xlabel('Energy in eV (E - E$_f$)')
     plt.ylabel('DOS')
@@ -106,6 +120,20 @@ def plotter_grid(*args, **kwargs):
     plt.title("DOS comparison")
     plt.savefig('grid_figure.pdf')
 
+
+def plot_side_by_side(*args,**kwargs):
+    fig, (ax1, ax2) = plt.subplots(1, 2)
+    fig.suptitle('Horizontally stacked subplots')
+    ax1.plot(x, y)
+    ax2.plot(x, -y)
+    for Set in args:
+        if Set.band_gap != None:
+            # plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f}, $E_c-E_f$: {Set.gap_high:.3f}, $E_f - E_v$: {-Set.gap_low:.3f} eV")
+            plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.8, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f} eV")
+        else:
+            plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.8, label=f"{Set.name}, $E_g$: None")
+
+
 class Band():
     """
     Main class that deals with DOS. Dont know why Ii named it bands but retaining it for legacy reasons.
@@ -173,11 +201,18 @@ class Band():
 
 
     def calculate_band_gap(self, calculate_using_peaks = False):
-        """calculates teh band gaps"""
+        """calculates the band gaps"""
         if calculate_using_peaks:
             pass
         else:
             E_of_non_zeros = [i for i,v in enumerate(self.band_data_x) if self.band_data_y[i] == 0]
+            if len(E_of_non_zeros) == 0:
+                print(f"{self.name} does not have a band gap.")
+                self.gap_high = 0
+                self.gap_low = 0
+                self.band_gap = 0
+                return
+
             E_of_non_zeros.append(E_of_non_zeros[-1]+2)  # just in case there is only one badn gap and therefpre there are no extra dataponts where it all changes so that the change can be detected.
             #calculating the band gap
             gap_low_index = E_of_non_zeros[0]
