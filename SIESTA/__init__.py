@@ -51,17 +51,41 @@ def siesta_convergence_checker(file_name):
     file.close()
     # print(data)
     iteration_number = []
-    KS_energy = []
+    Eharris = []
+    E_KS = []
+    FreeEng = []
+    dDmax = []
+    Ef = []
+    dHmax = []
     for line in data:
         if "scf" in line and "compute" not in line and "siesta" not in line and "Eharris" not in line:
             # print(line)
             vals = line.split()
             iteration_number.append(int(vals[1]))
-            KS_energy.append(float(vals[3]))
+            Eharris.append(float(vals[2]))
+            E_KS.append(float(vals[3]))
+            FreeEng.append(float(vals[4]))
+            dDmax.append(float(vals[5]))
+            Ef.append(float(vals[6]))
+            dHmax.append(float(vals[7]))
 
-    plt.plot(iteration_number, KS_energy)
+    plt.plot(iteration_number, Eharris, label=("Harris"))
+    plt.plot(iteration_number, E_KS, label=("Khon-Sham"))
+    plt.plot(iteration_number, FreeEng, label=("Free"))
     plt.title("SCF Convergence")
     plt.xlabel("Iteration")
     plt.ylabel("Energy")
+    plt.legend()
+    plt.savefig("SCF_convergence.pdf")
     plt.show()
-    
+
+    plt.figure()
+    plt.plot(iteration_number, dDmax, label=("dDmax"))
+    plt.plot(iteration_number, Ef, label=("E$_f$"))
+    plt.plot(iteration_number, dHmax, label=("dHmax"))
+    plt.title("Convergence Parameters and Fermi level")
+    plt.xlabel("Iteration")
+    plt.ylabel("Energy")
+    plt.legend()
+    plt.savefig("Convergence_parameters.pdf")
+    plt.show()
