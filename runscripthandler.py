@@ -731,7 +731,8 @@ class ReadOutfiles():
             mydir = Path(runs_dir, "Run_files_SL", "Synced")
         elif dir== "here":
             mydir = Path(cur_dir)
-        
+        elif dir== "other":
+            mydir = Path(cur_dir)    
         if self.high_verbosity:
             print(f"The Runs directory is: {mydir}")
         self.read_folder_data(mydir)
