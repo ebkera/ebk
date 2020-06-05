@@ -5,7 +5,7 @@ from ase.dft.kpoints import resolve_custom_points, find_bandpath_kinks
 from ase.dft.dos import DOS
 from matplotlib import gridspec
 
-# matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
+matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 
 
 class BandPlotter():
