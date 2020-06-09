@@ -161,10 +161,12 @@ class Band():
         self.load_from_dos()
 
     def modify_eig_file(self, eta, ne, emin, emax):
-        """Opens the EIG file and then saves the modified version of it
-        eta  - I'd call it precision, put it less than 1. 
-        Ne - number of eigenvalues, I advise to put it large. 
-        Emin and Emax - interval of energies for which DOS will be calculated (eV). """
+        """
+        Opens the EIG file and then saves the modified version of it
+        eta  - I'd call it precision, put it less than 1.
+        Ne - number of eigenvalues, I advise to put it large.
+        Emin and Emax - interval of energies for which DOS will be calculated (eV).
+        """
         file = open(self.file_name_eig,"r")
         rows = []
         for line in file:
