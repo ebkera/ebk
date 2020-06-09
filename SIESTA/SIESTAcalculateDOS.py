@@ -32,8 +32,10 @@ def plotter(figure_name = "DOS", *args, **kwargs):
     plt.figure()
     for Set in args:
         if Set.band_gap != None:
-            # plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f}, $E_c-E_f$: {Set.gap_high:.3f}, $E_f - E_v$: {-Set.gap_low:.3f} eV")
-            plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.8, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f} eV")
+            plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f}, $E_c-E_f$: {Set.gap_high:.3f}, $E_f - E_v$: {-Set.gap_low:.3f} eV")
+            # plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.8, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f} eV")
+            # plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: None")
+
         else:
             plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: None")
     plt.xlabel('Energy in eV (E - E$_f$)')
@@ -42,7 +44,7 @@ def plotter(figure_name = "DOS", *args, **kwargs):
     plt.legend(loc='upper right')
     # plt.legend()
     plt.title(f"DOS")
-    plt.savefig(f"Comparison_{figure_name}.pdf")
+    plt.savefig(f"{figure_name}.pdf")
     plt.show()
     plt.close()
 
@@ -210,15 +212,15 @@ class Band():
                 print(f"{self.name} does not have a band gap.")
                 self.gap_high = 0
                 self.gap_low = 0
-                self.band_gap = 0
+                self.band_gap = None
                 return
-
             E_of_non_zeros.append(E_of_non_zeros[-1]+2)  # just in case there is only one badn gap and therefpre there are no extra dataponts where it all changes so that the change can be detected.
             #calculating the band gap
             gap_low_index = E_of_non_zeros[0]
             gap_low = self.band_data_x[gap_low_index]
             for i in range(1,len(E_of_non_zeros)):
                 if E_of_non_zeros[i]-E_of_non_zeros[i-1] != 1:
+                    # print("E_of_non_zeros")
                     gap_high_index = E_of_non_zeros[i-1]
                     gap_high = self.band_data_x[gap_high_index]
                     if gap_low <= 0 and gap_high >= 0:
@@ -231,6 +233,9 @@ class Band():
                         break
                     gap_low_index = E_of_non_zeros[i]
                     gap_low = self.band_data_x[gap_low_index]
+
+            if not hasattr(self, 'band_gap'):
+                self.band_gap = None
 
     def load_from_dos(self):
         """Opens the files to read"""
