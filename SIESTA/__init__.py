@@ -58,7 +58,7 @@ def siesta_convergence_checker(file_name):
     Ef = []
     dHmax = []
     for line in data:
-        if "scf" in line and "compute" not in line and "siesta" not in line and "Eharris" not in line:
+        if "scf" in line and "compute" not in line and "siesta" not in line and "Eharris" not in line and "Vacuum" not in line and "dfscf" not in line:
             # print(line)
             vals = line.split()
             iteration_number.append(int(vals[1]))
@@ -69,6 +69,11 @@ def siesta_convergence_checker(file_name):
             Ef.append(float(vals[6]))
             dHmax.append(float(vals[7]))
 
+    # Eharris = [-x for x in Eharris]
+    # E_KS = [-x for x in E_KS]
+    # FreeEng = [-x for x in FreeEng]
+    # # print(FreeEng)
+
     plt.plot(iteration_number, Eharris, label=("Harris"))
     plt.plot(iteration_number, E_KS, label=("Khon-Sham"))
     plt.plot(iteration_number, FreeEng, label=("Free"))
@@ -76,7 +81,7 @@ def siesta_convergence_checker(file_name):
     plt.xlabel("Iteration")
     plt.ylabel("Energy")
     plt.legend()
-    plt.savefig("SCF_convergence.pdf")
+    plt.savefig(f"{file_name}_SCF_convergence.pdf")
     plt.show()
 
     plt.figure()
@@ -87,5 +92,5 @@ def siesta_convergence_checker(file_name):
     plt.xlabel("Iteration")
     plt.ylabel("Energy")
     plt.legend()
-    plt.savefig("Convergence_parameters.pdf")
+    plt.savefig(f"{file_name}_Convergence_parameters.pdf")
     plt.show()
