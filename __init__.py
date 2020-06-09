@@ -99,6 +99,8 @@ def eVA32GPa(e):
     """Takes eV/Angstroms^3 and converts it into GPa. This is useful when calculating the bulk modulus especially."""
     return e*160.21766208
 
+def gap_calculator_1D(m_e, m_h, L):
+    return J2eV((scipy.constants.pi**2*scipy.constants.hbar**2)/(2*m_e*(L*1E-9)**2) + (scipy.constants.pi**2*scipy.constants.hbar**2)/(2*m_h*(L*1E-9)**2))
 
 def get_pseudopotential(id):
     """
