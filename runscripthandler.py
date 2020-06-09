@@ -72,7 +72,7 @@ class RunScriptHandler():
         self.R                = kwargs.get("R", [None])
         self.base_folder      = kwargs.get("base_folder", "Runs")
         if "occupations" in kwargs: self.occupations      = kwargs.get("occupations",'smearing')
-        if "occupations_nscf" in kwargs: self.occupations      = kwargs.get("occupations_nscf",'tetrahedra')
+        if "occupations_nscf" in kwargs: self.occupations_nscf = kwargs.get("occupations_nscf",'tetrahedra')
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
