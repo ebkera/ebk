@@ -142,7 +142,7 @@ class E_cut_Optimize():
         plt.legend()
         if MP == True:
             plt.title(f"{self.graph_title}")
-            plt.xlabel(f"Monkhorst-Pack grid (3D) {self.xlabel}")
+            plt.xlabel(f"Monkhorst-Pack grid (2D) {self.xlabel}")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_MPGrid_peratom{self.per_atom}.pdf")
         elif self.R == True:
             plt.title(f"{self.graph_title}")
