@@ -84,7 +84,6 @@ class RunScriptHandler():
                                 "Title"           : kwargs.get("Title",'Sn'),
                                 "prefix"          : kwargs.get("prefix",'Sn'),
                                 # "restart_mode"    : kwargs.get("restart_mode",'from_scratch'),
-                                # "disk_io"         : kwargs.get("disk_io",'default'),
                                 # "wf_collect"      : kwargs.get("wf_collect", False),
                                 # "verbosity"       : kwargs.get("verbosity",'high'),
                                 # "lkpoint_dir"     : kwargs.get("lkpoint_dir", False),
@@ -98,6 +97,8 @@ class RunScriptHandler():
                                 }
 
         # Here are all initializations of the self.espresso_inputs variable that should be set only if explicitly given by user
+        if "disk_io" in kwargs:
+            self.espresso_inputs.update({"disk_io"         : kwargs.get("disk_io",'default')})
         if "nbnd" in kwargs:
             self.espresso_inputs.update({"nbnd"            : kwargs.get("nbnd", 40)})
         if "degauss" in kwargs:
