@@ -76,7 +76,11 @@ class Read_PDOS():
                 except:
                     plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}")
             else:
-                plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.Species_per_file[i]}_{self.orbital_labels[i]}")
+                try:
+                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.Species_per_file[i]}_{self.orbital_labels[i]}")
+                except:
+                    # If there are mutiple species or nothing picked up.
+                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}")
         plt.xlabel('Energy in eV (E - E$_f$)')
         # plt.text(-3, 100, r'(b)', fontsize=12)
         plt.ylabel('PDOS')
