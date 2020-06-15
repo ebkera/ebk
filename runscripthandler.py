@@ -83,11 +83,11 @@ class RunScriptHandler():
                                 "mixing_beta"     : kwargs.get("mixing_beta", 0.7),
                                 "Title"           : kwargs.get("Title",'Sn'),
                                 "prefix"          : kwargs.get("prefix",'Sn'),
-                                "restart_mode"    : kwargs.get("restart_mode",'from_scratch'),
-                                "disk_io"         : kwargs.get("disk_io",'default'),
-                                "wf_collect"      : kwargs.get("wf_collect", False),
-                                "verbosity"       : kwargs.get("verbosity",'high'),
-                                "lkpoint_dir"     : kwargs.get("lkpoint_dir", False),
+                                # "restart_mode"    : kwargs.get("restart_mode",'from_scratch'),
+                                # "disk_io"         : kwargs.get("disk_io",'default'),
+                                # "wf_collect"      : kwargs.get("wf_collect", False),
+                                # "verbosity"       : kwargs.get("verbosity",'high'),
+                                # "lkpoint_dir"     : kwargs.get("lkpoint_dir", False),
                                 "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-3),
                                 "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-3),
                                 "outdir"          : kwargs.get("outdir", './'),
@@ -521,6 +521,12 @@ class RunScriptHandler():
             bat_file.close()
             bat_file = open(f"{self.base_folder}/rsyn_in.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz --max-size=5m -e "ssh -p 33301" rathnayake@localhost:~/Run_files/ ./')
+            bat_file.close()
+            bat_file = open(f"{self.base_folder}/login.bat", "w+")
+            bat_file.write(f'ssh -v -L 33301:carbon:22 rathnayake@mega.cnm.anl.gov')
+            bat_file.close()
+            bat_file = open(f"{self.base_folder}/session.bat", "w+")
+            bat_file.write(f'ssh -Y -p 33301 rathnayake@localhost')
             bat_file.close()
             self.create_job()
         elif self.job_handler == "era_ubuntu":
