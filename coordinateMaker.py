@@ -579,9 +579,9 @@ class CoordinateMaker():
                     file_xyz.write("S ")
                 elif i[3] == "H":
                     file_xyz.write("H ")
-                file_xyz.write(str(i[0]) + " ")
-                file_xyz.write(str(i[1]) + " ")
-                file_xyz.write(str(i[2]) + " ")
+                file_xyz.write(str(i[0] * self.lattice_constant) + " ")
+                file_xyz.write(str(i[1] * self.lattice_constant) + " ")
+                file_xyz.write(str(i[2] * self.lattice_constant) + " ")
                 file_xyz.write("\n")
         if not surface:
             for i in self.finalcell:
@@ -597,9 +597,9 @@ class CoordinateMaker():
                     file_xyz.write("C ")
                 elif i[3] == "H":
                     file_xyz.write("H ")
-                file_xyz.write(str(i[0]) + " ")
-                file_xyz.write(str(i[1]) + " ")
-                file_xyz.write(str(i[2]) + " ")
+                file_xyz.write(str(i[0] * self.lattice_constant) + " ")
+                file_xyz.write(str(i[1] * self.lattice_constant) + " ")
+                file_xyz.write(str(i[2] * self.lattice_constant) + " ")
                 file_xyz.write("\n")
         print("write_to_xyz: Successfully written to '.xyz' file")
         file_xyz.close()
