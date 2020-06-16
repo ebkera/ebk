@@ -10,9 +10,11 @@ import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
 from matplotlib import gridspec
+from ebk.SIESTA.SIESTAOutFileReader import SiestaReadOut
 
 class Read_PDOS():
     def __init__(self, figure_name = "PDOS"):
+        self.system_labels = []
         self.file_names = []
         self.fermi_levels = []
         self.figure_name = figure_name
@@ -27,6 +29,19 @@ class Read_PDOS():
         self.xlim_low = -5
         self.xlim_high = 5
         self.orbital_labels = []
+
+    def process(self, system_label):
+        """
+        This functions autoomates loading the pdos file.
+        system_label: String: System Label as string
+        """
+        self.system_labels.append(system_label)
+        # Sn_out = SiestaReadOut("Sn")
+
+        with open(f"{system_label}.PDOS", 'r') as file:
+            for line in file:
+                if "fermi_energy" in line:
+                    self.fermi_levels.append(float(line.split("<")[-2].split(">")[-1]))
 
     def load(self, file_name, Ef, label):
         self.file_names.append(file_name)
