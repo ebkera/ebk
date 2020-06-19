@@ -456,11 +456,11 @@ class RunScriptHandler():
             file.write(f"#SBATCH --ntasks={self.ntasks} # Number of taks per node for the job\n")
             file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
             file.write(f"#SBATCH --mail-type=ALL\n")
-            file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
+            file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
             if "bands" in self.calculation:
-                file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
+                file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
             if "nscf" in self.calculation:
-                file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
+                file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
         os.rename(f"{self.identifier}.job", f"./{self.base_folder}/{run_name}/{self.identifier}.job")
 
     def make_runs(self):
