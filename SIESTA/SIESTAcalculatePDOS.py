@@ -45,6 +45,7 @@ class Read_PDOS():
 
     def load(self, file_name, Ef, label):
         self.file_names.append(file_name)
+        Ef = Ef
         tempx = []
         tempyup = []
         tempydn = []
