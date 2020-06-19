@@ -124,11 +124,18 @@ class RunScriptHandler():
         self.walltime_mins   = kwargs.get("walltime_mins", 0)
         self.walltime_hours  = kwargs.get("walltime_hours", 2)
         self.walltime_secs   = kwargs.get("walltime_secs", 0)
+
+        # General Prallelization
         self.nodes           = kwargs.get("nodes", 2)  # the number of cores
         self.procs           = kwargs.get("procs", 8)  # number of processesors per core
         self.partition       = kwargs.get("partition", "cluster")  # The partition that the job will run on
-        self.ntasks          = kwargs.get("ntasks", 20)  # number of threads in total
-        self.npool           = kwargs.get("npool", 1)  # The number of pools of k points per proc (has to be an integer). This is a Quantum espresso parameter and will only work with QE. 
+        self.ntasks          = kwargs.get("ntasks", 20)  # number of threads in total This is a slurm command
+
+        # Quantum espresso parallelization
+        self.nimage          = kwargs.get("nimage", 1)
+        self.npools          = kwargs.get("npools", 1)  # The number of pools of k points per proc (has to be an integer). This is a Quantum espresso parameter and will only work with QE. 
+        self.nband           = kwargs.get("nband", 1)
+        self.ntg             = kwargs.get("ntg", 1)
 
         # Other Initializations
             # For structure: An fcc cell that scales with the lattice constant = 1
@@ -399,19 +406,19 @@ class RunScriptHandler():
                 # file_torque.write(f"    now=$(date)\n")
                 file_torque.write(f'    date\n')
                 file_torque.write(f'    echo "Starting scf"\n')
-                file_torque.write(f"    mpirun pw.x -npool {self.npool} -in {self.identifier}.scf.in > {self.identifier}.scf.out\n")
+                file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.scf.in > {self.identifier}.scf.out\n")
                 file_torque.write(f'    date\n')
                 file_torque.write(f'    echo "Completed scf"\n')
                 if "bands" in self.calculation:
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Starting bands"\n')
-                    file_torque.write(f"    mpirun pw.x -npool {self.npool} -in {self.identifier}.bands.in > {self.identifier}.bands.out\n")
+                    file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.bands.in > {self.identifier}.bands.out\n")
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Completed bands"\n')
                 if "nscf" in self.calculation:
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Starting nscf"\n')
-                    file_torque.write(f"    mpirun pw.x -npool {self.npool} -in {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
+                    file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Completed nscf"\n')
                 file_torque.write(f"END_JOB_SCRIPT\n")
