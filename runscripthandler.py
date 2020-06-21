@@ -404,6 +404,7 @@ class RunScriptHandler():
                 # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
                 # file.write(f"    mpirun -machinefile  $PBS_NODEFILE -np $PBS_NP pw.x < {run_name}.in > {run_name}.out\n")
                 # file_torque.write(f"    now=$(date)\n")
+                #Here Npools vs npool
                 file_torque.write(f'    date\n')
                 file_torque.write(f'    echo "Starting scf"\n')
                 file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.scf.in > {self.identifier}.scf.out\n")
@@ -458,6 +459,13 @@ class RunScriptHandler():
             file.write(f"#SBATCH --mail-type=ALL\n")
 <<<<<<< HEAD
             file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.{self.calculation}.in > {self.identifier}.{self.calculation}.out\n")
+=======
+            file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
+            if "bands" in self.calculation:
+                file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
+            if "nscf" in self.calculation:
+                file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
+>>>>>>> 95cf67b257e6999ff10238be6a57b913dd3d786d
         os.rename(f"{self.identifier}.job", f"./{self.base_folder}/{run_name}/{self.identifier}.job")
 
     def make_runs(self):
