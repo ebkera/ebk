@@ -425,7 +425,7 @@ class RunScriptHandler():
             else:
                 file_torque.write(f'    cd "$PWD/$dir"\n')
                 file_torque.write(f"\n")
-                file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npool {self.npool} < {self.identifier}.scf.in | tee {self.identifier}.scf.out\n")
+                file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npools {self.npools} < {self.identifier}.scf.in | tee {self.identifier}.scf.out\n")
                 file_torque.write(f"    now=$(date)\n")
                 file_torque.write(f'    echo "$now : $dir : completed scf" >> ../all_jobs.log\n')
                 if "bands" in self.calculation:
@@ -456,7 +456,7 @@ class RunScriptHandler():
             file.write(f"#SBATCH --ntasks={self.ntasks} # Number of taks per node for the job\n")
             file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
             file.write(f"#SBATCH --mail-type=ALL\n")
-            file.write(f"mpirun -np {self.ntasks} pw.x -npool {self.npool} < {self.identifier}.{self.calculation}.in > {self.identifier}.{self.calculation}.out\n")
+            file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.{self.calculation}.in > {self.identifier}.{self.calculation}.out\n")
         os.rename(f"{self.identifier}.job", f"./{self.base_folder}/{run_name}/{self.identifier}.job")
 
     def make_runs(self):
