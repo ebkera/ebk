@@ -456,6 +456,7 @@ class RunScriptHandler():
             file.write(f"#SBATCH --ntasks={self.ntasks} # Number of taks per node for the job\n")
             file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
             file.write(f"#SBATCH --mail-type=ALL\n")
+<<<<<<< HEAD
             file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.{self.calculation}.in > {self.identifier}.{self.calculation}.out\n")
         os.rename(f"{self.identifier}.job", f"./{self.base_folder}/{run_name}/{self.identifier}.job")
 
