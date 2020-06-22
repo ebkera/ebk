@@ -83,6 +83,9 @@ class RunScriptHandler():
                                 "mixing_beta"     : kwargs.get("mixing_beta", 0.7),
                                 "Title"           : kwargs.get("Title",'Sn'),
                                 "prefix"          : kwargs.get("prefix",'Sn'),
+                                "verbosity"       : kwargs.get("verbosity",'high'),
+                                "disk_io"         : kwargs.get("disk_io",'low'),
+                                "disk_io_nscf"    : kwargs.get("disk_io_nscf",'none'),
                                 "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-3),
                                 "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-3),
                                 "outdir"          : kwargs.get("outdir", './'),
@@ -93,14 +96,10 @@ class RunScriptHandler():
                                 }
 
         # Here are all initializations of the self.espresso_inputs variable that should be set only if explicitly given by user
-        if "disk_io" in kwargs:
-            self.espresso_inputs.update({"disk_io"         : kwargs.get("disk_io",'default')})
         if "restart_mode" in kwargs:
             self.espresso_inputs.update({"restart_mode"    : kwargs.get("restart_mode",'from_scratch')})
         if "wf_collect" in kwargs:
             self.espresso_inputs.update({"wf_collect"      : kwargs.get("wf_collect", False)})
-        if "verbosity" in kwargs:
-            self.espresso_inputs.update({"verbosity"       : kwargs.get("verbosity",'high')})
         if "lkpoint_dir" in kwargs:
             self.espresso_inputs.update({"lkpoint_dir"     : kwargs.get("lkpoint_dir", False)})
         if "nbnd" in kwargs:
@@ -233,6 +232,7 @@ class RunScriptHandler():
                     del(self.espresso_inputs["degauss"])
                 except: pass
             self.espresso_inputs.update({"occupations" : "tetrahedra"})
+            self.espresso_inputs["disk_io"] = self.espresso_inputs["disk_io_nscf"]
             ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             # Putting files into folders
             os.rename(f"{self.identifier}.nscf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.nscf.in")
