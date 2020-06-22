@@ -399,6 +399,7 @@ class RunScriptHandler():
                 file_torque.write(f"    module load openmpi/1.10/intel-17\n")
                 file_torque.write(f"    module load quantum-espresso/5.4/openmpi-1.10\n")
                 file_torque.write(f"    module list\n\n")
+                file_torque.write(f'    echo "PBS_O_WORKDIR: $PBS_O_WORKDIR"\n')
                 file_torque.write(f'    echo "************** Starting Calculation ***************"\n')
                 file_torque.write(f'    echo "Dir: $dir"\n')
                 # file.write(f"    # start MPI job over default interconnect; count allocated cores on the fly.\n")
@@ -410,6 +411,8 @@ class RunScriptHandler():
                 file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.scf.in > {self.identifier}.scf.out\n")
                 file_torque.write(f'    date\n')
                 file_torque.write(f'    echo "Completed scf"\n')
+                file_torque.write(f'    rm *wfc*\n')
+                file_torque.write(f'    echo "Removed wavefunction files"\n')
                 if "bands" in self.calculation:
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Starting bands"\n')

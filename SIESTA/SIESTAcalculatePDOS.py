@@ -26,9 +26,11 @@ class Read_PDOS():
         self.ylim_low = -5
         self.ylim_high = 5
         self.set_x_range = True
-        self.xlim_low = -5
-        self.xlim_high = 5
+        self.xlim_low = -3
+        self.xlim_high = 3
         self.orbital_labels = []
+        self.plt_title = "PDOS"
+        self.plt_ylabel = "PDOS"
 
     def process(self, system_label):
         """
@@ -88,21 +90,21 @@ class Read_PDOS():
         for i in range(0,len(self.x)):
             if "BDT" in self.orbital_labels[i]:
                 try:
-                    plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.Species_per_file[i]}_{self.orbital_labels[i]}")
+                    plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}")
                 except:
                     plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}")
             else:
                 try:
-                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.Species_per_file[i]}_{self.orbital_labels[i]}")
+                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}")
                 except:
                     # If there are mutiple species or nothing picked up.
                     plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}")
         plt.xlabel('Energy in eV (E - E$_f$)')
         # plt.text(-3, 100, r'(b)', fontsize=12)
-        plt.ylabel('PDOS')
+        plt.ylabel(f'{self.plt_ylabel}')
         plt.legend(loc='upper right')
         # plt.legend()
-        plt.title(f"PDOS")
+        plt.title(f"{self.plt_title}")
         if self.set_x_range == True:
             plt.xlim([self.xlim_low,self.xlim_high])
         plt.savefig(f"{self.figure_name}.pdf")
