@@ -5,7 +5,7 @@ from ase.dft.kpoints import resolve_custom_points, find_bandpath_kinks
 from ase.dft.dos import DOS
 from matplotlib import gridspec
 
-matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
+# matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 
 
 class BandPlotter():
@@ -113,15 +113,15 @@ class BandPlotterASE():
         self.include_dos = kwargs.get("include_dos", False)
         self.plot_only_dos = kwargs.get("only_dos", False)
 
-    def get_dos(self, readoutfilesobj):
-        """
-        This method gets the dos parameters for plotting
-        This can be an ordinary function and does not have to be a method for this class but I have included it as such so that we can be more flexible in the future
-        """
-        calc = readoutfilesobj.atoms_nscf_objects[0].calc
-        dos = DOS(calc, width=0.2)
-        self.dos.append(dos.get_dos())
-        self.E_dos.append(dos.get_energies())
+    # def get_dos(self, readoutfilesobj):
+    #     """
+    #     This method gets the dos parameters for plotting
+    #     This can be an ordinary function and does not have to be a method for this class but I have included it as such so that we can be more flexible in the future
+    #     """
+    #     calc = readoutfilesobj.atoms_nscf_objects[0].calc
+    #     dos = DOS(calc, width=0.2)
+    #     self.dos.append(dos.get_dos())
+    #     self.E_dos.append(dos.get_energies())
 
     def plot(self):
         """
@@ -145,28 +145,24 @@ class BandPlotterASE():
             if not self.plot_only_dos:
                 for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
                     ax1.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
-
         # Setting horizontal line on the fermi energy
         if self.hlines == True:
             if self.plot_only_dos or self.include_dos:
                 ax2.axhline(linewidth=0.1, color='k')
             if not self.plot_only_dos :
                 ax1.axhline(linewidth=0.1, color='k')
-
         # Setting y ranges
         if self.set_y_range == True:
             if self.plot_only_dos or self.include_dos:
                 ax2.set_ylim([self.ylim_low, self.ylim_high])
             if not self.plot_only_dos :
                 ax1.set_ylim([self.ylim_low, self.ylim_high])
-
         if self.set_x_range == True:
             if self.plot_only_dos or self.include_dos:
                 # This for now applies only to DOS
                 ax2.set_xlim([self.xlim_low, self.xlim_high])
             if not self.plot_only_dos :
                 pass
-
         # we plot the dos figure here
         if self.plot_only_dos or self.include_dos:
             for i,v in enumerate(self.y_to_plot):
@@ -208,16 +204,26 @@ class BandPlotterASE():
         try:
             Ef = readoutfilesobj.atoms_objects[0].calc.get_fermi_level()
         except:
-            print(f"add_to_plot: Could not read fermi level")
+            print(f"add_to_plot: Could not read fermi level on scf file")
         try:
             kpts = readoutfilesobj.atoms_bands_objects[0].calc.get_ibz_k_points()
         except:
-            print(f"add_to_plot: Could not read k points")
+            print(f"add_to_plot: Could not read k points on bands file")
 
         if self.include_dos or self.plot_only_dos:
             # we are here getting the required information for DOS
-            self.get_dos(readoutfilesobj)
-            
+            # self.get_dos(readoutfilesobj)
+            calc = readoutfilesobj.atoms_nscf_objects[0].calc
+            Ef_nscf = readoutfilesobj.atoms_nscf_objects[0].calc.get_fermi_level()
+            dos = DOS(calc, width=0.2)
+            self.dos.append(dos.get_dos())
+            E_nscf = dos.get_energies()
+            Ef_diff = Ef - Ef_nscf
+            if abs(Ef_diff) >= 0.001:
+                print(f"Warning!!! In {readoutfilesobj.identifier[0]}:\t|E_f_scf-E_f_nscf| > {abs(Ef_diff):.3} (>= 0.001 eV); E_f_scf = {Ef} eV,  E_f_nscf = {Ef_nscf} eV")
+            self.E_dos.append(E_nscf)
+            # self.E_dos.append([E - Ef_diff for E in E_nscf])
+
         # Test space for k path and k high symmetry points
         # print(kpts)
         # if self.plot_only_dos == True:
@@ -235,8 +241,8 @@ class BandPlotterASE():
             else:
                 kdist = np.sqrt((kpts[x-1][0] - kpts[x][0])**2 + (kpts[x-1][1] - kpts[x][1])**2 + (kpts[x-1][2]- kpts[x][2])**2)
                 klengths.append(kdist+klengths[x-1])
-        self.k_locations = []
 
+        self.k_locations = []
         for x in range(len(kinks)):
             self.k_locations.append(klengths[kinks[x]])
 
