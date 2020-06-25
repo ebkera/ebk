@@ -73,6 +73,11 @@ class RunScriptHandler():
         self.base_folder      = kwargs.get("base_folder", "Runs")
         if "occupations" in kwargs: self.occupations      = kwargs.get("occupations",'smearing')
         if "occupations_nscf" in kwargs: self.occupations_nscf = kwargs.get("occupations_nscf",'tetrahedra')
+        # For PDOS calculations. This does not use ASE.
+        self.PDOS_EMIN       = kwargs.get("PDOS_EMIN",-20)
+        self.PDOS_EMAX       = kwargs.get("PDOS_EMAX",20)
+        self.PDOS_DeltaE     = kwargs.get("PDOS_DeltaE",0.1)
+        self.PDOS_degauss    = kwargs.get("PDOS_degauss",0.01)
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
@@ -235,6 +240,19 @@ class RunScriptHandler():
             ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             # Putting files into folders
             os.rename(f"{self.identifier}.nscf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.nscf.in")
+
+        if "pdos" in self.calculation:
+            # We are not using ASE to write this file. It is simple and that is one reason
+            with open(f"{self.identifier}.pdos.in", "w+") as file:
+                file.write(f"&projwfc\n")
+                file.write(f"\tprefix\t= {self.espresso_inputs['prefix']}\n")
+                file.write(f"\tfilpdos\t= {self.espresso_inputs['prefix']}.pdos.out\n")
+                file.write(f"\tEmin\t= {self.PDOS_EMIN}\n")
+                file.write(f"\tEmax\t= {self.PDOS_EMAX}\n")
+                file.write(f"\tDeltaE\t= {self.PDOS_DeltaE}\n")
+                file.write(f"\tdegauss\t= {self.PDOS_degauss}\n")
+                file.write(f"/")
+            os.rename(f"{self.identifier}.pdos.in", f"./{self.base_folder}/{run_name}/{self.identifier}.pdos.in")  
         # else:
         #     ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
         #     os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
@@ -464,6 +482,8 @@ class RunScriptHandler():
                 file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
             if "nscf" in self.calculation:
                 file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
+            if "pdos" in self.calculation:
+                file.write(f"mpirun -np {self.ntasks} projwfc.x < {self.identifier}.pdos.in\n")
         os.rename(f"{self.identifier}.job", f"./{self.base_folder}/{run_name}/{self.identifier}.job")
 
     def make_runs(self):

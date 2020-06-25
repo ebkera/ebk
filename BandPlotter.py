@@ -5,9 +5,6 @@ from ase.dft.kpoints import resolve_custom_points, find_bandpath_kinks
 from ase.dft.dos import DOS
 from matplotlib import gridspec
 
-# matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
-
-
 class BandPlotter():
     def __init__(self, x, y, k_locations, k_symbols):
         """
@@ -112,6 +109,7 @@ class BandPlotterASE():
         self.dots = kwargs.get("dots", False)
         self.include_dos = kwargs.get("include_dos", False)
         self.plot_only_dos = kwargs.get("only_dos", False)
+        self.pin_fermi = kwargs.get("pin_fermi", "bands") # if there are difference in fermi levels (Eg E_scf and E_nscf) then use this to pin the levels There options "off", "scf", "nscf" 
 
     # def get_dos(self, readoutfilesobj):
     #     """
@@ -220,9 +218,10 @@ class BandPlotterASE():
             E_nscf = dos.get_energies()
             Ef_diff = Ef - Ef_nscf
             if abs(Ef_diff) >= 0.001:
-                print(f"Warning!!! In {readoutfilesobj.identifier[0]}:\t|E_f_scf-E_f_nscf| > {abs(Ef_diff):.3} (>= 0.001 eV); E_f_scf = {Ef} eV,  E_f_nscf = {Ef_nscf} eV")
-            self.E_dos.append(E_nscf)
-            # self.E_dos.append([E - Ef_diff for E in E_nscf])
+                print(f"Warning!!! In {readoutfilesobj.identifier[0]}:\t|E_f_scf-E_f_nscf| = {abs(Ef_diff):.3} eV (>= 0.001 eV); E_f_scf = {Ef} eV,  E_f_nscf = {Ef_nscf} eV")
+
+            if self.pin_fermi != "scf": self.E_dos.append(E_nscf)
+            else: self.E_dos.append([E - Ef_diff for E in E_nscf])
 
         # Test space for k path and k high symmetry points
         # print(kpts)
@@ -260,7 +259,10 @@ class BandPlotterASE():
         Energy_to_plot = []
         if self.Ef_shift == True:
             for band in energies[0]:
-                Energy_to_plot.append([E - Ef for E in band])
+                if self.pin_fermi != "nscf":
+                    Energy_to_plot.append([E - Ef for E in band])
+                else:
+                    Energy_to_plot.append([E - Ef + Ef_diff for E in band])
         tempMain = []
         temp = []
         for x in range(len(Energy_to_plot[0])):
