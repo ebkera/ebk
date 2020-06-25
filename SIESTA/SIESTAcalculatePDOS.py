@@ -73,6 +73,7 @@ class Read_PDOS():
                 if "#" not in line:
                     data = line.strip().split()
                     # print(line.strip().split()) X_val = 
+                    # print(line)
                     tempx.append(float(data[0])-float(Ef))
                     tempyup.append(float(data[1]))
                     if len(line) == 3:
