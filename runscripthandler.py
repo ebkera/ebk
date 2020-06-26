@@ -78,6 +78,7 @@ class RunScriptHandler():
         self.PDOS_EMAX       = kwargs.get("PDOS_EMAX",20)
         self.PDOS_DeltaE     = kwargs.get("PDOS_DeltaE",0.1)
         self.PDOS_degauss    = kwargs.get("PDOS_degauss",0.01)
+        self.PDOS_required_projections = kwargs.get("PDOS_required_projections", [["Hg","all"],["Hg","s"],["Hg","p"],["Hg","d"],["Te","all"],["Te","s"],["Te","p"],["Te","d"],["H","s"],["S","all"],["S","s"],["S","p"],["C","all"],["C","s"],["C","p"]])
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
@@ -245,8 +246,8 @@ class RunScriptHandler():
             # We are not using ASE to write this file. It is simple and that is one reason
             with open(f"{self.identifier}.pdos.in", "w+") as file:
                 file.write(f"&projwfc\n")
-                file.write(f"\tprefix\t= {self.espresso_inputs['prefix']}\n")
-                file.write(f"\tfilpdos\t= {self.espresso_inputs['prefix']}.pdos.out\n")
+                file.write(f"\tprefix\t= '{self.espresso_inputs['prefix']}'\n")
+                file.write(f"\tfilpdos\t= '{self.espresso_inputs['prefix']}'\n")
                 file.write(f"\tEmin\t= {self.PDOS_EMIN}\n")
                 file.write(f"\tEmax\t= {self.PDOS_EMAX}\n")
                 file.write(f"\tDeltaE\t= {self.PDOS_DeltaE}\n")
@@ -361,7 +362,6 @@ class RunScriptHandler():
                 file_torque.write(f"    mpirun -np {self.ntasks} pw.x < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
                 file_torque.write(f"    now=$(date)\n")
                 file_torque.write(f'    echo "$now: $dir : completed nscf" >> ../all_jobs.log\n')
-
 
         with open (f"{self.base_folder}/{self.identifier}.{self.calculation}.job", "w+") as file_torque:
             file_torque.write(f"#!/bin/bash\n")
@@ -478,12 +478,18 @@ class RunScriptHandler():
             file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
             file.write(f"#SBATCH --mail-type=ALL\n")
             file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
+            file.write(f'    rm *wfc*\n')
             if "bands" in self.calculation:
                 file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
             if "nscf" in self.calculation:
                 file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
             if "pdos" in self.calculation:
-                file.write(f"mpirun -np {self.ntasks} projwfc.x < {self.identifier}.pdos.in\n")
+                file.write(f"mpirun -np {self.ntasks} projwfc.x < {self.identifier}.pdos.in > {self.identifier}.pdos.out\n")
+                for x in self.PDOS_required_projections:
+                    if x[1] == "all":
+                        file.write(f"sumpdos.x *\({x[0]}\)* > {self.identifier}.{x[0]}_all.PDOS\n")
+                    else:
+                        file.write(f"sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
         os.rename(f"{self.identifier}.job", f"./{self.base_folder}/{run_name}/{self.identifier}.job")
 
     def make_runs(self):
