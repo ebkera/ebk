@@ -507,7 +507,7 @@ class CoordinateMaker():
             elif i[3] == f"S_{self.anion_symbol}" or i[3] == f"S_{self.cation_symbol}" and surface == True:
                 file_fdf.write("3")
             elif i[3] == "H" and surface == False:
-                file_fdf.write("3")
+                if self.material_type == "d": file_fdf.write("2")
             elif i[3] == "H" and surface == True:
                 file_fdf.write("4")
             file_fdf.write("\n")

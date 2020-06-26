@@ -3,158 +3,90 @@ import sys
 import subprocess
 import time
 import matplotlib
-matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
-import matplotlib.pyplot as plt
-from matplotlib.font_manager import FontProperties
 import numpy as np
+from datetime import datetime
 
-class Optimization:
-    def __init__(self):
-        print(__name__)
+class Generatefdf:
+    def __init__(self, *args, **kwargs):
+        self.SystemLabel           = kwargs.get("SystemLabel", "Sn")
+        self.lattice_contant       = kwargs.get("lattice_contant", 6.432)
+        self.description           = kwargs.get("description", "A General Run")
+        self.NumberOfSpecies       = kwargs.get("NumberOfSpecies", 2)
+        self.Species               = kwargs.get("Species", ["Sn", "H"])
+        self.coordinates_file_name = kwargs.get("coordinates_file_name", "coordinates.fdf")
 
-    class OptimizationLatticeConstant(Optimization):
-        def __init__(self):
-            
+    def write(self, *args, **kwargs):
+        with open(f"{self.SystemLabel}.fdf", "w+") as fdf_file:
+            fdf_file.write(f"# -----------------------------------------------------------------------------\n")
+            fdf_file.write(f"# Started on:  {datetime.now()}\n")
+            fdf_file.write(f"# Description:  {self.description}\n")
+            fdf_file.write(f"# Zincblende Sn I (alpha, grey)\n")
+            fdf_file.write(f"# space group:  Fd3m\n")
+            fdf_file.write(f"# lattice parameters:  a = {self.lattice_contant} A ( beta tin is: a = 3.70 A, c = 3.37 A)\n")
+            fdf_file.write(f"# Eranjan Kandegedara\n")
+            fdf_file.write(f"# -----------------------------------------------------------------------------\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"SystemName  alpha-Sn  # Descriptive name of the system\n")
+            fdf_file.write(f"SystemLabel  {self.SystemLabel}  # Short name for naming files\n")
+            fdf_file.write(f"NumberOfSpecies  {self.NumberOfSpecies}  # Number of species\n")
+            fdf_file.write(f"XC.Functional  LDA  # Exchange-correlation functional (Defaults to LDA)\n")
+            fdf_file.write(f"XC.Authors  CA  # Exchange-correlation version (PBE for GGA, PW92 or CA for LDAs)\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"%block Chemical_Species_Label\n")
+            fdf_file.write(f"1   50    Sn\n")
+            fdf_file.write(f"2    1    H\n")
+            # fdf_file.write(f"3    6    C\n")
+            # fdf_file.write(f"4   16    S\n")
+            fdf_file.write(f"%endblock Chemical_Species_Label\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"MaxSCFIterations      5000\n")
+            fdf_file.write(f"SCF.MustConverge      false\n")
+            fdf_file.write(f"DM.MixingWeight       0.01\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"%include {self.coordinates_file_name}\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"%block ProjectedDensityOfStates\n")
+            fdf_file.write(f"-10.00 15.00 00.05 3000 eV\n")
+            fdf_file.write(f"%endblock ProjectedDensityOfStates\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"# These values are from the paper\n")
+            fdf_file.write(f"PAO.BasisSize         DZP\n")
+            fdf_file.write(f"PAO.EnergyShift       0.001 Ry    #Range of first zeta (A standard for orbital-confining cutoff radii)\n")
+            fdf_file.write(f"PAO.BasisType         SPLIT       #Split Valance\n")
+            fdf_file.write(f"PAO.SplitNorm         0.30        #Range of second-zeta\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"%block PAO.Basis                 # Define Basis set\n")
+            fdf_file.write(f"Sn  2  # Species label, number of l-shells\n")
+            fdf_file.write(f"  n=5  0  2  # n, l, Nzeta \n")
+            fdf_file.write(f"  5.275  4.773\n")
+            fdf_file.write(f"  1.000  1.000\n")
+            fdf_file.write(f"  n=5  1  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
+            fdf_file.write(f"  6.773  5.615\n")
+            fdf_file.write(f"  1.000  1.000\n")
+            # fdf_file.write(f"C  2  # Species label, number of l-shells\n")
+            # fdf_file.write(f"  n=2  0  2  # n, l, Nzeta \n")
+            # fdf_file.write(f"  6.911  3.563\n")
+            # fdf_file.write(f"  1.000  1.000   \n")
+            # fdf_file.write(f"  n=2  1  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
+            # fdf_file.write(f"  9.099  3.841\n")
+            # fdf_file.write(f"  1.000  1.000\n")
+            # fdf_file.write(f"S  2  # Species label, number of l-shells\n")
+            # fdf_file.write(f"  n=3  0  2  # n, l, Nzeta \n")
+            # fdf_file.write(f"  6.702  3.587   \n")
+            # fdf_file.write(f"  1.000  1.000   \n")
+            # fdf_file.write(f"  n=3  1  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
+            # fdf_file.write(f"  8.823  4.116\n")
+            # fdf_file.write(f"  1.000  1.000\n")
+            fdf_file.write(f"H  1  # H from Sn dots.\n")
+            fdf_file.write(f"  n=1  0  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
+            fdf_file.write(f"  7.026  3.359\n")
+            fdf_file.write(f"  1.000  1.000\n")
+            fdf_file.write(f"%endblock PAO.Basis\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"SaveTotalPotential true\n")
+            fdf_file.write(f"SaveElectrostaticPotential true\n")
 
-
-
-
-# startTime = time.time()	
-# # Set parameters here
-# a_0 = [6.20,6.22,6.24,6.26,6.28,6.30,6.32,6.34,6.36,6.38,6.40,6.432,6.457,6.475,6.50,6.55,6.60,6.672]
-# #a_0 = [6.20,6.22]
-# output = "a" # a or v
-# dirname = 'a0OptimizationRun_MP10(.5)_2'
-
-# # These are the energy values
-# E_vals = []
-
-# # Making at directory to put all the diagrams and out files in.
-# os.mkdir(dirname)
-
-# for x in a_0:
-#     # Get all the lines from the current fdf file.
-#     file = open("Sn.fdf", "r")
-#     rows = []
-#     for line in file:
-#         rows.append(line)
-#     file.close
-    
-#     # Save new fdf file
-#     for row in rows:
-#         if "LatticeConstant" in row:
-#             index = rows.index(row)
-#             rows[index] = "LatticeConstant        "+str(x)+"  Ang     # 6.457 in paper for no rel corrs and 6.432 for final values and 6.672 for GGA final\n"
-    
-#     # Overwriting the fdf file
-#     file_toWrite = open("Sn.fdf", "w+")
-#     for row in rows:
-#         file_toWrite.write(row)
-#     file_toWrite.close()
-    
-#     # Run plot file which will run siesta
-#     os.system("python3 plot.py r g h 0 1 2 3 4 5 6 7 8 9 10")
-
-#     # Read the Sn.out file
-#     file = open("Sn.out", "r")
-#     rows = []
-#     for line in file:
-#         rows.append(line)
-#     file.close()
-#     # saving the Energy values in a list
-#     for row in rows:
-#         if "siesta:         Total =" in row:
-#             E_vals.append(row.strip("siesta:         Total ="))
-    
-#     #Waiting a bit for the plots to be saved into a pdf just to be be safe
-#     print("Waiting a bit for the plots to be saved into a pdf just to be be safe")
-#     time.sleep(5)
-#     #Renaming the band diagrams
-#     os.rename("Sn_BandDiagramPlots.pdf", "./"+dirname+"/Sn_BandDiagramPlots_" + str(x) +".pdf")	
-#     #Renaming the outfiles
-#     os.rename("Sn.out", "./"+dirname+"/Sn" + str(x) +".out")
-#     #Renaming the bands files
-#     os.rename("Sn.bands", "./"+dirname+"/Sn" + str(x) +".bands")
-    
-
-# ## Calculations and plotting the lattice constants
-# to_plot = []
-# for i in E_vals:
-#     to_plot.append(float(i))
-
-# # Since we will need volume/ per atom
-# v_0 = [n**3/4.0 for n in a_0]
-
-# # calculate polynomial
-# z = np.polyfit(a_0, to_plot, 3) #abnits
-# v = np.polyfit(v_0, to_plot, 3) #abnits
-
-# #z = np.polyfit(a_01, E_LDA_RELwkgrid_Monkhorst_Pack6, 3) #relativistic
-# f = np.poly1d(z)
-# f_v = np.poly1d(v)
-
-# # calculate new x's and y's
-# x_new = np.linspace(a_0[0], a_0[-1], 100)
-# Vx_new = np.linspace(v_0[0], v_0[-1], 100)
-# y_new = f(x_new)
-# Vy_new = f_v(Vx_new)
-
-# # Getting the minimum energy
-# E_optimized = min(y_new)
-# E_optimized_printable = E_optimized.astype(np.float)
-
-# # Getting the optimized lattice constant
-# min_index = np.argmin(y_new)
-# min_index_v = np.argmin(Vy_new)
-# a0_optimized = x_new.flat[min_index]
-# v0_optimized = Vx_new.flat[min_index_v]
-
-# # Write Energies to an energies.my file
-# file_toWrite_output = open("./"+dirname+"/energies.my", "w+")
-# for x in E_vals:
-#     file_toWrite_output.write(x)		
-# file_toWrite_output.write("The optimized lattice constant is: " + str(a0_optimized) + "\n")
-# file_toWrite_output.write("The optimized volume is: " + str(v0_optimized) + "\n")
-# file_toWrite_output.write("The optimized Total Energy is: " + str(E_optimized_printable) + "\n")
-# file_toWrite_output.write("The fit parameters: \n" )
-# #z_printable = z.astype(np.float)
-# #file_toWrite_output.write(z_printable)
-# file_toWrite_output.close()
-
-# # Calculations
-# # Getting the double derivative using a 3rd degree polynomial
-# dda0 = 6*z.flat[0]*a0_optimized + 2*z.flat[1]
-# ddv0 = 6*v.flat[0]*v0_optimized + 2*v.flat[1]
-# B = v0_optimized*ddv0*160.21766208 # 1 eV/Angstrom3 = 160.21766208 GPa
-
-# # The Individual plots.
-# if output == "a":
-#     toplotx = a_0
-#     fitx = x_new
-#     fity = y_new
-#     plt.xlabel('Lattice Constant a$_0$ in $\\AA$')
-# elif output == "v":
-#     toplotx = v_0
-#     fitx = Vx_new
-#     fity = Vy_new
-#     plt.xlabel('Volume $\\AA^3$')
-            
-# plt.plot(toplotx, to_plot, 'x-', label="RELpsp (Paper lists: 6.432 $\\AA$)")
-    
-# # Setting the fit label
-# fit_label = "Fit (" + str(round(a0_optimized,3)) + " $\\AA$) B$_0$: " + str(round(B,3)) + " GPa, $\\Omega_0$:" + str(round(v0_optimized,3))+ " $\\AA^3$"
-
-# plt.ylabel('Total Energy (eV)')
-# plt.plot(fitx, fity, '--', label=fit_label)
-# plt.title('Lattice Constant Optimization')
-# plt.legend(loc='upper left')
-# plt.savefig("./"+dirname+'/LatticeConstant.pdf')
-
-# endTime = time.time()	
-# elapsedTimeMin = (endTime - startTime)/60.00
-# print("Elapsed Time: " + str(elapsedTimeMin) + " mins")
-# file_toWrite_output = open("./"+dirname+"/energies.my", "a")
-# file_toWrite_output.write("Elapsed Time: " + str(elapsedTimeMin) + " mins\n")
 
 if __name__ == "__main__":
     run = optimize_parameter()
