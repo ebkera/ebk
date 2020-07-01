@@ -1,6 +1,6 @@
 import os
 import matplotlib
-matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
+# matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 import sys
 import subprocess
 
@@ -8,6 +8,10 @@ import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
 
+# getting file paths
+import pathlib
+fpath_gnubands = pathlib.Path(__file__).parent.absolute()
+print(fpath_gnubands)
 
 def latexify(inputlist):
     """This method will convert a list of strings into it's latex form"""
@@ -39,6 +43,10 @@ class Band():
         """Opens the file and gets all the data and also values. Full list of extractions include,
         From the gnuplot file - data and fermi energy
         From the .bands file - K path"""
+        SystemLabel = self.name
+        print(fpath_gnubands)
+        os.system(f"{fpath_gnubands}\gnubands  < {SystemLabel}.bands > {SystemLabel}.bands.gnuplot.dat")
+
         file = open(self.file_name, "r")
         rows = []
         hashlinecount = 0  # looking at commented lines in order to extract fermi energy
@@ -102,13 +110,13 @@ class Band():
             if len(temperary) == 2:
                 self.kpath_k.append(float(temperary[0].strip()))
                 self.kpath_symbol.append(str(temperary[1].strip("'")))
-            elif len(temperary) is not 2:
+            elif len(temperary) != 2:
                 break
         self.kpath_symbol = latexify(self.kpath_symbol)
 
     def plotter(self, *args, **kwargs):
         bands_to_plot = 0
-        if len(args) is not 0:
+        if len(args) != 0:
             bands_to_plot = []
             bands_to_plot_temp = args[0]  # First argument
             for x in bands_to_plot_temp:
@@ -195,7 +203,7 @@ if __name__ == "__main__":
     bands.open_file()
 
 
-    if len(bands_to_plot_main) is not 0:
+    if len(bands_to_plot_main) != 0:
         print("***Plotting custom band set:")
         print(bands_to_plot_main)
         if 'h' in sys.argv:
