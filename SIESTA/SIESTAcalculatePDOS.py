@@ -31,6 +31,7 @@ class Read_PDOS():
         self.orbital_labels = []
         self.plt_title = "PDOS"
         self.plt_ylabel = "PDOS"
+        self.kwargs = []  # for all the matplotlib pltotting kwargs
 
     def process(self, system_label):
         """
@@ -45,7 +46,10 @@ class Read_PDOS():
                 if "fermi_energy" in line:
                     self.fermi_levels.append(float(line.split("<")[-2].split(">")[-1]))
 
-    def load(self, file_name, Ef, label):
+    def load(self, file_name, Ef, label, **kwargs):
+        """
+        **kwargs: ( matpotlib kwargs for lines and markers and the sort)
+        """
         self.file_names.append(file_name)
         Ef = Ef
         tempx = []
@@ -82,6 +86,7 @@ class Read_PDOS():
         self.y_up.append(tempyup)
         self.orbital_labels.append(label)
         self.fermi_levels.append(float(Ef))
+        self.kwargs.append(kwargs)
 
     def prepare(self):
         pass
@@ -91,15 +96,15 @@ class Read_PDOS():
         for i in range(0,len(self.x)):
             if "BDT" in self.orbital_labels[i]:
                 try:
-                    plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}")
+                    plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
                 except:
-                    plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}")
+                    plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
             else:
                 try:
-                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}")
+                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
                 except:
                     # If there are mutiple species or nothing picked up.
-                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}")
+                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
         plt.xlabel('Energy in eV (E - E$_f$)')
         # plt.text(-3, 100, r'(b)', fontsize=12)
         plt.ylabel(f'{self.plt_ylabel}')
