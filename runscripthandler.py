@@ -92,7 +92,7 @@ class RunScriptHandler():
                                 "verbosity"       : kwargs.get("verbosity",'high'),
                                 "wf_collect"      : kwargs.get("wf_collect", False),
                                 "disk_io"         : kwargs.get("disk_io",'low'),
-                                "disk_io_nscf"    : kwargs.get("disk_io_nscf",'none'),
+                                "disk_io_nscf"    : kwargs.get("disk_io_nscf",'low'),
                                 "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-3),
                                 "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-3),
                                 "outdir"          : kwargs.get("outdir", './'),
@@ -478,7 +478,7 @@ class RunScriptHandler():
             file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
             file.write(f"#SBATCH --mail-type=ALL\n")
             file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
-            file.write(f'    rm *wfc*\n')
+            file.write(f'rm *wfc*\n')
             if "bands" in self.calculation:
                 file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
             if "nscf" in self.calculation:
@@ -490,6 +490,7 @@ class RunScriptHandler():
                         file.write(f"sumpdos.x *\({x[0]}\)* > {self.identifier}.{x[0]}_all.PDOS\n")
                     else:
                         file.write(f"sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
+            file.write(f'rm *wfc*\n')
         os.rename(f"{self.identifier}.job", f"./{self.base_folder}/{run_name}/{self.identifier}.job")
 
     def make_runs(self):
