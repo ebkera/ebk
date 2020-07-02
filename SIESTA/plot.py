@@ -44,8 +44,8 @@ class Band():
         From the gnuplot file - data and fermi energy
         From the .bands file - K path"""
         SystemLabel = self.name
-        print(fpath_gnubands)
-        os.system(f"{fpath_gnubands}\gnubands  < {SystemLabel}.bands > {SystemLabel}.bands.gnuplot.dat")
+        # print(fpath_gnubands)
+        # os.system(f"{fpath_gnubands}\gnubands  < {SystemLabel}.bands > {SystemLabel}.bands.gnuplot.dat")
 
         file = open(self.file_name, "r")
         rows = []

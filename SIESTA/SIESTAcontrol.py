@@ -24,6 +24,9 @@ class Generatefdf:
         self.lattice_vectors       = kwargs.get("lattice_vectors", "fcc")
         self.bands_block           = kwargs.get("bands_block", True)
         self.MPGrid                = kwargs.get("MPGrid", 6)
+        self.PDOS                  = kwargs.get("PDOS", True)
+        self.LDOS                  = kwargs.get("PDOS", False)
+        self.PDOS_MPGrid           = kwargs.get("PDOS_MPGrid", 12)
         self.PAO_EnergyShift       = kwargs.get("PAO_EnergyShift", 0.001)
         if self.XC_Functional == "LDA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.432)
@@ -79,20 +82,35 @@ class Generatefdf:
                     fdf_file.write(f"0.500  0.000  0.500\n")
                     fdf_file.write(f"0.500  0.500  0.000\n")
                     fdf_file.write(f"%endblock LatticeVectors\n\n")
-                    
+
             if self.fdf_type != "bulk":
                 fdf_file.write(f"%include {self.coordinates_file_name}\n\n")
-            fdf_file.write(f"%block ProjectedDensityOfStates\n")
-            fdf_file.write(f"-10.00 15.00 00.05 3000 eV\n")
-            fdf_file.write(f"%endblock ProjectedDensityOfStates\n\n")
 
             if self.MPGrid != 0:
                 fdf_file.write(f"# Monkhorst-Pack Grid\n")
-                fdf_file.write(f"%block kgrid_Monkhorst_Pack\n")
+                fdf_file.write(f"%block kgrid.MonkhorstPack. \n")
                 fdf_file.write(f"{self.MPGrid}  0  0  0.5\n")
                 fdf_file.write(f"0  {self.MPGrid}  0  0.5\n")
                 fdf_file.write(f"0  0  {self.MPGrid}  0.5\n")
-                fdf_file.write(f"%endblock kgrid_Monkhorst_Pack\n\n")
+                fdf_file.write(f"%endblock kgrid.MonkhorstPack. \n\n")
+
+            if self.PDOS:
+                fdf_file.write(f"%block ProjectedDensityOfStates\n")
+                fdf_file.write(f"-10.00 15.00 0.0517 3000 eV\n")
+                fdf_file.write(f"%endblock ProjectedDensityOfStates\n\n")
+
+                if self.PDOS_MPGrid != 0:
+                    fdf_file.write(f"# Monkhorst-Pack Grid\n")
+                    fdf_file.write(f"%block PDOS.kgrid.MonkhorstPack. \n")
+                    fdf_file.write(f"{self.PDOS_MPGrid}  0  0  0.5\n")
+                    fdf_file.write(f"0  {self.PDOS_MPGrid}  0  0.5\n")
+                    fdf_file.write(f"0  0  {self.PDOS_MPGrid}  0.5\n")
+                    fdf_file.write(f"%endblock PDOS.kgrid.MonkhorstPack. \n\n")
+
+            if self.LDOS:
+                fdf_file.write(f"%block LocalDensityOfStates\n")
+                fdf_file.write(f"-3.50 0.00 eV\n")
+                fdf_file.write(f"%endblock LocalDensityOfStates\n")
 
             if self.PAO_define == "global":
                 fdf_file.write(f"# These values are from the paper\n")
