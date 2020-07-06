@@ -28,6 +28,7 @@ class Generatefdf:
         self.LDOS                  = kwargs.get("PDOS", False)
         self.PDOS_MPGrid           = kwargs.get("PDOS_MPGrid", 12)
         self.PAO_EnergyShift       = kwargs.get("PAO_EnergyShift", 0.001)
+        self.MD                    = kwargs.get("MD", False)
         if self.XC_Functional == "LDA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.432)
         if self.XC_Functional == "GGA":
@@ -176,6 +177,18 @@ class Generatefdf:
                 fdf_file.write(f"40  0.0000   2.0000  0.0000  X\n")
                 fdf_file.write(f"%endblock BandLines\n\n")
 
+            if self.MD == True:
+                fdf.file.write(f"MD.TypeOfRun           CG\n")
+                fdf.file.write(f"MD.NumCGsteps          300\n")
+                # fdf.file.write(f"MD.MaxForceTol         0.04\n")
+                # fdf.file.write(f"MD.VariableCell        T\n")  # Is false by default.
+                # fdf.file.write(f"MD.ConstantVolume      F\n")  # Is false by default.
+                # fdf.file.write(f"MD.UseSaveXV           T\n")
+                # fdf.file.write(f"MD.UseSaveCG           T\n")
+                # fdf.file.write(f"MD.MaxStressTol        0.0010\n")
+                fdf.file.write(f"WriteMDHistory         T\n")
+                fdf.file.write(f"WriteMDXMol            T\n")
+                fdf.file.write(f"MD.MaxCGDispl          0.02 Bohr\n")
 
             fdf_file.write(f"SaveTotalPotential true\n")
             fdf_file.write(f"SaveElectrostaticPotential true\n")
