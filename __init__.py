@@ -103,6 +103,14 @@ def eVA32GPa(e):
 def gap_calculator_1D(m_e, m_h, L):
     return J2eV((scipy.constants.pi**2*scipy.constants.hbar**2)/(2*m_e*(L*1E-9)**2) + (scipy.constants.pi**2*scipy.constants.hbar**2)/(2*m_h*(L*1E-9)**2))
 
+def eV2K(eV):
+    """Takes in electronic temperature in eV and outputs in K"""
+    return eV*1.160E4
+
+def K2eV(K):
+    """Takes in electronic temperature in K and outputs in eV"""
+    return K/1.160E4
+
 def get_pseudopotential(id):
     """
     This method returns the pseudopotential that corresponds to the identifier that I have set so that we can quickly identify a psedo. This is just for internal tracking
