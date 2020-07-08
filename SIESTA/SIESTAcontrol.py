@@ -23,12 +23,15 @@ class Generatefdf:
         self.XC_Authors            = kwargs.get("XC_Authors", "CA")
         self.lattice_vectors       = kwargs.get("lattice_vectors", "fcc")
         self.bands_block           = kwargs.get("bands_block", True)
-        self.MPGrid                = kwargs.get("MPGrid", 6)
+        self.MPGrid                = kwargs.get("MPGrid", 10)
         self.PDOS                  = kwargs.get("PDOS", True)
         self.LDOS                  = kwargs.get("PDOS", False)
-        self.PDOS_MPGrid           = kwargs.get("PDOS_MPGrid", 12)
+        self.PDOS_MPGrid           = kwargs.get("PDOS_MPGrid", 15)
         self.PAO_EnergyShift       = kwargs.get("PAO_EnergyShift", 0.001)
         self.MD                    = kwargs.get("MD", False)
+        self.Spin                  = kwargs.get("Spin", False)  # can be spin-orbit
+        self.SO_strength           = kwargs.get("SO_strength", False)
+        self.ElectronicTemperature = kwargs.get("ElectronicTemperature", False)
         if self.XC_Functional == "LDA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.432)
         if self.XC_Functional == "GGA":
@@ -97,7 +100,10 @@ class Generatefdf:
 
             if self.PDOS:
                 fdf_file.write(f"%block ProjectedDensityOfStates\n")
-                fdf_file.write(f"-10.00 15.00 0.0517 3000 eV\n")
+                if self.ElectronicTemperature:
+                    fdf_file.write(f"-10.00 15.00 {self.ElectronicTemperature} 3000 eV\n")
+                else:
+                    fdf_file.write(f"-10.00 15.00 0.050 3000 eV\n")
                 fdf_file.write(f"%endblock ProjectedDensityOfStates\n\n")
 
                 if self.PDOS_MPGrid != 0:
@@ -192,6 +198,12 @@ class Generatefdf:
 
             fdf_file.write(f"SaveTotalPotential true\n")
             fdf_file.write(f"SaveElectrostaticPotential true\n")
+            if self.Spin: 
+                fdf_file.write(f"Spin {self.Spin}\n")
+            if self.SO_strength: 
+                fdf_file.write(f"Spin.OrbitStrength {self.SO_strength}\n")
+            if self.ElectronicTemperature: 
+                fdf_file.write(f"ElectronicTemperature {self.ElectronicTemperature} eV\n")
 
 
 # -----------------------------------------------------------------------------
