@@ -38,6 +38,22 @@ class Band():
         self.kpath_symbol = []
 
 
+    def use_gnuband(self, command = "f"):
+        """
+        Executes the gnuband script and makes the SYSTEMLABEL.gnuband.dat file required for band plotting
+        command: string (set of chars as commands)
+            f or F: shift to fermi level
+        """
+        command = command.upper()
+        if "F" in command:
+            os.system(f"wsl {fpath_gnubands}\gnubands -F <  {self.file_name}.bands > {self.file_name}.bands.gnuplot.dat")
+            print("Plot: Executing gnuplot for adjustment of values: Done")
+        print(f"{fpath_gnubands}\gnubands")
+        # os.system(f"{fpath_gnubands}\gnubands  < {SystemLabel}.bands > {SystemLabel}.bands.gnuplot.dat")
+
+       
+
+
 
     def open_file(self):
         """Opens the file and gets all the data and also values. Full list of extractions include,
