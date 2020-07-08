@@ -109,7 +109,7 @@ class BandPlotterASE():
         self.dots = kwargs.get("dots", False)
         self.include_dos = kwargs.get("include_dos", False)
         self.plot_only_dos = kwargs.get("only_dos", False)
-        self.pin_fermi = kwargs.get("pin_fermi", "bands") # if there are difference in fermi levels (Eg E_scf and E_nscf) then use this to pin the levels There options "off", "scf", "nscf" 
+        self.pin_fermi = kwargs.get("pin_fermi", "scf") # if there are difference in fermi levels (Eg E_scf and E_nscf) then use this to pin the levels There options "off", "scf", "nscf" 
 
     # def get_dos(self, readoutfilesobj):
     #     """
@@ -262,7 +262,7 @@ class BandPlotterASE():
                 if self.pin_fermi != "nscf":
                     Energy_to_plot.append([E - Ef for E in band])
                 else:
-                    Energy_to_plot.append([E - Ef + Ef_diff for E in band])
+                    Energy_to_plot.append([E - Ef_nscf for E in band])  # here the assumption is that if this option is ever reached then the idea is that an nscf calculation has already being done and dos is being plotted.
         tempMain = []
         temp = []
         for x in range(len(Energy_to_plot[0])):
