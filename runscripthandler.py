@@ -442,7 +442,18 @@ class RunScriptHandler():
                     file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Completed nscf"\n')
-                file_torque.write(f"END_JOB_SCRIPT\n")
+                    file_torque.write(f'    rm *wfc*\n')
+                    file_torque.write(f'    echo "Removed wavefunction files"\n')
+                if "pdos" in self.calculation:
+                    file_torque.write(f'    echo "Calculationg PDOS"\n')
+                    file_torque.write(f"    mpirun projwfc.x < {self.identifier}.pdos.in > {self.identifier}.pdos.out\n")
+                    file_torque.write(f'    echo "Calculating PDOS components"\n')
+                    for x in self.PDOS_required_projections:
+                        if x[1] == "all":
+                            file_torque.write(f"    sumpdos.x *\({x[0]}\)* > {self.identifier}.{x[0]}_all.PDOS\n")
+                        else:
+                            file_torque.write(f"    sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
+                    file_torque.write(f"END_JOB_SCRIPT\n")
             else:
                 file_torque.write(f'    cd "$PWD/$dir"\n')
                 file_torque.write(f"\n")
