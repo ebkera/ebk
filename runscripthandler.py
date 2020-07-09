@@ -86,19 +86,19 @@ class RunScriptHandler():
                                 "lspinorb"        : kwargs.get("lspinorb", False),
                                 "noncolin"        : kwargs.get("noncolin", False),
                                 "diagonalization" : kwargs.get("diagonalization",'david'),
-                                "mixing_beta"     : kwargs.get("mixing_beta", 0.7),
+                                "mixing_beta"     : kwargs.get("mixing_beta", 0.2),
                                 "Title"           : kwargs.get("Title",'Sn'),
                                 "prefix"          : kwargs.get("prefix",'Sn'),
                                 "verbosity"       : kwargs.get("verbosity",'high'),
                                 "wf_collect"      : kwargs.get("wf_collect", False),
                                 "disk_io"         : kwargs.get("disk_io",'low'),
                                 "disk_io_nscf"    : kwargs.get("disk_io_nscf",'low'),
-                                "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-3),
-                                "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-3),
+                                "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-5),
+                                "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-5),
                                 "outdir"          : kwargs.get("outdir", './'),
                                 "path"            : self.path,
                                 "density"         : self.density,  # This is an ASE command for input files for Quantum Espresso
-                                "electron_maxstep": kwargs.get("electron_maxstep", 200),
+                                "electron_maxstep": kwargs.get("electron_maxstep", 1000),
                                 "mixing_mode"     : kwargs.get("mixing_mode", "plain"),
                                 }
 
