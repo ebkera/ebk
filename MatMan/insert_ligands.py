@@ -14,8 +14,20 @@ class Insert_ligand():
             self.atoms.rotate(90, 'y')
         if direction == [1,1,0]:
             self.atoms.rotate(45, 'z')
+
     def edit(self):
         self.atoms.edit()
+
+    def get_chemical_symbols(self):
+        return self.atoms.get_chemical_symbols()
+
+    def get_positions(self):
+        return self.atoms.get_positions()
+
+    def list_all_atoms(self):
+        syms = self.get_chemical_symbols()
+        coor = self.get_positions()
+        return [f"{syms[n]}: {coor[n]}" for n in range(len(syms))]
 
     def save(self, format):
         write(f"{self.name}.{format}", self.atoms)

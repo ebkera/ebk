@@ -91,8 +91,8 @@ class RunScriptHandler():
                                 "prefix"          : kwargs.get("prefix",'Sn'),
                                 "verbosity"       : kwargs.get("verbosity",'high'),
                                 "wf_collect"      : kwargs.get("wf_collect", False),
-                                "disk_io"         : kwargs.get("disk_io",'low'),
-                                "disk_io_nscf"    : kwargs.get("disk_io_nscf",'low'),
+                                # "disk_io"         : kwargs.get("disk_io",'low'),
+                                # "disk_io_nscf"    : kwargs.get("disk_io_nscf",'low'),
                                 "etot_conv_thr"   : kwargs.get("etot_conv_thr", 1.0e-5),
                                 "forc_conv_thr"   : kwargs.get("forc_conv_thr", 1.0e-5),
                                 "outdir"          : kwargs.get("outdir", './'),
@@ -239,7 +239,8 @@ class RunScriptHandler():
                     del(self.espresso_inputs["degauss"])
                 except: pass
             self.espresso_inputs.update({"occupations" : "tetrahedra"})
-            self.espresso_inputs["disk_io"] = self.espresso_inputs["disk_io_nscf"]
+            if "disk_io_nscf" in self.espresso_inputs.keys():
+                self.espresso_inputs["disk_io"] = self.espresso_inputs["disk_io_nscf"]
             ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             # Putting files into folders
             os.rename(f"{self.identifier}.nscf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.nscf.in")
