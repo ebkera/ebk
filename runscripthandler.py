@@ -12,6 +12,7 @@ import os
 from ase.build import bulk
 from ase import Atoms
 import ase.io
+from ase.io import read, write
 from ebk.QE import QErunfilecreator  # So that we can see how we did it last time
 from ebk.SIESTA import SIESTARunFileCreator  # So that we can see how we did it last time
 import shutil
@@ -787,6 +788,7 @@ class ReadOutfiles():
         This method will handle the opening of all the files and then also put them together. 
         Inputs:
             dir (string): Can be "thesis", "sivalabs", or here"here"
+                This variable sets the folder that is read to load the files.
             This will determine which folders to open. some folders default locations are hard coded.
         """
         # For debugging purposses below lines will be helpful
@@ -870,6 +872,12 @@ class ReadOutfiles():
             self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects, self.atoms_bands_objects))
             if self.high_verbosity:
                 print(f"read_outfiles: Sucessfully read bands files and scf files. Zipping done")
+        else:
+            # Trying to zip bands files here
+            # print(self.atoms_bands_objects)
+            self.data = list(zip(self.required_folders_list, self.required_folder_data, self.atoms_objects, self.atoms_bands_objects, self.atoms_nscf_objects))
+            if self.high_verbosity:
+                print(f"read_outfiles: Sucessfully read bands files and scf files. Zipping done")
 
     def get_sorted_energies(self, sort_for = "KE"):
         """
@@ -879,6 +887,15 @@ class ReadOutfiles():
         x = [self[1][sort_for] for self in self.data]
         E = [self[2].get_total_energy() for self in self.data]
         return x, E
+
+    def write_structure_xyz(self, index, name):
+        """
+        This method writes the structure of a read file at the given 'index'.
+        Index: int
+            This is the index of the loaded run.
+        """
+        atoms = self.data[index][2]
+        write(f"{name}_structure.xyz", atoms)
 
     def get_band_path(self):
         if self.calculation == "scf":
