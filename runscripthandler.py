@@ -103,6 +103,8 @@ class RunScriptHandler():
                                 }
 
         # Here are all initializations of the self.espresso_inputs variable that should be set only if explicitly given by user
+        # Here as you can see the default values sef for the kwargs will never get used. They are there as a guide to what you can use when you might need to use them
+        # Also another this is the values here does not necessarily equal the defalt values for the variables in Quantum Espresso
         if "restart_mode" in kwargs:
             self.espresso_inputs.update({"restart_mode"    : kwargs.get("restart_mode",'from_scratch')})
         if "lkpoint_dir" in kwargs:
@@ -442,8 +444,6 @@ class RunScriptHandler():
                     file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Completed nscf"\n')
-                    file_torque.write(f'    rm *wfc*\n')
-                    file_torque.write(f'    echo "Removed wavefunction files"\n')
                 if "pdos" in self.calculation:
                     file_torque.write(f'    echo "Calculationg PDOS"\n')
                     file_torque.write(f"    mpirun projwfc.x < {self.identifier}.pdos.in > {self.identifier}.pdos.out\n")
@@ -453,7 +453,9 @@ class RunScriptHandler():
                             file_torque.write(f"    sumpdos.x *\({x[0]}\)* > {self.identifier}.{x[0]}_all.PDOS\n")
                         else:
                             file_torque.write(f"    sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
-                    file_torque.write(f"END_JOB_SCRIPT\n")
+                file_torque.write(f'    rm *wfc*\n')
+                file_torque.write(f'    echo "Removed wavefunction files"\n')
+                file_torque.write(f"END_JOB_SCRIPT\n")
             else:
                 file_torque.write(f'    cd "$PWD/$dir"\n')
                 file_torque.write(f"\n")
