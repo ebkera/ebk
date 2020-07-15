@@ -25,7 +25,7 @@ class Generatefdf:
         self.bands_block           = kwargs.get("bands_block", True)
         self.MPGrid                = kwargs.get("MPGrid", 10)
         self.PDOS                  = kwargs.get("PDOS", True)
-        self.LDOS                  = kwargs.get("PDOS", False)
+        self.LDOS                  = kwargs.get("LDOS", False)
         self.PDOS_MPGrid           = kwargs.get("PDOS_MPGrid", 15)
         self.PAO_EnergyShift       = kwargs.get("PAO_EnergyShift", 0.001)
         self.MD                    = kwargs.get("MD", False)
