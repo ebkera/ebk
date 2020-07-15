@@ -16,6 +16,7 @@ from ase.io import read, write
 from ebk.QE import QErunfilecreator  # So that we can see how we did it last time
 from ebk.SIESTA import SIESTARunFileCreator  # So that we can see how we did it last time
 import shutil
+from ebk.SIESTA.SIESTAcontrol import Generatefdf
 
 # Here stored are all the possible values for these variables. They are common for both RunScriptHandler and Read_outfiles classes
 identifier       = []
@@ -56,15 +57,18 @@ class RunScriptHandler():
         # Setting kwargs here
         # Base Run inits
         self.identifier       = kwargs.get("identifier", "run")
+        if "SystemLabel" in kwargs.keys(): self.identifier       = kwargs.get("SystemLabel", "run")  # This is if a siesta input is given
         self.job_handler      = kwargs.get("job_handler", "torque")
-        self.a0               = kwargs.get("a0", [6.6, 6.7, 6.8, 6.9])
-        self.KE_cut           = kwargs.get("KE_cut", [20, 40, 60, 80, 100])
+        self.a0               = kwargs.get("a0", [6.47])
+        self.KE_cut           = kwargs.get("KE_cut", [20])
+        if "PAO_EnergyShift" in kwargs.keys(): self.KE_cut       = [kwargs.get("PAO_EnergyShift", 0.001)]  # This is if a siesta input is given
         self.k                = kwargs.get("k", [2])
         self.k_nscf           = kwargs.get("k_nscf", self.k[0])
         self.pseudopotentials = kwargs.get("pseudopotentials", {'Sn':'Sn_ONCV_PBE_FR-1.1.upf'})
         self.pseudo_dir       = kwargs.get("pseudo_dir", False)
         self.calculator       = kwargs.get("calculator", "QE").upper()
         self.structure_type   = kwargs.get("structure_type", "bulk")
+        if "fdf_type" in kwargs.keys(): self.structure_type       = kwargs.get("fdf_type", "bulk")  # This is if a siesta input is given
         self.xc               = kwargs.get("xc", "pbe")
         self.calculation      = kwargs.get("calculation", "scf")
         self.path             = kwargs.get("path", "GXWLGKL")
@@ -102,6 +106,9 @@ class RunScriptHandler():
                                 "electron_maxstep": kwargs.get("electron_maxstep", 1000),
                                 "mixing_mode"     : kwargs.get("mixing_mode", "plain"),
                                 }
+
+        if self.calculator == "SIESTA":
+            self.SIESTA_inputs = kwargs 
 
         # Here are all initializations of the self.espresso_inputs variable that should be set only if explicitly given by user
         # Here as you can see the default values sef for the kwargs will never get used. They are there as a guide to what you can use when you might need to use them
@@ -262,11 +269,14 @@ class RunScriptHandler():
         #     ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
         #     os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
 
-    def write_SIESTA_inputfile(self, run_name, KE_cut_i, a0_i, k_i):
+    def write_SIESTA_inputfile(self, run_name):
         """
         This method creates SIESTA input files
         """
-        pass
+        fdf = Generatefdf(**self.SIESTA_inputs)
+        fdf.description = "Testing the bulk band structure and PDOS when cutoffs are set from the PAO basis block and values are from the paper. Here the values are for the GGA PP."
+        fdf.write()
+        os.rename(f"{self.SIESTA_inputs['SystemLabel']}.fdf", f"./{self.base_folder}/{run_name}/{self.SIESTA_inputs['SystemLabel']}.fdf")  
 
     def get_number_of_calculations(self):
         return (len(self.KE_cut)*len(self.a0)*len(self.k)*len(self.R))
@@ -416,9 +426,15 @@ class RunScriptHandler():
                 file_torque.write(f"    cd \$PBS_O_WORKDIR\n\n")
                 file_torque.write(f"    # use a per-job lineup of modules; stern\n")
                 file_torque.write(f"    module purge\n")
-                file_torque.write(f"    module load intel\n")
-                file_torque.write(f"    module load openmpi/1.10/intel-17\n")
-                file_torque.write(f"    module load quantum-espresso/5.4/openmpi-1.10\n")
+                if self.calculator == "QE":
+                    file_torque.write(f"    module load intel\n")
+                    file_torque.write(f"    module load openmpi/1.10/intel-17\n")
+                    file_torque.write(f"    module load quantum-espresso/5.4/openmpi-1.10\n")
+                if self.calculator == "SIESTA":
+                    file_torque.write(f"    module load intel/18\n")
+                    file_torque.write(f"    module load impi\n")
+                    file_torque.write(f"    module load fftw3/3.3/impi-5\n")
+                    file_torque.write(f"    module load siesta\n")
                 file_torque.write(f"    module list\n\n")
                 file_torque.write(f'    echo "PBS_O_WORKDIR: $PBS_O_WORKDIR"\n')
                 file_torque.write(f'    echo "************** Starting Calculation ***************"\n')
@@ -428,35 +444,40 @@ class RunScriptHandler():
                 # file_torque.write(f"    now=$(date)\n")
                 #Here Npools vs npool
                 file_torque.write(f'    date\n')
-                file_torque.write(f'    echo "Starting scf"\n')
-                file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.scf.in > {self.identifier}.scf.out\n")
-                file_torque.write(f'    date\n')
-                file_torque.write(f'    echo "Completed scf"\n')
-                file_torque.write(f'    rm *wfc*\n')
-                file_torque.write(f'    echo "Removed wavefunction files"\n')
-                if "bands" in self.calculation:
+                if self.calculator == "QE":
+                    file_torque.write(f'    echo "Starting scf"\n')
+                    file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.scf.in > {self.identifier}.scf.out\n")
                     file_torque.write(f'    date\n')
-                    file_torque.write(f'    echo "Starting bands"\n')
-                    file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.bands.in > {self.identifier}.bands.out\n")
+                    file_torque.write(f'    echo "Completed scf"\n')
+                    file_torque.write(f'    rm *wfc*\n')
+                    file_torque.write(f'    echo "Removed wavefunction files"\n')
+                    if "bands" in self.calculation:
+                        file_torque.write(f'    date\n')
+                        file_torque.write(f'    echo "Starting bands"\n')
+                        file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.bands.in > {self.identifier}.bands.out\n")
+                        file_torque.write(f'    date\n')
+                        file_torque.write(f'    echo "Completed bands"\n')
+                    if "nscf" in self.calculation:
+                        file_torque.write(f'    date\n')
+                        file_torque.write(f'    echo "Starting nscf"\n')
+                        file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
+                        file_torque.write(f'    date\n')
+                        file_torque.write(f'    echo "Completed nscf"\n')
+                    if "pdos" in self.calculation:
+                        file_torque.write(f'    echo "Calculationg PDOS"\n')
+                        file_torque.write(f"    mpirun projwfc.x < {self.identifier}.pdos.in > {self.identifier}.pdos.out\n")
+                        file_torque.write(f'    echo "Calculating PDOS components"\n')
+                        for x in self.PDOS_required_projections:
+                            if x[1] == "all":
+                                file_torque.write(f"    sumpdos.x *\({x[0]}\)* > {self.identifier}.{x[0]}_all.PDOS\n")
+                            else:
+                                file_torque.write(f"    sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
+                    file_torque.write(f'    rm *wfc*\n')
+                    file_torque.write(f'    echo "Removed wavefunction files"\n')
+                if self.calculator == "SIESTA":
+                    file_torque.write(f"    mpirun -np {self.nodes*self.procs} siesta -in {self.identifier}.fdf > {self.identifier}.out\n")
                     file_torque.write(f'    date\n')
-                    file_torque.write(f'    echo "Completed bands"\n')
-                if "nscf" in self.calculation:
-                    file_torque.write(f'    date\n')
-                    file_torque.write(f'    echo "Starting nscf"\n')
-                    file_torque.write(f"    mpirun pw.x -npools {self.npools} -ntg {self.ntg} -in {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
-                    file_torque.write(f'    date\n')
-                    file_torque.write(f'    echo "Completed nscf"\n')
-                if "pdos" in self.calculation:
-                    file_torque.write(f'    echo "Calculationg PDOS"\n')
-                    file_torque.write(f"    mpirun projwfc.x < {self.identifier}.pdos.in > {self.identifier}.pdos.out\n")
-                    file_torque.write(f'    echo "Calculating PDOS components"\n')
-                    for x in self.PDOS_required_projections:
-                        if x[1] == "all":
-                            file_torque.write(f"    sumpdos.x *\({x[0]}\)* > {self.identifier}.{x[0]}_all.PDOS\n")
-                        else:
-                            file_torque.write(f"    sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
-                file_torque.write(f'    rm *wfc*\n')
-                file_torque.write(f'    echo "Removed wavefunction files"\n')
+                    file_torque.write(f'    echo "Completed fdf run"\n')
                 file_torque.write(f"END_JOB_SCRIPT\n")
             else:
                 file_torque.write(f'    cd "$PWD/$dir"\n')
@@ -562,7 +583,7 @@ class RunScriptHandler():
                             if self.calculator == "QE":
                                 self.write_QE_inputfile(run_name, KE_cut_i, R_i, a0_i, k_i)
                             elif self.calculator == "SIESTA":
-                                self.write_SIESTA_inputfile(run_name, KE_cut_i, R_i, a0_i, k_i)
+                                self.write_SIESTA_inputfile(run_name)
                             self.all_runs_list.append(run_name)
 
                         # Creating jobs
@@ -912,7 +933,7 @@ def make_all_job_files(base_folder = "Runs", job_list = []):
     Warning: Not set to properly handle .bands files since .scf has to finish in order for the .bands files to run.
              Therefore functionality is only set for .scf.job files to be listed and according to how they finish you manually run the bands.job files
     """
-
+    print(base_folder)
     print("make_all_job_files: Printing all jobs onto a single file.")
     directory_list = os.listdir(f"{os.getcwd()}/{base_folder}")  # os.getcwd() might give different folders in different systems.
     with open(f"{base_folder}/all_jobs.job", "w+") as file:
