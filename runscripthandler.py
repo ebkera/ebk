@@ -259,8 +259,7 @@ class RunScriptHandler():
                 file.write(f"&projwfc\n")
                 file.write(f"\tprefix\t= '{self.espresso_inputs['prefix']}'\n")
                 file.write(f"\tfilpdos\t= '{self.espresso_inputs['prefix']}'\n")
-                file.write(f"\tEmin\t= {self.PDOS_EMIN}\n")
-                file.write(f"\tEmax\t= {self.PDOS_EMAX}\n")
+                file.write(f"\tEmin\t= {self.PDOS_EMIN}, Emax\t= {self.PDOS_EMAX}\n")
                 file.write(f"\tDeltaE\t= {self.PDOS_DeltaE}\n")
                 file.write(f"\tdegauss\t= {self.PDOS_degauss}\n")
                 file.write(f"/")
@@ -829,8 +828,8 @@ class ReadOutfiles():
             mydir = Path(runs_dir, "Run_files_SL", "Synced")
         elif dir== "here":
             mydir = Path(cur_dir)
-        elif dir== "other":
-            mydir = Path(cur_dir)    
+        else:
+            mydir = Path(dir)    
         if self.high_verbosity:
             print(f"The Runs directory is: {mydir}")
         self.read_folder_data(mydir)
