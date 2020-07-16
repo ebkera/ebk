@@ -28,12 +28,14 @@ class Band():
         self.Efshift = False
         self.band_number_min = 0
         self.band_number_max = 0
+        self.set_y_range = False
+        self.ylim_low = -5
+        self.ylim_high = 5
         self.E_min = 0
         self.E_max = 0
         self.E_f = 0
         self.kpath_k = []
         self.kpath_symbol = []
-
         self.execute_gnuplot()
         self.open_file()
 
@@ -154,6 +156,8 @@ class Band():
                 y = self.band_data_y[band]
                 plt.plot(x, y, linewidth=0.4)
 
+        if self.set_y_range == True:
+                plt.ylim([self.ylim_low, self.ylim_high])
         plt.title("Band diagram for bulk " + self.name + " (E$_f$ = " + str(self.E_f) +"eV)")
         # plt.plot([self.band_data_x[1][0], self.band_data_x[1][len(self.band_data_x[1]) - 1]], [self.E_f, self.E_f],
         #          '--k', label="E$_f$")  # Plotting the E_f
