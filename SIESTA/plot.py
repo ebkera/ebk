@@ -1,12 +1,10 @@
 import os
 import matplotlib
-# matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 import sys
 import subprocess
-
 import matplotlib.pyplot as plt
-from matplotlib.font_manager import FontProperties
 import numpy as np
+import shutil
 
 # getting file paths
 import pathlib
@@ -19,7 +17,6 @@ def latexify(inputlist):
         if item == "Gamma":
             inputlist[index] = '$\Gamma$'
     return inputlist
-
 
 class Band():
     def __init__(self, name):
@@ -37,7 +34,6 @@ class Band():
         self.kpath_k = []
         self.kpath_symbol = []
 
-
     def use_gnuband(self, command = "f"):
         """
         Executes the gnuband script and makes the SYSTEMLABEL.gnuband.dat file required for band plotting
@@ -50,10 +46,6 @@ class Band():
             print("Plot: Executing gnuplot for adjustment of values: Done")
         print(f"{fpath_gnubands}\gnubands")
         # os.system(f"{fpath_gnubands}\gnubands  < {SystemLabel}.bands > {SystemLabel}.bands.gnuplot.dat")
-
-       
-
-
 
     def open_file(self):
         """Opens the file and gets all the data and also values. Full list of extractions include,
@@ -110,7 +102,6 @@ class Band():
 
         # shifting lines by E_f
         # self.band_data_y_Efshift = self.band_data_y + self.E_f
-
 
         #  opening the bands file to get the kpath
         bands_file = open(self.bands_file_name, "r")
@@ -196,9 +187,23 @@ class Band():
                 print("!** Too many attempts to save as numbered version of default file name."
                       " Suggested to close program that is denying write access.")
 
+    def execute_gnuplot(self, shift_fermi = True):
+        # os.system("./gnubands -F < " + SystemLabel+".bands > " + SystemLabel + ".bands.gnuplot.dat")
+        print(os.getcwd())
+        path = self.name.split("/")
+        print(path)
+        newpath = "."
+        for x in range(1, len(path)-1):
+            newpath = f"{newpath}/{path[x]}"
+        print(f"new: {newpath}")
+        shutil.copy(f"{fpath_gnubands}\gnubands", f"{newpath}/gnubands")
+        print(f"{newpath}/gnubands")
+        print(f"{self.name}.bands.gnuplot.dat")
+        print(f"{self.name}.bands")
+        os.system(f"wsl {newpath}/gnubands -F < {self.name}.bands > {self.name}.bands.gnuplot.dat")
+        print("*** Finished executing gnuplot for adjustment of values")
 
 if __name__ == "__main__":
-
     SystemLabel = "Sn"
     arg_list_length = len(sys.argv)
     bands_to_plot_main = [x for x in sys.argv if x.isdigit()]  # getting the bands to plot
@@ -213,11 +218,9 @@ if __name__ == "__main__":
         os.system("./gnubands  < " + SystemLabel + ".bands > " + SystemLabel + ".bands.gnuplot.dat")
         print("*** Finished executing gnuplot for adjustment of values")
 
-
     # bands.plotter(6, 9, 10, 11, 12)
     bands = Band(SystemLabel)
     bands.open_file()
-
 
     if len(bands_to_plot_main) != 0:
         print("***Plotting custom band set:")
