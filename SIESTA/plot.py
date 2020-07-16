@@ -130,12 +130,7 @@ class Band():
                 bands_to_plot.append(int(x))
 
         length = len(self.band_data_x)  # Number of original bands, have to select from this to plot
-
-        # Say, "the default sans-serif font is Times New Roman"
-        matplotlib.rcParams['font.sans-serif'] = "Times New Roman"
-        # Then, "ALWAYS use serif fonts"
-        # matplotlib.rcParams['font.family'] = "serif"
-
+        plt.figure()
         # Plotting vertical lines so that we know the exact positions of the high symmetry points
         if kwargs["h"]:
             for xc in self.kpath_k:  # Plotting a dotted line that will at high symmetry points on the Kpath
