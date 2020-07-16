@@ -34,6 +34,9 @@ class Band():
         self.kpath_k = []
         self.kpath_symbol = []
 
+        self.execute_gnuplot()
+        self.open_file()
+
     def use_gnuband(self, command = "f"):
         """
         Executes the gnuband script and makes the SYSTEMLABEL.gnuband.dat file required for band plotting
@@ -184,17 +187,17 @@ class Band():
 
     def execute_gnuplot(self, shift_fermi = True):
         # os.system("./gnubands -F < " + SystemLabel+".bands > " + SystemLabel + ".bands.gnuplot.dat")
-        print(os.getcwd())
+        # print(os.getcwd())
         path = self.name.split("/")
-        print(path)
+        # print(path)
         newpath = "."
         for x in range(1, len(path)-1):
             newpath = f"{newpath}/{path[x]}"
-        print(f"new: {newpath}")
+        # print(f"new: {newpath}")s
         shutil.copy(f"{fpath_gnubands}\gnubands", f"{newpath}/gnubands")
-        print(f"{newpath}/gnubands")
-        print(f"{self.name}.bands.gnuplot.dat")
-        print(f"{self.name}.bands")
+        # print(f"{newpath}/gnubands")
+        # print(f"{self.name}.bands.gnuplot.dat")
+        # print(f"{self.name}.bands")
         os.system(f"wsl {newpath}/gnubands -F < {self.name}.bands > {self.name}.bands.gnuplot.dat")
         print("*** Finished executing gnuplot for adjustment of values")
 
