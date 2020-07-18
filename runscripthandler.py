@@ -471,8 +471,8 @@ class RunScriptHandler():
                                 file_torque.write(f"    sumpdos.x *\({x[0]}\)* > {self.identifier}.{x[0]}_all.PDOS\n")
                             else:
                                 file_torque.write(f"    sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
-                    file_torque.write(f'    rm *wfc*\n')
-                    file_torque.write(f'    echo "Removed wavefunction files"\n')
+                    # file_torque.write(f'    rm *wfc*\n')
+                    # file_torque.write(f'    echo "Removed wavefunction files"\n')
                 if self.calculator == "SIESTA":
                     file_torque.write(f"    mpirun -np {self.nodes*self.procs} siesta -in {self.identifier}.fdf > {self.identifier}.out\n")
                     file_torque.write(f'    date\n')
