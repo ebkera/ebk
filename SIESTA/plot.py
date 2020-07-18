@@ -23,6 +23,7 @@ class Band():
         self.name = name
         self.file_name = name + ".bands.gnuplot.dat"
         self.bands_file_name = name + ".bands"
+        self.plt_title = name
         self.band_data_x = []
         self.band_data_y = []
         self.Efshift = False
@@ -127,6 +128,10 @@ class Band():
         self.kpath_symbol = latexify(self.kpath_symbol)
 
     def plotter(self, *args, **kwargs):
+        """
+        Plots the bands and also can give out the energies at a given k point.
+        """
+        E_to_return = []
         bands_to_plot = 0
         if len(args) != 0:
             bands_to_plot = []
@@ -152,13 +157,19 @@ class Band():
                 plt.plot(x, y, linewidth=0.4)
         else:
             for band in bands_to_plot:
+                # E_to_return_temp = []
                 x = self.band_data_x[band]
                 y = self.band_data_y[band]
                 plt.plot(x, y, linewidth=0.4)
+                # print(x)
+                if x[0] == 0:
+                    # print(y[0])
+                    E_to_return.append(y[0])
+            # E_to_return.append(E_to_return_temp)
 
         if self.set_y_range == True:
                 plt.ylim([self.ylim_low, self.ylim_high])
-        plt.title("Band diagram for bulk " + self.name + " (E$_f$ = " + str(self.E_f) +"eV)")
+        plt.title(f"{self.plt_title} (E$_f$ = " + str(self.E_f) +"eV)")
         # plt.plot([self.band_data_x[1][0], self.band_data_x[1][len(self.band_data_x[1]) - 1]], [self.E_f, self.E_f],
         #          '--k', label="E$_f$")  # Plotting the E_f
         plt.xlabel('k ($\\frac{\\pi}{a}$)')
@@ -188,6 +199,8 @@ class Band():
             if write_test is False and counter == 5:
                 print("!** Too many attempts to save as numbered version of default file name."
                       " Suggested to close program that is denying write access.")
+        plt.close()
+        return E_to_return
 
     def execute_gnuplot(self, shift_fermi = True):
         # os.system("./gnubands -F < " + SystemLabel+".bands > " + SystemLabel + ".bands.gnuplot.dat")
