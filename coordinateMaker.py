@@ -566,7 +566,7 @@ class CoordinateMaker():
     # print("write_to_fdf_zmatrix: Successfully written to fdf file (z matrix)")
     # file_fdf.close()
 
-    def write_to_xyz(self, surface, fname = "coordinates"):
+    def write_to_xyz(self, surface = False, fname = "coordinates"):
         # Printing the final into an xyz file that contains the coordinates
         file_xyz = open(f"{fname}.xyz", "w+")
         file_xyz.write(str(len(self.finalcell)) + "\n")
@@ -652,19 +652,31 @@ class CoordinateMaker():
 
 
 if __name__ == "__main__": 
-    dot = CoordinateMaker([2,2,2], "Ang", 6.432, replicate=True, alloy = False)            # (Radius to build, lattice constant, replicate to all octants, Alloy?)
-    dot.trim_to_dot(1.5, True)                                 # (radius to cutoff, evenize)
-    # dot.oxygenate(1.7)                                           # Hydrogen bond length in Angstroms
-    # dot.hydrogenate(1.7)                                         # Hydrogen bond length in Angstroms
-    # print(dot.identify_site("H"))                                 # Coordinates of the site with 'H'
-    # dot2_finalcell = invert_coordinates(dot.finalcell)           # Inverts the coordinates
+#     dot = CoordinateMaker([2,2,2], "Ang", 6.432, replicate=True, alloy = False)            # (Radius to build, lattice constant, replicate to all octants, Alloy?)
+#     dot.trim_to_dot(1.5, True)                                 # (radius to cutoff, evenize)
+#     # dot.oxygenate(1.7)                                           # Hydrogen bond length in Angstroms
+#     # dot.hydrogenate(1.7)                                         # Hydrogen bond length in Angstroms
+#     # print(dot.identify_site("H"))                                 # Coordinates of the site with 'H'
+#     # dot2_finalcell = invert_coordinates(dot.finalcell)           # Inverts the coordinates
 
-# Do these things the last
+# # Do these things the last
+#     dot.number_atoms("creation")
+#     dot.write_to_log()
+#     dot.write_to_fdf(True, False)                               # (zincBlende, surface)
+#     # dot.write_to_fdf_zmatrix(False, False)                       # (zincBlende, surface)
+#     dot.write_to_xyz(True, False)                               # (zincBlende, surface)
+#     dot.write_to_nn()
+#     # print(f"The cartesian to polar conversion: {cartesian_to_polar([-1,-1,1],[0,0,0])}")
+#     # print(f"The angle between those three atoms: {triatom_angle([0,0,0],[1,1,0],[0,0,1])}")
+
+    # newer example 2020/07/18
+    dot = CoordinateMaker([2,2,2], "Ang", 6.453, replicate=True, material_type="z", anion_symbol="Hg", cation_symbol="Te")            # (Radius to build, lattice constant, replicate to all octants, Alloy?)
+    dot.trim_to_dot(trim_to, False)                                 # (radius to cutoff, evenize)
+    dot.hydrogenate(1.7)                                         # Hydrogen bond length in Angstroms
+
+    # Do these things the last
+    file_name = "MT29"
     dot.number_atoms("creation")
-    dot.write_to_log()
-    dot.write_to_fdf(True, False)                               # (zincBlende, surface)
-    # dot.write_to_fdf_zmatrix(False, False)                       # (zincBlende, surface)
-    dot.write_to_xyz(True, False)                               # (zincBlende, surface)
-    dot.write_to_nn()
-    # print(f"The cartesian to polar conversion: {cartesian_to_polar([-1,-1,1],[0,0,0])}")
-    # print(f"The angle between those three atoms: {triatom_angle([0,0,0],[1,1,0],[0,0,1])}")
+    dot.write_to_log(fname=file_name)
+    dot.write_to_xyz(fname=file_name)                               # (zincBlende, surface)
+    dot.write_to_nn(fname=file_name)
