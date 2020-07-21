@@ -29,7 +29,7 @@ class Read_PDOS():
         self.xlim_low = -3
         self.xlim_high = 3
         self.orbital_labels = []
-        self.plt_title = f"PDOS"
+        self.plt_title = f"{self.figure_name}"
         self.plt_ylabel = "PDOS"
         self.kwargs = []  # for all the matplotlib pltotting kwargs
 
