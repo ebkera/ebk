@@ -23,8 +23,8 @@ class Read_PDOS():
         self.y_up = []
         self.y_dn = []
         self.set_y_range = False
-        self.ylim_low = -5
-        self.ylim_high = 5
+        self.ylim_low = 0
+        self.ylim_high = 50
         self.set_x_range = True
         self.xlim_low = -3
         self.xlim_high = 3
@@ -113,6 +113,8 @@ class Read_PDOS():
         plt.title(f"{self.plt_title}")
         if self.set_x_range == True:
             plt.xlim([self.xlim_low,self.xlim_high])
+        if self.set_y_range == True:
+            plt.ylim([self.ylim_low,self.ylim_high])
         plt.savefig(f"{self.figure_name}.pdf")
         plt.show()
         plt.close()

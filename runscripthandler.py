@@ -257,12 +257,13 @@ class RunScriptHandler():
             # We are not using ASE to write this file. It is simple and that is one reason
             with open(f"{self.identifier}.pdos.in", "w+") as file:
                 file.write(f"&projwfc\n")
-                file.write(f"\tprefix\t= '{self.espresso_inputs['prefix']}'\n")
-                file.write(f"\tfilpdos\t= '{self.espresso_inputs['prefix']}'\n")
-                file.write(f"\tEmin\t= {self.PDOS_EMIN}, Emax\t= {self.PDOS_EMAX}\n")
-                file.write(f"\tDeltaE\t= {self.PDOS_DeltaE}\n")
-                file.write(f"\tdegauss\t= {self.PDOS_degauss}\n")
-                file.write(f"/")
+                file.write(f"  prefix  = '{self.espresso_inputs['prefix']}'\n")
+                file.write(f"  filpdos = '{self.espresso_inputs['prefix']}'\n")
+                file.write(f"  Emin    = {self.PDOS_EMIN}\n")
+                file.write(f"  Emax    = {self.PDOS_EMAX}\n")
+                file.write(f"  DeltaE  = {self.PDOS_DeltaE}\n")
+                file.write(f"  degauss = {self.PDOS_degauss}\n")
+                file.write(f"/\n")
             os.rename(f"{self.identifier}.pdos.in", f"./{self.base_folder}/{run_name}/{self.identifier}.pdos.in")  
         # else:
         #     ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
