@@ -49,11 +49,12 @@ class ZB(TB):
             y = [val, val]
             plt.plot(x, y, "b")
         plt.title("Energies")
+        plt.ylabel = f"Energy (eV)"
         plt.xticks(x, " ")
-        plt.ylim(-2, 2)
-        plt.show()
-        plt.savefig("Levels.pdf")
-
+        plt.savefig(f"{self.run_name}.pdf")
+        plt.ylim(-0.3, 0.3)
+        # plt.show()
+        plt.savefig(f"{self.run_name}_zoomed.pdf")
 
     # def g(k_point, neighbours):
     #     g = []
@@ -151,6 +152,13 @@ class ZB(TB):
         elif direction == "ca":
             return self.parameterJ["Vspsigma_ca"]/np.sqrt(3)
 
+    def Vhp(self, direction):
+        if direction == "ac":
+            return self.parameterJ["Vspsigma_H"]/np.sqrt(3)
+        elif direction == "ca":
+            # This part is not implemented no harm in leaving it here since we dont really use it.
+            return self.parameterJ["Vspsigma_ca"]/np.sqrt(3)
+
     def Vsd(self, direction):
         if direction == "ac":
             Vpdsigma = self.parameterJ["Vsdsigma_ac"]
@@ -246,7 +254,6 @@ class ZB(TB):
                 elif row == 4 or row == 5 or row ==6: return self.parameterJ["Edxy_a"]
                 elif row == 7 or row == 8: return self.parameterJ["Edx2my2_a"]
                 elif row == 9: return self.parameterJ["ES_a"]
-                elif row == 10: return self.parameterJ["E_H"]
                 else:
                     print("function_chooser: Fatal Error - Element not found")
 
@@ -262,7 +269,7 @@ class ZB(TB):
             # These are the anion to cation elements
             col = col - 10  # So we can still refer to the rows and columns as from 0-9 to retain our sanity
             # next let's select the diagonal and upper triangle
-            neighbours_ac = self.cations_as_neighbours
+            neighbours_ac = self.cations_as_neighbours  # this has to be edited to make it general and have to consider the two atoms.
 
             if row == 0:
                 if col == 0: return self.parameterJ["Vsssigma"]*g(k_point,neighbours_ac)[0]
@@ -427,7 +434,7 @@ class ZB(TB):
         self.Hac = np.zeros((10, 10), dtype=complex)
         for i in range(10):
             for j in range(10):
-                self.Hac[i][j] = self.function_chooser(i,i+10)
+                self.Hac[i][j] = self.function_chooser(i,j+10)
         self.log("----- Hac block:")
         self.log(f"{self.Hac}")
 
@@ -444,40 +451,37 @@ class ZB(TB):
     def Hhh_f(self):
         self.Hhh = np.zeros((1, 1), dtype=complex)
         for i in range(1):
-            for j in range(1):
-                self.Hhh[i][j] = 0
+            self.Hhh[i][i] = self.parameterJ["E_H"]
         self.log("----- Hhh block:")
         self.log(f"{self.Hhh}")
         
+    def Hha_f(self):
+        self.Hha = np.zeros((1, 10), dtype=complex)
+        for i in range(1):
+            for col in range(10):
+                if col == 0: self.Hha[i][col] = self.parameterJ["Vsssigma_H"]*g([0,0,0],self.cations_as_neighbours)[0]
+                elif col == 1: self.Hha[i][col] = self.Vhp("ac")*g([0, 0, 0],self.cations_as_neighbours)[1]
+                elif col == 2: self.Hha[i][col] = self.Vhp("ac")*g([0, 0, 0],self.cations_as_neighbours)[2]
+                elif col == 3: self.Hha[i][col] = self.Vhp("ac")*g([0, 0, 0],self.cations_as_neighbours)[3]
+                else: self.Hha[i][col] = 0. + 0.j
+        self.log("----- Hha block:")
+        self.log(f"{self.Hha}")
+
     def Hah_f(self):
         self.Hah = np.zeros((10, 1), dtype=complex)
         for i in range(10):
             for j in range(1):
-                self.Hah[i][j] = 0
+                self.Hah[i][j] = np.conjugate(self.Hha[j][i])
         self.log("----- Hah block:")
         self.log(f"{self.Hah}")
 
-    def Hha_f(self):
-        self.Hha = np.zeros((1, 10), dtype=complex)
-        for i in range(1):
-            for j in range(10):
-                self.Hha[i][j] = 0
-        self.log("----- Hha block:")
-        self.log(f"{self.Hha}")
-
     def Hch_f(self):
-        self.Hch = np.zeros((10, 1), dtype=complex)
-        for i in range(10):
-            for j in range(1):
-                self.Hch[i][j] = 0
+        self.Hch = self.Hah.copy()
         self.log("----- Hch block:")
         self.log(f"{self.Hch}")
 
     def Hhc_f(self):
-        self.Hhc = np.zeros((1, 10), dtype=complex)
-        for i in range(1):
-            for j in range(10):
-                self.Hhc[i][j] = 0
+        self.Hhc = self.Hha.copy()
         self.log("----- Hhc block:")
         self.log(f"{self.Hhc}\n")
 
@@ -569,20 +573,22 @@ class ZB(TB):
 
         row = 0
         for i in range(n_r):
-            for j in range(s_r+1):
-                if self.atoms[i][0] == "Hg" or self.atoms[i][0] == "Te":
-                    row+=10
-                if self.atoms[i][0] == "H":
-                    row+=1
+            # for j in range(s_r+1):
+            if self.atoms[i][0] == "Hg" or self.atoms[i][0] == "Te":
+                row+=10
+            if self.atoms[i][0] == "H":
+                row+=1
 
         col = 0
         for i in range(n_c):
-            for j in range(s_c+1):
-                if self.atoms[i][0] == "Hg" or self.atoms[i][0] == "Te":
-                    col+=10
-                if self.atoms[i][0] == "H":
-                    col+=1
-                    # print(col)
+            # for j in range(s_c+1):
+            if self.atoms[i][0] == "Hg" or self.atoms[i][0] == "Te":
+                col+=10
+            if self.atoms[i][0] == "H":
+                col+=1
+
+        if s_r == 1: row+= int(self.size/2)
+        if s_c == 1: col+= int(self.size/2)
         return row + o_r, col + o_c, D
 
     def calculate(self):
@@ -608,18 +614,18 @@ class ZB(TB):
         self.log(f"          Anions\t:{anion_count}")
         self.log(f"          Cations\t:{cation_count}")
         self.log(f"          Hydrogens\t:{H_count}")
-        self.log(f"Size of matrix\t: 2*[(anions:{anion_count})*10 + (cations:{cation_count})*10 + (H atoms: {H_count})*1]\n")
+        self.log(f"Size of matrix\t: 2*[(anions:{anion_count})*10 + (cations:{cation_count})*10 + (H atoms:{H_count})*1]\n")
 
         size_wo_so = (anion_count*10 + cation_count*10 + H_count)
         size_so = 2*(anion_count*10 + cation_count*10 + H_count)
 
         if self.so == True:
-            size = size_so
+            self.size = size_so
             self.log("This is a spin_orbit enabled calculation.")
         else:
-            size = size_wo_so
+            self.size = size_wo_so
 
-        self.SuperH = np.zeros((size, size), dtype=complex)
+        self.SuperH = np.zeros((self.size, self.size), dtype=complex)
         self.log(f"Shape of initialized matrix : {self.SuperH.shape}\n")
 
         # print(self.SuperH)
@@ -630,10 +636,11 @@ class ZB(TB):
         self.Hac_f()
         self.Hca_f()
         self.Hhh_f()
-        self.Hah_f()
         self.Hha_f()
+        self.Hah_f()
         self.Hch_f()
         self.Hhc_f()
+        print("Done with premliminary matrices")
 
         self.log("--------- Printing Loaded parameters (J):")
         for i, (k,v) in enumerate(self.parameterJ.items()):
@@ -644,11 +651,12 @@ class ZB(TB):
         # self.log("--------- Nearest neighbours:")
 
         # Building the matrix
-        for s_r in self.S:  # Spin_up
-            for s_c in self.S:  # Spin_down
+        print(f"Building the super matrix")
+        for s_r in self.S:  # Spin_rows
+            for s_c in self.S:  # Spin_columns
                 for n_r in self.N:  # iterating over the atoms for rows
                     for n_c in self.N:  # iterating over atoms for columns
-                        # first checkign if they are nearest neighbours
+                        # first checking if they are nearest neighbours
                         v, d = distance(self.atoms[n_r],self.atoms[n_c])
                         if d <= self.nn_threshold:
                             if n_r == n_c:
@@ -658,17 +666,23 @@ class ZB(TB):
                                     for o_r in self.O:
                                         for o_c in self.O:
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            # print(i,j)
+                                            # if i == j:
+                                                # print(f"{i},{j} for {s_r}, {s_c} , {n_r}, {n_c}, {o_r}, {o_c}")
                                             if self.atoms[n_r][0] == "Hg":
-                                                self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                                if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                                else: self.SuperH[i][j] = D
+                                                # if s_r == 1 and s_c == 1:
+                                                    # print(f"{self.Hcc[o_r][o_c]}")
                                             if self.atoms[n_r][0] == "Te":
-                                                self.SuperH[i][j] = self.Haa[o_r][o_c] + D
+                                                if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                                else: self.SuperH[i][j] = D
                                 if self.atoms[n_r][0] == "H":
                                     # print(f"n_r is: {n_r} and s_r is {s_r} and s_c is {s_c}")
                                     for o_r in self.H:
                                         for o_c in self.H:
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            self.SuperH[i][j] = self.Hhh[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            else: self.SuperH[i][j] = D
                                 # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
 
                             if self.atoms[n_r][0] == "Te":
@@ -679,14 +693,16 @@ class ZB(TB):
                                         for o_c in self.O:
                                             # Here we assume that since we are considering only nearest neighbours we have the other type of atoms in teh coulmns
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            self.SuperH[i][j] = self.Hac[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
                                 if self.atoms[n_c][0] == "H":
                                     # print(f"n_r is: {n_r} and s_r is {s_r} and s_c is {s_c}")
                                     for o_r in self.O:
                                         for o_c in self.H:
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            self.SuperH[i][j] = self.Hah[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
 
                             if self.atoms[n_r][0] == "Hg":
@@ -697,14 +713,16 @@ class ZB(TB):
                                         for o_c in self.O:
                                             # Here we assume that since we are considering only nearest neighbours we have the other type of atoms in teh coulmns
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            self.SuperH[i][j] = self.Hca[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
                                 if self.atoms[n_c][0] == "H":
                                     # print(f"n_r is: {n_r} and s_r is {s_r} and s_c is {s_c}")
                                     for o_r in self.O:
                                         for o_c in self.H:
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            self.SuperH[i][j] = self.Hch[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
 
                             if self.atoms[n_r][0] == "H":
@@ -716,30 +734,42 @@ class ZB(TB):
                                             # Here we assume that since we are considering only nearest neighbours we have the other type of atoms in teh coulmns
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
                                             # print(i,j)
-                                            self.SuperH[i][j] = self.Hha[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
                                 if self.atoms[n_c][0] == "Hg":
                                     # print(f"n_r is: {n_r} and s_r is {s_r} and s_c is {s_c}")
                                     for o_r in self.H:
                                         for o_c in self.O:
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            self.SuperH[i][j] = self.Hhc[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
         # self.log("--------- End Nearest neighbours")
 
         if self.print_hamiltonian:
             self.log(f"\n--------  Printing Full Hamiltonian (Before diagonalization):")
+            print(f"\n--------  Printing Full Hamiltonian (Before diagonalization):")
+            text = ""
             for i in range(len(self.SuperH)):
+                # print(f"Row {i}")
                 for j in range(len(self.SuperH)):
-                    self.log(f"Element {i:<4}{j:<4}: {self.SuperH[i][j]}")
+                    text += f"Element {i:<4}{j:<4}: {self.SuperH[i][j]}\n"
+            self.log(text)
 
-        self.log(f"\nDiagonaizing Matrix......   Time now is: {datetime.now()}")
-        print(f"\nDiagonaizing Matrix......   Time now is: {datetime.now()}")
+        self.log(f"\nStarting diagonalization of super matrix......   Time now is: {datetime.now()}")
+        print(f"\nStarting diagonalization of super matrix......   Time now is: {datetime.now()}")
         self.eigen_vals, self.eigen_vectors = LA.eig(self.SuperH)
+        self.log(f"\nDone.   Time now is: {datetime.now()}")
+        print(f"\nDone.   Time now is: {datetime.now()}")
+
+        self.sorted_eigen_vals = self.eigen_vals.copy()
+        self.sorted_eigen_vals.sort()
+        print(f"\nPrinting values to .out file: {datetime.now()}")
 
         self.log(f"\n--------  Results: ")
         self.log(f"--------  Eigen values: ")
-        for i,v in enumerate(self.eigen_vals):
+        for i,v in enumerate(self.sorted_eigen_vals):
             self.log(f"{i:<5} = {v:>4}")
 
 
