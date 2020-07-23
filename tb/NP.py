@@ -45,14 +45,21 @@ class ZB(TB):
         import matplotlib.pyplot as plt
 
         x = [0,1]
-        for val in self.eigen_vals:
+        x_0 = [0,1.1]
+        E_HOMO = self.sorted_eigen_vals[self.HOMO_i]
+        for i, val in enumerate(self.sorted_eigen_vals):
             y = [val, val]
-            plt.plot(x, y, "b")
+            if i == self.HOMO_i:
+                print(f"homo level {val} which is the {i}th index")
+                plt.plot(x_0, y, "r", label = "HOMO level")
+            else:
+                plt.plot(x, y, "b")
         plt.title("Energies")
         plt.ylabel = f"Energy (eV)"
         plt.xticks(x, " ")
+        plt.legend()
         plt.savefig(f"{self.run_name}.pdf")
-        plt.ylim(-0.3, 0.3)
+        plt.ylim(E_HOMO - 3, E_HOMO + 3)
         # plt.show()
         plt.savefig(f"{self.run_name}_zoomed.pdf")
 
@@ -139,8 +146,6 @@ class ZB(TB):
 
         # The Hydrogen off diagonal energies
         self.parameter.update({"Vspsigma_H": 61.82948})
-
-
 
         # Save new list with all paramters converted to J
         # self.parameterJ = {key: value * 1.60218e-19 for (key,value) in self.parameter.items()}
@@ -492,35 +497,48 @@ class ZB(TB):
         D = 0
         if n_r == n_c:
             # Spin orbit couling is for the same atom.
+            # print(f"{n_r} and {n_c}, sr:{s_r} sc:{s_c}, oc:{o_c} or:{o_r}")
+            # print(n_r == n_c)
             if s_r == 0 and s_c == 0:
+                # print(f"{n_r} and {n_c}, sr:{s_r} sc:{s_c}, oc:{o_c} or:{o_r}")
+                # print(f"inside loop")
                 # Doing the up up submatrix
-                if self.atoms[n_c] == "Te":
+                if self.atoms[n_c][0] == "Te":
                     # Doing the anions
                     if o_r == 2 and o_c == 1: D = self.parameterJ["so_a"]*1j # py, px
                     if o_r == 1 and o_c == 2: D = -self.parameterJ["so_a"]*1j # px, py
-                if self.atoms[n_c] == "Hg":
+                # self.SuperH[self.i_up+self.i_anion+self.i_py][self.i_up+self.i_anion+self.i_px] += self.parameterJ["so_a"]*1j
+                # self.SuperH[self.i_up+self.i_anion+self.i_px][self.i_up+self.i_anion+self.i_py] += -self.parameterJ["so_a"]*1j
+                if self.atoms[n_c][0] == "Hg":
                     # Doing the cations
                     if o_r == 2 and o_c == 1: D = self.parameterJ["so_c"]*1j  # py, px
                     if o_r == 1 and o_c == 2: D = -self.parameterJ["so_c"]*1j # px, py
+                # self.SuperH[self.i_up+self.i_cation+self.i_py][self.i_up+self.i_cation+self.i_px] += self.parameterJ["so_c"]*1j
+                # self.SuperH[self.i_up+self.i_cation+self.i_px][self.i_up+self.i_cation+self.i_py] += -self.parameterJ["so_c"]*1j
             if s_r == 1 and s_c == 1:
                 # Doing the down down submatrix
-                if self.atoms[n_c] == "Te":
+                if self.atoms[n_c][0] == "Te":
                     # Doing the anions
-                    if o_r == 2 and o_c == 1: D = self.parameterJ["so_a"]*1j  # py, px
-                    if o_r == 1 and o_c == 2: D = -self.parameterJ["so_a"]*1j  # px, py
-                if self.atoms[n_c] == "Hg":
+                    if o_r == 2 and o_c == 1: D = -self.parameterJ["so_a"]*1j  # py, px
+                    if o_r == 1 and o_c == 2: D = self.parameterJ["so_a"]*1j  # px, py
+                # # Lets do the down-down sub-matrix next
+                # self.SuperH[self.i_down+self.i_anion+self.i_py][self.i_down+self.i_anion+self.i_px] += -self.parameterJ["so_a"]*1j
+                # self.SuperH[self.i_down+self.i_anion+self.i_px][self.i_down+self.i_anion+self.i_py] += self.parameterJ["so_a"]*1j
+                if self.atoms[n_c][0] == "Hg":
                     # Doing the cations
-                    if o_r == 2 and o_c == 1: D = self.parameterJ["so_c"]*1j  # py, px
-                    if o_r == 1 and o_c == 2: D = -self.parameterJ["so_c"]*1j # px, py
+                    if o_r == 2 and o_c == 1: D = -self.parameterJ["so_c"]*1j  # py, px
+                    if o_r == 1 and o_c == 2: D = self.parameterJ["so_c"]*1j # px, py
+                # self.SuperH[self.i_down+self.i_cation+self.i_py][self.i_down+self.i_cation+self.i_px] += -self.parameterJ["so_c"]*1j
+                # self.SuperH[self.i_down+self.i_cation+self.i_px][self.i_down+self.i_cation+self.i_py] += self.parameterJ["so_c"]*1j
             if s_r == 0 and s_c == 1:
                 # Doing the up down submatrix
-                if self.atoms[n_c] == "Te":
+                if self.atoms[n_c][0] == "Te":
                     # Doing the anions
                     if o_r == 3 and o_c == 1: D = -self.parameterJ["so_a"]
                     if o_r == 1 and o_c == 3: D = self.parameterJ["so_a"]
                     if o_r == 3 and o_c == 2: D = self.parameterJ["so_a"]*1j
                     if o_r == 2 and o_c == 3: D = -self.parameterJ["so_a"]*1j
-                if self.atoms[n_c] == "Hg":
+                if self.atoms[n_c][0] == "Hg":
                     # Doing the cations
                     if o_r == 3 and o_c == 1: D = -self.parameterJ["so_c"]
                     if o_r == 1 and o_c == 3: D = self.parameterJ["so_c"]
@@ -528,30 +546,23 @@ class ZB(TB):
                     if o_r == 2 and o_c == 3: D = -self.parameterJ["so_c"]*1j
             if s_r == 1 and s_c == 0:
                 # Doing the down up submatrix
-                if self.atoms[n_c] == "Te":
+                if self.atoms[n_c][0] == "Te":
                     # Doing the anions
                     if o_r == 1 and o_c == 3: D = -self.parameterJ["so_a"]
                     if o_r == 3 and o_c == 1: D = self.parameterJ["so_a"]
                     if o_r == 2 and o_c == 3: D = -self.parameterJ["so_a"]*1j
                     if o_r == 3 and o_c == 2: D = self.parameterJ["so_a"]*1j
-                if self.atoms[n_c] == "Hg":
+                if self.atoms[n_c][0] == "Hg":
                     # Doing the cations
                     if o_r == 1 and o_c == 3: D = -self.parameterJ["so_c"]
                     if o_r == 3 and o_c == 1: D = self.parameterJ["so_c"]
                     if o_r == 2 and o_c == 3: D = -self.parameterJ["so_c"]*1j
                     if o_r == 3 and o_c == 2: D = self.parameterJ["so_c"]*1j
 
-                # Lleaving original lines here to check for errors 
+            # print(f"printing D: {D}")
 
-                # self.SuperH[self.i_up+self.i_anion+self.i_py][self.i_up+self.i_anion+self.i_px] += self.parameterJ["so_a"]*1j
-                # self.SuperH[self.i_up+self.i_anion+self.i_px][self.i_up+self.i_anion+self.i_py] += -self.parameterJ["so_a"]*1j
-                # self.SuperH[self.i_up+self.i_cation+self.i_py][self.i_up+self.i_cation+self.i_px] += self.parameterJ["so_c"]*1j
-                # self.SuperH[self.i_up+self.i_cation+self.i_px][self.i_up+self.i_cation+self.i_py] += -self.parameterJ["so_c"]*1j
-                # # Lets do the down-down sub-matrix next
-                # self.SuperH[self.i_down+self.i_anion+self.i_py][self.i_down+self.i_anion+self.i_px] += -self.parameterJ["so_a"]*1j
-                # self.SuperH[self.i_down+self.i_anion+self.i_px][self.i_down+self.i_anion+self.i_py] += self.parameterJ["so_a"]*1j
-                # self.SuperH[self.i_down+self.i_cation+self.i_py][self.i_down+self.i_cation+self.i_px] += -self.parameterJ["so_c"]*1j
-                # self.SuperH[self.i_down+self.i_cation+self.i_px][self.i_down+self.i_cation+self.i_py] += self.parameterJ["so_c"]*1j
+                # Leaving original lines here to check for errors 
+
                 # # Lets do the up-down sub-matrix next
                 # self.SuperH[self.i_up+self.i_anion+self.i_pz][self.i_down+self.i_anion+self.i_px] += -self.parameterJ["so_a"]
                 # self.SuperH[self.i_up+self.i_anion+self.i_px][self.i_down+self.i_anion+self.i_pz] += self.parameterJ["so_a"]
@@ -600,24 +611,24 @@ class ZB(TB):
         # Here we calculate teh shape of the matrix
         # Te is taken to be the anion in the paper and Hg is taken to be the cation
         # Counting the number of anions and cations and mutiplying by 10 since they all have spds* (10 orbtal) orbitals
-        anion_count = 0
-        cation_count = 0
-        H_count = 0
+        self.anion_count = 0
+        self.cation_count = 0
+        self.H_count = 0
 
         for atom in self.atoms:
-            if atom[0] == "Hg": anion_count+=1
-            elif atom[0] == "Te": cation_count+=1
-            elif atom[0] == "H": H_count+=1
+            if atom[0] == "Te": self.anion_count+=1
+            elif atom[0] == "Hg": self.cation_count+=1
+            elif atom[0] == "H": self.H_count+=1
             
         
         self.log("--------- Atom counts:")
-        self.log(f"          Anions\t:{anion_count}")
-        self.log(f"          Cations\t:{cation_count}")
-        self.log(f"          Hydrogens\t:{H_count}")
-        self.log(f"Size of matrix\t: 2*[(anions:{anion_count})*10 + (cations:{cation_count})*10 + (H atoms:{H_count})*1]\n")
+        self.log(f"          Anions (Te)\t\t:{self.anion_count}\t-> electrons: 6*{self.anion_count} = {6*self.anion_count}") 
+        self.log(f"          Cations (Hg)\t:{self.cation_count}\t-> electrons: 2*{self.cation_count} = {2*self.cation_count}")
+        self.log(f"          Hydrogens\t\t:{self.H_count}")
+        self.log(f"Size of matrix\t: 2*[(anions:{self.anion_count})*10 + (cations:{self.cation_count})*10 + (H atoms:{self.H_count})*1]\n")
 
-        size_wo_so = (anion_count*10 + cation_count*10 + H_count)
-        size_so = 2*(anion_count*10 + cation_count*10 + H_count)
+        size_wo_so = (self.anion_count*10 + self.cation_count*10 + self.H_count)
+        size_so = 2*(self.anion_count*10 + self.cation_count*10 + self.H_count)
 
         if self.so == True:
             self.size = size_so
@@ -627,6 +638,8 @@ class ZB(TB):
 
         self.SuperH = np.zeros((self.size, self.size), dtype=complex)
         self.log(f"Shape of initialized matrix : {self.SuperH.shape}\n")
+        self.HOMO_i = self.anion_count*6+self.cation_count*2+self.H_count*1 - 1  # -1 for the index
+        self.log(f"HOMO level at {self.HOMO_i + 1}th Electronic state\n")
 
         # print(self.SuperH)
         # calculating priliminary matrices that will be used.
@@ -674,14 +687,14 @@ class ZB(TB):
                                                 # if s_r == 1 and s_c == 1:
                                                     # print(f"{self.Hcc[o_r][o_c]}")
                                             if self.atoms[n_r][0] == "Te":
-                                                if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                                if s_c == s_r: self.SuperH[i][j] = self.Haa[o_r][o_c] + D
                                                 else: self.SuperH[i][j] = D
                                 if self.atoms[n_r][0] == "H":
                                     # print(f"n_r is: {n_r} and s_r is {s_r} and s_c is {s_c}")
                                     for o_r in self.H:
                                         for o_c in self.H:
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hhh[o_r][o_c] + D
                                             else: self.SuperH[i][j] = D
                                 # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
 
@@ -693,7 +706,7 @@ class ZB(TB):
                                         for o_c in self.O:
                                             # Here we assume that since we are considering only nearest neighbours we have the other type of atoms in teh coulmns
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hac[o_r][o_c] + D
                                             else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
                                 if self.atoms[n_c][0] == "H":
@@ -701,7 +714,7 @@ class ZB(TB):
                                     for o_r in self.O:
                                         for o_c in self.H:
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hah[o_r][o_c] + D
                                             else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
 
@@ -713,7 +726,7 @@ class ZB(TB):
                                         for o_c in self.O:
                                             # Here we assume that since we are considering only nearest neighbours we have the other type of atoms in teh coulmns
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hca[o_r][o_c] + D
                                             else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
                                 if self.atoms[n_c][0] == "H":
@@ -721,7 +734,7 @@ class ZB(TB):
                                     for o_r in self.O:
                                         for o_c in self.H:
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hch[o_r][o_c] + D
                                             else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
 
@@ -734,7 +747,7 @@ class ZB(TB):
                                             # Here we assume that since we are considering only nearest neighbours we have the other type of atoms in teh coulmns
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
                                             # print(i,j)
-                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hha[o_r][o_c] + D
                                             else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
                                 if self.atoms[n_c][0] == "Hg":
@@ -742,19 +755,20 @@ class ZB(TB):
                                     for o_r in self.H:
                                         for o_c in self.O:
                                             i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                            if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                            if s_c == s_r: self.SuperH[i][j] = self.Hhc[o_r][o_c] + D
                                             else: self.SuperH[i][j] = D
                                     # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
         # self.log("--------- End Nearest neighbours")
 
         if self.print_hamiltonian:
-            self.log(f"\n--------  Printing Full Hamiltonian (Before diagonalization):")
+            self.log(f"\n--------  Printing Full Hamiltonian (Non zero elements) (Before diagonalization):")
             print(f"\n--------  Printing Full Hamiltonian (Before diagonalization):")
             text = ""
             for i in range(len(self.SuperH)):
                 # print(f"Row {i}")
                 for j in range(len(self.SuperH)):
-                    text += f"Element {i:<4}{j:<4}: {self.SuperH[i][j]}\n"
+                    if not self.SuperH[i][j] == 0:
+                        text += f"Element {i:<4}{j:<4}: {self.SuperH[i][j]}\n"
             self.log(text)
 
         self.log(f"\nStarting diagonalization of super matrix......   Time now is: {datetime.now()}")
@@ -770,7 +784,7 @@ class ZB(TB):
         self.log(f"\n--------  Results: ")
         self.log(f"--------  Eigen values: ")
         for i,v in enumerate(self.sorted_eigen_vals):
-            self.log(f"{i:<5} = {v:>4}")
+            self.log(f"{i+1:<5} = {v:>4}")  # I+1 so that we try to correct for the index
 
 
         self.plot()
