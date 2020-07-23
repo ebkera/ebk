@@ -276,6 +276,7 @@ class BandPlotterASE():
 
 # class DOSPlotterASE():
 #     # Under costruction!!
+#     Commentout out for deleteion. since this code has seince been integrated into bandPlotter aASE
 #     def __init__(self, **kwargs):
 #         """
 #         If plotting multiple band plots here can do only same path.
