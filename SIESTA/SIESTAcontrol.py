@@ -184,17 +184,17 @@ class Generatefdf:
                 fdf_file.write(f"%endblock BandLines\n\n")
 
             if self.MD == True:
-                fdf.file.write(f"MD.TypeOfRun           CG\n")
-                fdf.file.write(f"MD.NumCGsteps          300\n")
-                # fdf.file.write(f"MD.MaxForceTol         0.04\n")
-                # fdf.file.write(f"MD.VariableCell        T\n")  # Is false by default.
-                # fdf.file.write(f"MD.ConstantVolume      F\n")  # Is false by default.
-                # fdf.file.write(f"MD.UseSaveXV           T\n")
-                # fdf.file.write(f"MD.UseSaveCG           T\n")
-                # fdf.file.write(f"MD.MaxStressTol        0.0010\n")
-                fdf.file.write(f"WriteMDHistory         T\n")
-                fdf.file.write(f"WriteMDXMol            T\n")
-                fdf.file.write(f"MD.MaxCGDispl          0.02 Bohr\n")
+                fdf_file.write(f"MD.TypeOfRun           CG\n")
+                fdf_file.write(f"MD.NumCGsteps          300\n")
+                # fdf_file.write(f"MD.MaxForceTol         0.04\n")
+                # fdf_file.write(f"MD.VariableCell        T\n")  # Is false by default.
+                # fdf_file.write(f"MD.ConstantVolume      F\n")  # Is false by default.
+                # fdf_file.write(f"MD.UseSaveXV           T\n")
+                # fdf_file.write(f"MD.UseSaveCG           T\n")
+                # fdf_file.write(f"MD.MaxStressTol        0.0010\n")
+                # fdf_file.write(f"WriteMDHistory         T\n")
+                # fdf_file.write(f"WriteMDXMol            T\n")
+                # fdf_file.write(f"MD.MaxCGDispl          0.02 Bohr\n")
 
             fdf_file.write(f"SaveTotalPotential true\n")
             fdf_file.write(f"SaveElectrostaticPotential true\n")
