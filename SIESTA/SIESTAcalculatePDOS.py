@@ -35,7 +35,7 @@ class Read_PDOS():
 
     def process(self, system_label):
         """
-        This functions autoomates loading the pdos file.
+        This functions automates loading the pdos file.
         system_label: String: System Label as string
         """
         self.system_labels.append(system_label)
