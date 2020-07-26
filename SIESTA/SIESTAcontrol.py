@@ -11,19 +11,22 @@ class Generatefdf:
         """
         fdf_type: (string) ["bulk", "dot"]
         PAO_define: (string) ["global", "block"]-> global: Using energyshift and split norm, block: using a PAO.basis block
+        PAO_define_global (bool)  # Setting this means we can set energyyshift and splitnorm. But setting this to false just means defualt value
         """
         self.SystemLabel           = kwargs.get("SystemLabel", "Sn")
         self.description           = kwargs.get("description", "A General Run")
         self.NumberOfSpecies       = kwargs.get("NumberOfSpecies", 2)
         self.Species               = kwargs.get("Species", ["Sn", "H"])
         self.coordinates_file_name = kwargs.get("coordinates_file_name", "coordinates.fdf")
+        self.include_coordinate_file = kwargs.get("include_coordinate_file", False)
         self.fdf_type              = kwargs.get("fdf_type", "dot") # 
-        self.PAO_define            = kwargs.get("PAO_define", "global")
+        self.PAO_define_global     = kwargs.get("PAO_define_global", False)  # Setting this bemans we can set energyyshift and splitnorm. But setting this to false just means defualt value
+        self.PAO_define            = kwargs.get("PAO_define", "global")  # SEt this to block to make the blocks work
         self.XC_Functional         = kwargs.get("XC_Functional", "LDA")
         self.XC_Authors            = kwargs.get("XC_Authors", "CA")
         self.lattice_vectors       = kwargs.get("lattice_vectors", "fcc")
         self.bands_block           = kwargs.get("bands_block", True)
-        self.MPGrid                = kwargs.get("MPGrid", 10)
+        self.MPGrid                = kwargs.get("MPGrid", 0)
         self.PDOS                  = kwargs.get("PDOS", True)
         self.LDOS                  = kwargs.get("LDOS", False)
         self.PDOS_MPGrid           = kwargs.get("PDOS_MPGrid", 15)
@@ -31,7 +34,9 @@ class Generatefdf:
         self.MD                    = kwargs.get("MD", False)
         self.Spin                  = kwargs.get("Spin", False)  # can be spin-orbit
         self.SO_strength           = kwargs.get("SO_strength", False)
+        self.include_H_in_block    = kwargs.get("include_H_in_block", False)
         self.ElectronicTemperature = kwargs.get("ElectronicTemperature", False)
+        self.constrain_centre_atom = kwargs.get("constrain_centre_atom", False)  # for when doing dots we can have the central atom fixed.
         if self.XC_Functional == "LDA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.432)
         if self.XC_Functional == "GGA":
@@ -73,21 +78,20 @@ class Generatefdf:
             fdf_file.write(f"SCF.MustConverge      false\n")
             fdf_file.write(f"DM.MixingWeight       0.01\n\n")
 
-            fdf_file.write(f"AtomicCoordinatesFormat Fractional              # Format for coordinates\n")
-            fdf_file.write(f"%block AtomicCoordinatesAndAtomicSpecies        # Two atoms in the basis\n")
-            fdf_file.write(f".000   .000   .000   1\n")
-            fdf_file.write(f".250   .250   .250   1\n")
-            fdf_file.write(f"%endblock AtomicCoordinatesAndAtomicSpecies\n\n")
-
             if self.fdf_type == "bulk":
                 if self.lattice_vectors == "fcc":
+                    fdf_file.write(f"AtomicCoordinatesFormat Fractional              # Format for coordinates\n")
+                    fdf_file.write(f"%block AtomicCoordinatesAndAtomicSpecies        # Two atoms in the basis\n")
+                    fdf_file.write(f".000   .000   .000   1\n")
+                    fdf_file.write(f".250   .250   .250   1\n")
+                    fdf_file.write(f"%endblock AtomicCoordinatesAndAtomicSpecies\n\n")
                     fdf_file.write(f"%block LatticeVectors  				#FCC lattices\n")
                     fdf_file.write(f"0.000  0.500  0.500\n")
                     fdf_file.write(f"0.500  0.000  0.500\n")
                     fdf_file.write(f"0.500  0.500  0.000\n")
                     fdf_file.write(f"%endblock LatticeVectors\n\n")
 
-            if self.fdf_type != "bulk":
+            if self.include_coordinate_file:
                 fdf_file.write(f"%include {self.coordinates_file_name}\n\n")
 
             if self.MPGrid != 0:
@@ -99,6 +103,14 @@ class Generatefdf:
                 fdf_file.write(f"%endblock kgrid.MonkhorstPack. \n\n")
 
             if self.PDOS:
+                if self.PDOS_MPGrid != 0:
+                    fdf_file.write(f"# Monkhorst-Pack Grid\n")
+                    fdf_file.write(f"%block PDOS.kgrid.MonkhorstPack. \n")
+                    fdf_file.write(f"{self.PDOS_MPGrid}  0  0  0.5\n")
+                    fdf_file.write(f"0  {self.PDOS_MPGrid}  0  0.5\n")
+                    fdf_file.write(f"0  0  {self.PDOS_MPGrid}  0.5\n")
+                    fdf_file.write(f"%endblock PDOS.kgrid.MonkhorstPack.\n\n")
+
                 fdf_file.write(f"%block ProjectedDensityOfStates\n")
                 if self.ElectronicTemperature:
                     fdf_file.write(f"-10.00 15.00 {self.ElectronicTemperature} 3000 eV\n")
@@ -106,20 +118,14 @@ class Generatefdf:
                     fdf_file.write(f"-10.00 15.00 0.050 3000 eV\n")
                 fdf_file.write(f"%endblock ProjectedDensityOfStates\n\n")
 
-                if self.PDOS_MPGrid != 0:
-                    fdf_file.write(f"# Monkhorst-Pack Grid\n")
-                    fdf_file.write(f"%block PDOS.kgrid.MonkhorstPack. \n")
-                    fdf_file.write(f"{self.PDOS_MPGrid}  0  0  0.5\n")
-                    fdf_file.write(f"0  {self.PDOS_MPGrid}  0  0.5\n")
-                    fdf_file.write(f"0  0  {self.PDOS_MPGrid}  0.5\n")
-                    fdf_file.write(f"%endblock PDOS.kgrid.MonkhorstPack. \n\n")
-
             if self.LDOS:
                 fdf_file.write(f"%block LocalDensityOfStates\n")
-                fdf_file.write(f"-3.50 0.00 eV\n")
-                fdf_file.write(f"%endblock LocalDensityOfStates\n")
+                fdf_file.write(f"-10.0  15.00 eV\n")
+                fdf_file.write(f"%endblock LocalDensityOfStates\n\n")
 
-            if self.PAO_define == "global":
+            if self.PAO_define_global:
+            # This used to be set to work only if above condition but sice we have defined the block for all we need does not hurn to have it for all other atoms
+            # This way we can have H to not be forced to some value we set and have it free
                 fdf_file.write(f"# These values are from the paper\n")
                 fdf_file.write(f"PAO.BasisSize         DZP\n")
                 fdf_file.write(f"PAO.EnergyShift       {self.PAO_EnergyShift} Ry    #Range of first zeta (A standard for orbital-confining cutoff radii)\n")
@@ -161,12 +167,17 @@ class Generatefdf:
                 # fdf_file.write(f"  n=3  1  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
                 # fdf_file.write(f"  8.823  4.116\n")
                 # fdf_file.write(f"  1.000  1.000\n")
-                if self.fdf_type == "dot":
+                if self.fdf_type == "dot" and self.include_H_in_block:
                     fdf_file.write(f"H  1  # H from Sn dots.\n")
                     fdf_file.write(f"  n=1  0  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
                     fdf_file.write(f"  7.026  3.359\n")
                     fdf_file.write(f"  1.000  1.000\n")
                 fdf_file.write(f"%endblock PAO.Basis\n\n")
+
+            if self.fdf_type == "dot" and self.constrain_centre_atom:
+                fdf_file.write(f"%block Geometry.Constraints\n")
+                fdf_file.write(f"atom 1\n")
+                fdf_file.write(f"%endblock Geometry.Constraints\n\n")
 
             if self.bands_block:
                 fdf_file.write(f"# Band lines path\n")
