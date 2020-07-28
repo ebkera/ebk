@@ -17,7 +17,8 @@ class TB:
         self.atoms = []
         self.so = kwargs.get("so", True)
         self.a = kwargs.get("a", 6.453)  # Lattice parameter in Angstroms
-        self.cations_as_neighbours = np.array([[0.25,0.25,0.25],[0.25,-0.25,-0.25],[-0.25,0.25,-0.25],[-0.25,-0.25,0.25]])*self.a
+        fractional_bondlength = 0.25
+        self.cations_as_neighbours = np.array([[fractional_bondlength,fractional_bondlength,fractional_bondlength],[fractional_bondlength,-fractional_bondlength,-fractional_bondlength],[-fractional_bondlength,fractional_bondlength,-fractional_bondlength],[-fractional_bondlength,-fractional_bondlength,fractional_bondlength]])*self.a
         self.nn_threshold = self.a*np.sqrt(3)/4  # the threshold distance for Nearest neighbours
         self.print_hamiltonian = False
 
