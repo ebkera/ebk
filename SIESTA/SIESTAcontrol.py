@@ -132,8 +132,8 @@ class Generatefdf:
                 fdf_file.write(f"PAO.BasisType         SPLIT       #Split Valance\n")
                 fdf_file.write(f"PAO.SplitNorm         0.30        #Range of second-zeta\n\n")
             if self.PAO_define == "block":
+                fdf_file.write(f"%block PAO.Basis                 # Define Basis set\n")
                 if self.XC_Functional == "LDA":
-                    fdf_file.write(f"%block PAO.Basis                 # Define Basis set\n")
                     fdf_file.write(f"Sn  2  # Species label, number of l-shells\n")
                     fdf_file.write(f"  n=5  0  2  # n, l, Nzeta \n")
                     fdf_file.write(f"  5.275  4.773\n")
@@ -142,7 +142,6 @@ class Generatefdf:
                     fdf_file.write(f"  6.773  5.615\n")
                     fdf_file.write(f"  1.000  1.000\n")
                 if self.XC_Functional == "GGA":
-                    fdf_file.write(f"%block PAO.Basis                 # Define Basis set\n")
                     fdf_file.write(f"Sn  3  # Species label, number of l-shells\n")
                     fdf_file.write(f"  n=5  0  2  # n, l, Nzeta \n")
                     fdf_file.write(f"  7.275,  5.143\n")
@@ -174,7 +173,7 @@ class Generatefdf:
                     fdf_file.write(f"  1.000  1.000\n")
                 fdf_file.write(f"%endblock PAO.Basis\n\n")
 
-            if self.fdf_type == "dot" and self.constrain_centre_atom:
+            if self.fdf_type == "dot" and self.constrain_centre_atom and self.MD:
                 fdf_file.write(f"%block Geometry.Constraints\n")
                 fdf_file.write(f"atom 1\n")
                 fdf_file.write(f"%endblock Geometry.Constraints\n\n")
