@@ -72,7 +72,7 @@ class RunScriptHandler():
         self.xc               = kwargs.get("xc", "pbe")
         self.calculation      = kwargs.get("calculation", "scf")
         self.path             = kwargs.get("path", "GXWLGKL")
-        self.density          = kwargs.get("density", 30)
+        self.density          = kwargs.get("density", 20)
         self.k_path           = {"path":self.path, "density": self.density}
         self.R                = kwargs.get("R", [None])
         self.base_folder      = kwargs.get("base_folder", "Runs")
