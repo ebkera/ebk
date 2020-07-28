@@ -233,6 +233,7 @@ class DI(TB):
 
     def function_chooser(self, row, col, k_point = [0, 0, 0]):
         if row == col:
+            # print(row, col)
             # Here are the diagonal elements of the big matrix
             if row <= 9:
                 # These are the anion to anion elements
@@ -395,8 +396,6 @@ class DI(TB):
         else:
             return 0. + 0.j
 
-
-
     def Haa_f(self):
         """This is defined for the anion"""
         self.Haa = np.zeros((10, 10), dtype=complex)
@@ -482,13 +481,13 @@ class DI(TB):
                 # print(f"{n_r} and {n_c}, sr:{s_r} sc:{s_c}, oc:{o_c} or:{o_r}")
                 # print(f"inside loop")
                 # Doing the up up submatrix
-                if self.atoms[n_c][0] == "Te":
+                if self.atoms[n_c][0] == "Sn":
                     # Doing the anions
                     if o_r == 2 and o_c == 1: D = self.parameterJ["so_a"]*1j # py, px
                     if o_r == 1 and o_c == 2: D = -self.parameterJ["so_a"]*1j # px, py
                 # self.SuperH[self.i_up+self.i_anion+self.i_py][self.i_up+self.i_anion+self.i_px] += self.parameterJ["so_a"]*1j
                 # self.SuperH[self.i_up+self.i_anion+self.i_px][self.i_up+self.i_anion+self.i_py] += -self.parameterJ["so_a"]*1j
-                if self.atoms[n_c][0] == "Hg":
+                if self.atoms[n_c][0] == "Sn":
                     # Doing the cations
                     if o_r == 2 and o_c == 1: D = self.parameterJ["so_c"]*1j  # py, px
                     if o_r == 1 and o_c == 2: D = -self.parameterJ["so_c"]*1j # px, py
@@ -496,14 +495,14 @@ class DI(TB):
                 # self.SuperH[self.i_up+self.i_cation+self.i_px][self.i_up+self.i_cation+self.i_py] += -self.parameterJ["so_c"]*1j
             if s_r == 1 and s_c == 1:
                 # Doing the down down submatrix
-                if self.atoms[n_c][0] == "Te":
+                if self.atoms[n_c][0] == "Sn":
                     # Doing the anions
                     if o_r == 2 and o_c == 1: D = -self.parameterJ["so_a"]*1j  # py, px
                     if o_r == 1 and o_c == 2: D = self.parameterJ["so_a"]*1j  # px, py
                 # # Lets do the down-down sub-matrix next
                 # self.SuperH[self.i_down+self.i_anion+self.i_py][self.i_down+self.i_anion+self.i_px] += -self.parameterJ["so_a"]*1j
                 # self.SuperH[self.i_down+self.i_anion+self.i_px][self.i_down+self.i_anion+self.i_py] += self.parameterJ["so_a"]*1j
-                if self.atoms[n_c][0] == "Hg":
+                if self.atoms[n_c][0] == "Sn":
                     # Doing the cations
                     if o_r == 2 and o_c == 1: D = -self.parameterJ["so_c"]*1j  # py, px
                     if o_r == 1 and o_c == 2: D = self.parameterJ["so_c"]*1j # px, py
@@ -511,13 +510,13 @@ class DI(TB):
                 # self.SuperH[self.i_down+self.i_cation+self.i_px][self.i_down+self.i_cation+self.i_py] += self.parameterJ["so_c"]*1j
             if s_r == 0 and s_c == 1:
                 # Doing the up down submatrix
-                if self.atoms[n_c][0] == "Te":
+                if self.atoms[n_c][0] == "Sn":
                     # Doing the anions
                     if o_r == 3 and o_c == 1: D = -self.parameterJ["so_a"]
                     if o_r == 1 and o_c == 3: D = self.parameterJ["so_a"]
                     if o_r == 3 and o_c == 2: D = self.parameterJ["so_a"]*1j
                     if o_r == 2 and o_c == 3: D = -self.parameterJ["so_a"]*1j
-                if self.atoms[n_c][0] == "Hg":
+                if self.atoms[n_c][0] == "Sn":
                     # Doing the cations
                     if o_r == 3 and o_c == 1: D = -self.parameterJ["so_c"]
                     if o_r == 1 and o_c == 3: D = self.parameterJ["so_c"]
@@ -525,13 +524,13 @@ class DI(TB):
                     if o_r == 2 and o_c == 3: D = -self.parameterJ["so_c"]*1j
             if s_r == 1 and s_c == 0:
                 # Doing the down up submatrix
-                if self.atoms[n_c][0] == "Te":
+                if self.atoms[n_c][0] == "Sn":
                     # Doing the anions
                     if o_r == 1 and o_c == 3: D = -self.parameterJ["so_a"]
                     if o_r == 3 and o_c == 1: D = self.parameterJ["so_a"]
                     if o_r == 2 and o_c == 3: D = -self.parameterJ["so_a"]*1j
                     if o_r == 3 and o_c == 2: D = self.parameterJ["so_a"]*1j
-                if self.atoms[n_c][0] == "Hg":
+                if self.atoms[n_c][0] == "Sn":
                     # Doing the cations
                     if o_r == 1 and o_c == 3: D = -self.parameterJ["so_c"]
                     if o_r == 3 and o_c == 1: D = self.parameterJ["so_c"]
@@ -541,7 +540,7 @@ class DI(TB):
         row = 0
         for i in range(n_r):
             # for j in range(s_r+1):
-            if self.atoms[i][0] == "Hg" or self.atoms[i][0] == "Te":
+            if self.atoms[i][0] == "Sn" or self.atoms[i][0] == "Sn":
                 row+=10
             if self.atoms[i][0] == "H":
                 row+=1
@@ -549,18 +548,25 @@ class DI(TB):
         col = 0
         for i in range(n_c):
             # for j in range(s_c+1):
-            if self.atoms[i][0] == "Hg" or self.atoms[i][0] == "Te":
+            if self.atoms[i][0] == "Sn" or self.atoms[i][0] == "Sn":
                 col+=10
             if self.atoms[i][0] == "H":
                 col+=1
 
         if s_r == 1: row+= int(self.size/2)
         if s_c == 1: col+= int(self.size/2)
+
+
+        test_row = row + o_r
+        test_col = col + o_c
+        if (test_row == 0 and test_col == 9) or (test_row == 9 and test_col == 0):
+            print(s_r, s_c, n_r, n_c, o_r, o_c)
+
         return row + o_r, col + o_c, D
 
     def calculate(self):
         if self.check():
-            self.log("**** Calculation has not finished..... ")
+            self.log("**** Calculation has not finished.....")
             self.log(f"**** Possible errors: {self.check}")
             self.log("**** Refer to out file to see error")
 
@@ -629,14 +635,14 @@ class DI(TB):
                             if d <= self.nn_threshold:
                                 if n_r == n_c:
                                     # Case where we have to use Haa, Hcc or Hhh matrices
-                                    if self.atoms[n_r][0] == "Sn":  # Making sure it is not a H
+                                    if self.atoms[n_r][0] == "Sn" and self.atoms[n_c][0] == "Sn":  # Making sure it is not a H
                                         # print(f"n_r is: {n_r} and s_r is {s_r} and s_c is {s_c}")
                                         for o_r in self.O:
                                             for o_c in self.O:
                                                 i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                                print(i,j)
+                                                # print(i,j)
                                                 if self.atoms[n_r][0] == "Sn":
-                                                    if s_c == s_r: self.SuperH[i][j] = self.Hcc[o_r][o_c] + D
+                                                    if s_c == s_r: self.SuperH[i][j] = self.Haa[o_r][o_c] + D
                                                     else: self.SuperH[i][j] = D
                                                     self.SuperH[j][i] = np.conjugate(self.SuperH[i][j])
                                                     # if s_r == 1 and s_c == 1:
@@ -663,7 +669,7 @@ class DI(TB):
                                             for o_c in self.O:
                                                 # Here we assume that since we are considering only nearest neighbours we have the other type of atoms in teh coulmns
                                                 i, j, D = self.get_r_c_d(s_r, s_c , n_r, n_c, o_r, o_c)
-                                                if s_c == s_r: self.SuperH[i][j] = self.Hac[o_r][o_c] + D
+                                                if s_c == s_r: self.SuperH[i][j] = self.Haa[o_r][o_c] + D
                                                 else: self.SuperH[i][j] = D
                                                 self.SuperH[j][i] = np.conjugate(self.SuperH[i][j])
                                         # self.log(f"nns: {self.atoms[n_r]} and {self.atoms[n_c]}")
