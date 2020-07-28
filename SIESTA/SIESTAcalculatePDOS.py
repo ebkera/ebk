@@ -22,6 +22,7 @@ class Read_PDOS():
         self.x = []
         self.y_up = []
         self.y_dn = []
+        self.Egs = []
         self.set_y_range = False
         self.ylim_low = 0
         self.ylim_high = 50
@@ -88,6 +89,24 @@ class Read_PDOS():
         self.fermi_levels.append(float(Ef))
         self.kwargs.append(kwargs)
 
+        #finding teh band gap
+        diffs = [abs(x) for x in tempx]
+        Ef_index = diffs.index(min(diffs))
+        # print(tempx[Ef_index])
+        temp_negx = Ef_index
+        temp_posx = Ef_index
+        Eg = 0
+        if tempyup[Ef_index] == 0:
+            while tempyup[temp_negx] == 0:
+                temp_negx-=1
+            while tempyup[temp_posx] == 0:
+                temp_posx+=1
+            Eg = tempx[temp_posx-1] - tempx[temp_negx+1]
+        # print(f"Eg {Eg}")
+        # print(f"low {tempx[temp_negx]}")
+        # print(f"hig {tempx[temp_posx]}")
+        self.Egs.append(Eg)
+
     def prepare(self):
         pass
 
@@ -101,10 +120,11 @@ class Read_PDOS():
                     plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
             else:
                 try:
-                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
+                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}$E_g$ = {self.Egs[i]:5> 2.3f}", **self.kwargs[i])
                 except:
                     # If there are mutiple species or nothing picked up.
-                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
+                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}\t$E_g$ = {self.Egs[i]: 2.3f}", **self.kwargs[i])
+
         plt.xlabel('Energy in eV (E - E$_f$)')
         # plt.text(-3, 100, r'(b)', fontsize=12)
         plt.ylabel(f'{self.plt_ylabel}')
