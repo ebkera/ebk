@@ -74,60 +74,127 @@ class DI(TB):
             self.so_c = 0.0  # This is in eV
 
         # This is for HgTe
+        # self.parameter.update({"so_a": 2*self.so_a})
         self.parameter.update({"so_a": 2*self.so_a})
         self.parameter.update({"so_c": self.so_c})
 
         # Defining tight bindging paramters here _ca only for diagonal elements (remember we are using the ac block matrix as the base and then getting ca just by complex conjugate transpose)
         # The anion energies
-        self.parameter.update({"Es_a": -5.32567})
-        self.parameter.update({"Ep_a": 2.52194})
-        self.parameter.update({"Edxy_a": 12.06317})
-        self.parameter.update({"Edx2my2_a": 12.06317})
-        self.parameter.update({"ES_a": 8.80303})
+        self.parameter.update({"Es_a": -7.2029})
+        self.parameter.update({"Ep_a": 0.0032})
+        self.parameter.update({"Edxy_a": 0})
+        self.parameter.update({"Edx2my2_a":0})
+        self.parameter.update({"ES_a": 14.1081})
 
         # The cation energies
-        self.parameter.update({"Es_c": -5.32567})
-        self.parameter.update({"Ep_c": 2.52194})
-        self.parameter.update({"Edxy_c": 12.06317})
-        self.parameter.update({"Edx2my2_c": 12.06317})
-        self.parameter.update({"ES_c": 8.80303})
+        # self.parameter.update({"Es_c": self.parameter["Es_a"]})
+        # self.parameter.update({"Ep_c": self.parameter["Ep_a"]})
+        # self.parameter.update({"Edxy_c": self.parameter["Edxy_a"]})
+        # self.parameter.update({"Edx2my2_c": self.parameter["Edx2my2_a"]})
+        # self.parameter.update({"ES_c": self.parameter["ES_a"]})
 
         # Now we load the other parameters
         # The diagonal parameters
-        self.parameter.update({"Vsssigma": -1.26716})
-        self.parameter.update({"Vddsigma": -2.33598})  # meka thamai missing thiyenne 
-        self.parameter.update({"Vppsigma": 2.75609})
-        self.parameter.update({"Vpppi": -1.11032})
-        self.parameter.update({"Vddpi": 2.53095})
-        self.parameter.update({"Vdddelta": -1.85318})
-        self.parameter.update({"VSSsigma": -0.93471})
+        self.parameter.update({"Vsssigma": -1.4802})
+        self.parameter.update({"Vddsigma": 0})  # meka thamai missing thiyenne 
+        self.parameter.update({"Vppsigma": 3.3555})
+        self.parameter.update({"Vpppi": -1.6848})
+        self.parameter.update({"Vddpi": 0})
+        self.parameter.update({"Vdddelta": 0})
+        self.parameter.update({"VSSsigma": 0.4795})
 
         # The anion to cation off-diagonal parameters
-        self.parameter.update({"Vspsigma_ac": 1.79243})
-        self.parameter.update({"Vsdsigma_ac": -2.06445})
-        self.parameter.update({"Vpdsigma_ac": -1.27510})
-        self.parameter.update({"Vpdpi_ac": 1.35105})
-        self.parameter.update({"VsS_ac": 0.62601})
-        self.parameter.update({"VSpsigma_ac": 0.62509})
-        self.parameter.update({"VSdsigma_ac":0.73680})
+        self.parameter.update({"Vspsigma_ac": 1.9034})
+        self.parameter.update({"Vsdsigma_ac": 0})
+        self.parameter.update({"Vpdsigma_ac": 0})
+        self.parameter.update({"Vpdpi_ac": 0})
+        self.parameter.update({"VsS_ac": 0})
+        self.parameter.update({"VSpsigma_ac": 2.7564})
+        self.parameter.update({"VSdsigma_ac":0})
 
-        # The cation to anion off-diagonal parameters
-        self.parameter.update({"Vspsigma_ca": 1.79243})
-        self.parameter.update({"Vsdsigma_ca": -2.06445})
-        self.parameter.update({"Vpdsigma_ca": -1.27510})
-        self.parameter.update({"Vpdpi_ca": 1.35105})
-        self.parameter.update({"VsS_ca": 0.62601})
-        self.parameter.update({"VSpsigma_ca": 0.62509})
-        self.parameter.update({"VSdsigma_ca": 0.73680})
+        # # The cation to anion off-diagonal parameters
+        # self.parameter.update({"Vspsigma_ca": 1.79243})
+        # self.parameter.update({"Vsdsigma_ca": -2.06445})
+        # self.parameter.update({"Vpdsigma_ca": -1.27510})
+        # self.parameter.update({"Vpdpi_ca": 1.35105})
+        # self.parameter.update({"VsS_ca": 0.62601})
+        # self.parameter.update({"VSpsigma_ca": 0.62509})
+        # self.parameter.update({"VSdsigma_ca": 0.73680})
 
         # The Hydrogen energies with itself
-        self.parameter.update({"E_H": 0.56000})
+        self.parameter.update({"E_H": 0})
 
         # The Hydrogen diagonal energies
-        self.parameter.update({"Vsssigma_H": -5.15100})
+        self.parameter.update({"Vsssigma_H": 0})
 
         # The Hydrogen off diagonal energies
-        self.parameter.update({"Vspsigma_H": 5.27000})
+        self.parameter.update({"Vspsigma_H": 0})
+
+
+
+        # if self.so == True:
+        #     self.so_a = 0.25  # This is in eV
+        #     self.so_c = 0.25  # This is in eV
+        # elif self.so == False:
+        #     self.so_a = 0.0  # This is in eV
+        #     self.so_c = 0.0  # This is in eV
+
+        # # This is for HgTe
+        # # self.parameter.update({"so_a": 2*self.so_a})
+        # self.parameter.update({"so_a": self.so_a})
+        # self.parameter.update({"so_c": self.so_c})
+
+        # # Defining tight bindging paramters here _ca only for diagonal elements (remember we are using the ac block matrix as the base and then getting ca just by complex conjugate transpose)
+        # # The anion energies
+        # self.parameter.update({"Es_a": -5.32567})
+        # self.parameter.update({"Ep_a": 2.52194})
+        # self.parameter.update({"Edxy_a": 12.06317})
+        # self.parameter.update({"Edx2my2_a": 12.06317})
+        # self.parameter.update({"ES_a": 8.80303})
+
+        # # The cation energies
+        # self.parameter.update({"Es_c": -5.32567})
+        # self.parameter.update({"Ep_c": 2.52194})
+        # self.parameter.update({"Edxy_c": 12.06317})
+        # self.parameter.update({"Edx2my2_c": 12.06317})
+        # self.parameter.update({"ES_c": 8.80303})
+
+        # # Now we load the other parameters
+        # # The diagonal parameters
+        # self.parameter.update({"Vsssigma": -1.26716})
+        # self.parameter.update({"Vddsigma": -2.33598})  # meka thamai missing thiyenne 
+        # self.parameter.update({"Vppsigma": 2.75609})
+        # self.parameter.update({"Vpppi": -1.11032})
+        # self.parameter.update({"Vddpi": 2.53095})
+        # self.parameter.update({"Vdddelta": -1.85318})
+        # self.parameter.update({"VSSsigma": -0.93471})
+
+        # # The anion to cation off-diagonal parameters
+        # self.parameter.update({"Vspsigma_ac": 1.79243})
+        # self.parameter.update({"Vsdsigma_ac": -2.06445})
+        # self.parameter.update({"Vpdsigma_ac": -1.27510})
+        # self.parameter.update({"Vpdpi_ac": 1.35105})
+        # self.parameter.update({"VsS_ac": 0.62601})
+        # self.parameter.update({"VSpsigma_ac": 0.62509})
+        # self.parameter.update({"VSdsigma_ac":0.73680})
+
+        # # The cation to anion off-diagonal parameters
+        # self.parameter.update({"Vspsigma_ca": 1.79243})
+        # self.parameter.update({"Vsdsigma_ca": -2.06445})
+        # self.parameter.update({"Vpdsigma_ca": -1.27510})
+        # self.parameter.update({"Vpdpi_ca": 1.35105})
+        # self.parameter.update({"VsS_ca": 0.62601})
+        # self.parameter.update({"VSpsigma_ca": 0.62509})
+        # self.parameter.update({"VSdsigma_ca": 0.73680})
+
+        # # The Hydrogen energies with itself
+        # self.parameter.update({"E_H": 0.56000})
+
+        # # The Hydrogen diagonal energies
+        # self.parameter.update({"Vsssigma_H": -5.15100})
+
+        # # The Hydrogen off diagonal energies
+        # self.parameter.update({"Vspsigma_H": 5.27000})
 
         # Save new list with all paramters converted to J
         # self.parameterJ = {key: value * 1.60218e-19 for (key,value) in self.parameter.items()}
@@ -236,14 +303,14 @@ class DI(TB):
             # print(row, col)
             # Here are the diagonal elements of the big matrix
             if row <= 9:
-                # These are the anion to anion elements
-                if row == 0: return self.parameterJ["Es_a"]
-                elif row == 1 or row == 2 or row ==3 : return self.parameterJ["Ep_a"]
-                elif row == 4 or row == 5 or row ==6: return self.parameterJ["Edxy_a"]
-                elif row == 7 or row == 8: return self.parameterJ["Edx2my2_a"]
-                elif row == 9: return self.parameterJ["ES_a"]
-                else:
-                    print("function_chooser: Fatal Error - Element not found")
+            # These are the anion to anion elements
+            if row == 0: return self.parameterJ["Es_a"]
+            elif row == 1 or row == 2 or row ==3 : return self.parameterJ["Ep_a"]
+            elif row == 4 or row == 5 or row ==6: return self.parameterJ["Edxy_a"]
+            elif row == 7 or row == 8: return self.parameterJ["Edx2my2_a"]
+            elif row == 9: return self.parameterJ["ES_a"]
+            else:
+                print("function_chooser: Fatal Error - Element not found")
 
             elif row > 9:
                 row = row - 10  # So we can still refer to the rows and columns as from 0-9 to retain our sanity

@@ -94,3 +94,16 @@ def siesta_convergence_checker(file_name):
     plt.legend()
     plt.savefig(f"{file_name}_Convergence_parameters.pdf")
     plt.show()
+
+def struct2xyz(file_name):
+    """
+    This function converts a SIESTA struct out file to n xyz file.
+    """
+    from ase.io import read, write
+    atoms = read(file_name)
+    print(f"struct2xyz: STRUCT_OUT file imported: {atoms}")
+    file_name = file_name.split(".")
+    del file_name[-1]
+    file_write_name = ".".join(file_name)
+    write(f"{file_write_name}.xyz", atoms)
+    print(f"struct2xyz: Written to .xyz file")
