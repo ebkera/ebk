@@ -33,6 +33,7 @@ class Read_PDOS():
         self.plt_title = f"{self.figure_name}"
         self.plt_ylabel = "PDOS"
         self.kwargs = []  # for all the matplotlib pltotting kwargs
+        self.plt_show = True
 
     def process(self, system_label):
         """
@@ -136,7 +137,7 @@ class Read_PDOS():
         if self.set_y_range == True:
             plt.ylim([self.ylim_low,self.ylim_high])
         plt.savefig(f"{self.figure_name}.pdf")
-        plt.show()
+        if self.plt_show: plt.show()
         plt.close()
 
         # plt.figure()
