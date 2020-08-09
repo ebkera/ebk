@@ -44,6 +44,20 @@ mh_Sn = 0.21*m0  # alpha-Sn
 # Lattice Constants here in Angstroms
 a_InAs = 6.0583
 
+def get_machine_paths():
+    import os
+    """This function will get the machine paths to the directories that contain teh following depending on the computer in use.
+    1) Pseudopotentials
+    2) structure files (eg. xyz)
+    3) 
+    This function returns a dict with the relevant paths
+    """
+    if os.environ['COMPUTERNAME'] == "ERA-PC":
+        pps = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/PseudopotentialDatabase"
+        xyz = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/XYZdatabase
+
+    paths = {"pps": pps, "xyz": xyz}
+
 def reduced_mass(me2, mh2):
     '''This function calculates reduced mass'''
     return me2*mh2/(me2+mh2)
