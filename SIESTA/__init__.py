@@ -107,3 +107,12 @@ def struct2xyz(file_name):
     file_write_name = ".".join(file_name)
     write(f"{file_write_name}.xyz", atoms)
     print(f"struct2xyz: Written to .xyz file")
+
+def read_struct_file(file_name):
+    """
+    This function reads a struct file and returns the atoms object.
+    """
+    from ase.io import read
+    atoms = read(file_name)
+    print(f"struct2xyz: STRUCT_OUT file imported: {atoms}")
+    return atoms
