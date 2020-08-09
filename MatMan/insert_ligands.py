@@ -8,6 +8,10 @@ BDT12_path = f"{xyz_path}/1,2-benzeneDithiol_relaxed.xyz"
 BDT14_path = f"{xyz_path}/1,4-benzeneDithiol_relaxed_KE50.xyz"
 
 class Insert_ligand():
+    """
+    This class is made to be strictly for ligands so that we dont have to go about attaching ligands manually. 
+    This class will isert a ligand at a given position and at a given orientation.
+    """
     def __init__(self, *args, **kwargs):
         pass
 
@@ -38,6 +42,15 @@ class Insert_ligand():
     def save(self, format):
         write(f"{self.name}.{format}", self.atoms)
 
+    def attach(self, attach_to, attach_at, attach_through)
+    """
+    This is the main function that attacheds the ligand to a atoms type object
+    attach_to: The atoms type object that the ligand will attach to
+    attach_at: Will attach at this atom in the atoms object(attach_to) and if there is an atom there already it will remove it and attach the ligand
+    attach_through: The ligand will remove this atom and the resulting will attach throught the resulting dangling bond. to the attach_at site in the ligand.
+    """
+        pass
+
 class BDT14(Insert_ligand):
     def __init__(self, *args, **kwargs):
         self.name = kwargs.get("name", "BDT14")
@@ -52,6 +65,6 @@ class BDT12(Insert_ligand):
 
 class EDT12(Insert_ligand):
     def __init__(self, *args, **kwargs):
-        self.name = kwargs.get("name", "EDT12s")
+        self.name = kwargs.get("name", "EDT12")
         self.atoms = read(EDT12_path, index=None, format="xyz")
         super().__init__()
