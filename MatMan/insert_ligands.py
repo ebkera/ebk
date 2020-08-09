@@ -1,5 +1,12 @@
 from ase.io import read, write
 from ase.atom import Atom
+from ebk import get_machine_paths
+
+xyz_path = get_machine_paths()["xyz"]
+EDT_path = f"{xyz_path}/1,2-ethaneDithiol_relaxed.xyz"
+BDT12_path = f"{xyz_path}/1,2-benzeneDithiol_relaxed.xyz"
+BDT14_path = f"{xyz_path}/1,4-benzeneDithiol_relaxed_KE50.xyz"
+print(EDT_path, BDT12_path, BDT14_path)
 
 class Insert_ligand():
     def __init__(self, *args, **kwargs):
@@ -35,5 +42,17 @@ class Insert_ligand():
 class BDT14(Insert_ligand):
     def __init__(self, *args, **kwargs):
         self.name = kwargs.get("name", "BDT14")
-        self.atoms = read("1,4-benzeneDithiol_relaxed_KE50.xyz", index=None, format="xyz")
+        self.atoms = read(BDT14_path, index=None, format="xyz")
+        super().__init__()
+
+class BDT12(Insert_ligand):
+    def __init__(self, *args, **kwargs):
+        self.name = kwargs.get("name", "BDT12")
+        self.atoms = read(BDT14_path, index=None, format="xyz")
+        super().__init__()
+
+class EDT12(Insert_ligand):
+    def __init__(self, *args, **kwargs):
+        self.name = kwargs.get("name", "EDT12s")
+        self.atoms = read(BDT14_path, index=None, format="xyz")
         super().__init__()
