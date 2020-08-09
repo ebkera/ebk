@@ -54,9 +54,10 @@ def get_machine_paths():
     """
     if os.environ['COMPUTERNAME'] == "ERA-PC":
         pps = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/PseudopotentialDatabase"
-        xyz = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/XYZdatabase
+        xyz = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/XYZdatabase"
 
     paths = {"pps": pps, "xyz": xyz}
+    return paths
 
 def reduced_mass(me2, mh2):
     '''This function calculates reduced mass'''
