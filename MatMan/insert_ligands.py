@@ -80,9 +80,7 @@ class Insert_ligand():
             attach_to.atoms.append(atom)
             attach_to.ligand_atoms.append(len(attach_to.atoms)-1)
             # print(attach_to.ligand_atoms)
-
         return attach_to
-
 
 class BDT14(Insert_ligand):
     def __init__(self, *args, **kwargs):
