@@ -113,6 +113,6 @@ def read_struct_file(file_name):
     This function reads a struct file and returns the atoms object.
     """
     from ase.io import read
-    atoms = read(file_name)
-    print(f"struct2xyz: STRUCT_OUT file imported: {atoms}")
+    atoms = read(file_name, format="struct_out")
+    print(f"read_struct_file: STRUCT_OUT file imported: {atoms}")
     return atoms
