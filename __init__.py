@@ -52,10 +52,15 @@ def get_machine_paths():
     3) 
     This function returns a dict with the relevant paths
     """
-    print(f"This computer is: {os.environ['COMPUTERNAME']}")
-    if os.environ['COMPUTERNAME'] == "ERA-PC":
-        pps = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/PseudopotentialDatabase"
-        xyz = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/XYZdatabase"
+    try:
+        print(f"This computer is: {os.environ['COMPUTERNAME']}")
+        if os.environ['COMPUTERNAME'] == "ERA-PC":
+            pps = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/PseudopotentialDatabase"
+            xyz = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/XYZdatabase"
+    except:
+            print(f"Defaulting to SivaLabs variables")
+            pps = f"/mnt/c/Users/erathnayake/OneDrive - Sivananthan Laboratories/Run_files/PseudopotentialDatabase"
+            xyz = f"/mnt/c/Users/erathnayake/OneDrive - Sivananthan Laboratories/Run_files/XYZdatabase"
 
     paths = {"pps": pps, "xyz": xyz}
     return paths
