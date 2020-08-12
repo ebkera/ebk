@@ -84,6 +84,7 @@ class RunScriptHandler():
         self.PDOS_DeltaE     = kwargs.get("PDOS_DeltaE",0.1)
         self.PDOS_degauss    = kwargs.get("PDOS_degauss",0.01)
         self.PDOS_required_projections = kwargs.get("PDOS_required_projections", [["Hg","all"],["Hg","s"],["Hg","p"],["Hg","d"],["Te","all"],["Te","s"],["Te","p"],["Te","d"],["H","s"],["S","all"],["S","s"],["S","p"],["C","all"],["C","s"],["C","p"]])
+        self.n_proj_boxes    = kwargs.get("n_proj_boxes", 32)
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
@@ -213,10 +214,15 @@ class RunScriptHandler():
             self.espresso_inputs.update({"calculation" : "scf"})
             ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
-        if "relax" in self.calculation:
-            # First we deal with the scf run.
+        if "relax" in self.calculation and "vc" not in self.calculation:
+            # This is a relax calculation.
             # The relax runs will also be saved with the .scf.out extension
             self.espresso_inputs.update({"calculation" : "relax"})
+            ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")       
+        if "relax" in self.calculation and "vc" in self.calculation:
+            # This is a vc relax calculation.
+            self.espresso_inputs.update({"calculation" : "vc-relax"})
             ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")            
         if "bands" in self.calculation:
@@ -268,6 +274,30 @@ class RunScriptHandler():
         # else:
         #     ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
         #     os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
+
+        if "ldos" in self.calculation:
+            # We are not using ASE to write this file. It is simple and that is one reason
+            with open(f"{self.identifier}.ldos.in", "w+") as file:
+                file.write(f"&projwfc\n")
+                file.write(f"  prefix       = '{self.espresso_inputs['prefix']}'\n")
+                # file.write(f"  filpdos = '{self.espresso_inputs['prefix']}'\n")
+                # file.write(f"  Emin    = {self.PDOS_EMIN}\n")
+                # file.write(f"  Emax    = {self.PDOS_EMAX}\n")
+                file.write(f"  DeltaE       = {self.PDOS_DeltaE}\n")
+                file.write(f"  degauss      = {self.PDOS_degauss}\n")
+                file.write(f"  tdosinboxes  = .true.,\n")
+                file.write(f"  plotboxes    = .true.,\n")
+                file.write(f"  n_proj_boxes = {self.n_proj_boxes},\n")
+                file.write(f"/\n")
+
+                for i in range(1, self.n_proj_boxes+1):
+                    file.write(f"irmin(1,{i})=1, irmax(1,{i})={self.n_proj_boxes}, irmin(2,{i})=1, irmax(2,{i})={self.n_proj_boxes}, irmin(3,{i})=1, irmax(3,{i})={i},\n")
+            os.rename(f"{self.identifier}.ldos.in", f"./{self.base_folder}/{run_name}/{self.identifier}.ldos.in")  
+        # else:
+        #     ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
+        #     os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
+
+
 
     def write_SIESTA_inputfile(self, run_name):
         """
