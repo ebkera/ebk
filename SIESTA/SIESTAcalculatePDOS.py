@@ -114,17 +114,17 @@ class Read_PDOS():
     def plot(self):
         plt.figure()
         for i in range(0,len(self.x)):
-            if "BDT" in self.orbital_labels[i]:
-                try:
-                    plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
-                except:
-                    plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
-            else:
-                try:
-                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}$E_g$ = {self.Egs[i]:5> 2.3f}", **self.kwargs[i])
-                except:
-                    # If there are mutiple species or nothing picked up.
-                    plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}\t$E_g$ = {self.Egs[i]: 2.3f}", **self.kwargs[i])
+            # if "BDT" in self.orbital_labels[i]:
+            #     try:
+            #         plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
+            #     except:
+            #         plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
+            # else:
+            try:
+                plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}\t$E_g$ = {self.Egs[i]:5> 2.3f}", **self.kwargs[i])
+            except:
+                # If there are mutiple species or nothing picked up.
+                plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}\t$E_g$ = {self.Egs[i]:> 2.3f}", **self.kwargs[i])
 
         plt.xlabel('Energy in eV (E - E$_f$)')
         # plt.text(-3, 100, r'(b)', fontsize=12)

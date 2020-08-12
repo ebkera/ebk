@@ -22,6 +22,8 @@ class Insert_ligand():
         """
         if direction == [0,0,1]:
             self.atoms.rotate(90, 'y')
+        if direction == [0,0,-1]:
+            self.atoms.rotate(-90, 'y')
         if direction == [1,1,0]:
             self.atoms.rotate(45, 'z')
 
@@ -42,14 +44,45 @@ class Insert_ligand():
     def save(self, format):
         write(f"{self.name}.{format}", self.atoms)
 
-    def attach(self, attach_to, attach_at, attach_through)
-    """
-    This is the main function that attacheds the ligand to a atoms type object
-    attach_to: The atoms type object that the ligand will attach to
-    attach_at: Will attach at this atom in the atoms object(attach_to) and if there is an atom there already it will remove it and attach the ligand
-    attach_through: The ligand will remove this atom and the resulting will attach throught the resulting dangling bond. to the attach_at site in the ligand.
-    """
-        pass
+    def attach(self, attach_to, attach_at, attach_through):
+        """
+        This is the main function that attacheds the ligand to a atoms type object
+        attach_to: The atoms type object that the ligand will attach to
+        attach_at: Will attach at this atom in the atoms object(attach_to) and if there is an atom there already it will remove it and attach the ligand
+        attach_through: The ligand will remove this atom and the resulting will attach throught the resulting dangling bond. to the attach_at site in the ligand.
+        """
+        # print(attach_to.atoms)
+        site_attach_at = attach_to.atoms[attach_at]
+        site_attach_through = self.atoms[attach_through]
+
+        diff_vec = [0, 0, 0]
+        for i in range(3):
+            diff_vec[i] = site_attach_at.position[i] - site_attach_through.position[i]
+
+        # debugging purposes to view atoms
+        # attach_to.edit()
+        # self.atoms.edit()
+
+        for atom in self.atoms:
+            atom.position = (atom.position[0] + diff_vec[0], atom.position[1] + diff_vec[1], atom.position[2] + diff_vec[2])
+
+        #deleting the relevant atoms
+        del attach_to.atoms[attach_at]
+        del self.atoms[attach_through]
+
+        # Logging all the indeces in case we have to constrain them
+        attach_to.NP_atoms = []
+        for atom in attach_to.atoms:
+            attach_to.NP_atoms.append(atom.index)
+
+        attach_to.ligand_atoms = []
+        for atom in self.atoms:
+            attach_to.atoms.append(atom)
+            attach_to.ligand_atoms.append(len(attach_to.atoms)-1)
+            # print(attach_to.ligand_atoms)
+
+        return attach_to
+
 
 class BDT14(Insert_ligand):
     def __init__(self, *args, **kwargs):
