@@ -52,6 +52,7 @@ def get_machine_paths():
     3) 
     This function returns a dict with the relevant paths
     """
+    print(f"This computer is: {os.environ['COMPUTERNAME']}")
     if os.environ['COMPUTERNAME'] == "ERA-PC":
         pps = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/PseudopotentialDatabase"
         xyz = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/XYZdatabase"
