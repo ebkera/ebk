@@ -107,6 +107,9 @@ class RunScriptHandler():
                                 "density"         : self.density,  # This is an ASE command for input files for Quantum Espresso
                                 "electron_maxstep": kwargs.get("electron_maxstep", 1000),
                                 "mixing_mode"     : kwargs.get("mixing_mode", "plain"),
+                                "cell_factor"     : kwargs.get("cell_factor", 1.2),
+                                "cell_dofree"     : kwargs.get("cell_dofree", 'z'),
+
                                 }
 
         if self.calculator == "SIESTA":
@@ -259,6 +262,19 @@ class RunScriptHandler():
             ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             # Putting files into folders
             os.rename(f"{self.identifier}.nscf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.nscf.in")
+
+        if "dos" in self.calculation and "pdos" not in self.calculation and "ldos" not in self.calculation:
+            # We are not using ASE to write this file. It is simple and that is one reason
+            with open(f"{self.identifier}.dos.in", "w+") as file:
+                file.write(f"&DOS\n")
+                file.write(f"  prefix  = '{self.espresso_inputs['prefix']}'\n")
+                file.write(f"  fildos = '{self.espresso_inputs['prefix']}'\n")
+                file.write(f"  Emin    = {self.PDOS_EMIN}\n")
+                file.write(f"  Emax    = {self.PDOS_EMAX}\n")
+                file.write(f"  DeltaE  = {self.PDOS_DeltaE}\n")
+                file.write(f"  degauss = {self.PDOS_degauss}\n")
+                file.write(f"/\n")
+            os.rename(f"{self.identifier}.dos.in", f"./{self.base_folder}/{run_name}/{self.identifier}.dos.in")  
 
         if "pdos" in self.calculation:
             # We are not using ASE to write this file. It is simple and that is one reason
@@ -498,6 +514,9 @@ class RunScriptHandler():
                                 file_torque.write(f"    sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
                     # file_torque.write(f'    rm *wfc*\n')
                     # file_torque.write(f'    echo "Removed wavefunction files"\n')
+                    if "ldos" in self.calculation:
+                        file_torque.write(f"    mpirun projwfc.x < {self.identifier}.ldos.in > {self.identifier}.ldos.out\n")
+            # file.write(f'rm *wfc*\n')
                 if self.calculator == "SIESTA":
                     file_torque.write(f"    mpirun -np {self.nodes*self.procs} siesta -in {self.identifier}.fdf > {self.identifier}.out\n")
                     file_torque.write(f'    date\n')
@@ -534,16 +553,18 @@ class RunScriptHandler():
             file.write(f"#SBATCH --partition={self.partition}\n")
             file.write(f"#SBATCH --time={self.walltime_days}-{self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
             file.write(f"#SBATCH --nodes={self.nodes}  # Number of nodes for the job\n")
-            file.write(f"#SBATCH --ntasks={self.ntasks} # Number of taks per node for the job\n")
+            file.write(f"#SBATCH --ntasks={self.ntasks} # Number of tasks per node for the job\n")
             file.write(f"#SBATCH --mail-user=erathnayake@sivananthanlabs.us\n")
             file.write(f"#SBATCH --mail-type=ALL\n")
-            if "scf" in self.calculation:
+            if "scf" in self.calculation or "relax" in self.calculation:
                 file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.scf.in > {self.identifier}.scf.out\n")
                 file.write(f'rm *wfc*\n')
             if "bands" in self.calculation:
                 file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.bands.in > {self.identifier}.bands.out\n")
             if "nscf" in self.calculation:
                 file.write(f"mpirun -np {self.ntasks} pw.x -npools {self.npools} < {self.identifier}.nscf.in > {self.identifier}.nscf.out\n")
+            if "dos" in self.calculation and "pdos" not in self.calculation and "ldos" not in self.calculation:
+                file.write(f"mpirun -np {self.ntasks} dos.x < {self.identifier}.dos.in > {self.identifier}.dos.out\n")
             if "pdos" in self.calculation:
                 file.write(f"mpirun -np {self.ntasks} projwfc.x < {self.identifier}.pdos.in > {self.identifier}.pdos.out\n")
                 for x in self.PDOS_required_projections:
