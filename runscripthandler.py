@@ -106,6 +106,7 @@ class RunScriptHandler():
                                 "path"            : self.path,
                                 "density"         : self.density,  # This is an ASE command for input files for Quantum Espresso
                                 "electron_maxstep": kwargs.get("electron_maxstep", 1000),
+                                "nstep"           : kwargs.get("nstep", 1000),
                                 "mixing_mode"     : kwargs.get("mixing_mode", "plain"),
                                 "cell_factor"     : kwargs.get("cell_factor", 1.2),
                                 "cell_dofree"     : kwargs.get("cell_dofree", 'z'),
