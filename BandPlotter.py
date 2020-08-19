@@ -110,6 +110,8 @@ class BandPlotterASE():
         self.include_dos = kwargs.get("include_dos", False)
         self.plot_only_dos = kwargs.get("only_dos", False)
         self.pin_fermi = kwargs.get("pin_fermi", "scf") # if there are difference in fermi levels (Eg E_scf and E_nscf) then use this to pin the levels There options "off", "scf", "nscf" 
+        self.plot_from_QE_dos_file = False  # This will make the code read in files from a QE dos output file.
+        self.QE_dos_file_path = ""
 
     # def get_dos(self, readoutfilesobj):
     #     """
@@ -209,70 +211,84 @@ class BandPlotterASE():
             print(f"add_to_plot: Could not read k points on bands file")
 
         if self.include_dos or self.plot_only_dos:
-            # we are here getting the required information for DOS
-            # self.get_dos(readoutfilesobj)
-            calc = readoutfilesobj.atoms_nscf_objects[0].calc
-            Ef_nscf = readoutfilesobj.atoms_nscf_objects[0].calc.get_fermi_level()
-            dos = DOS(calc, width=0.2)
-            self.dos.append(dos.get_dos())
-            E_nscf = dos.get_energies()
-            Ef_diff = Ef - Ef_nscf
-            if abs(Ef_diff) >= 0.001:
-                print(f"Warning!!! In {readoutfilesobj.identifier[0]}:\t|E_f_scf-E_f_nscf| = {abs(Ef_diff):.3} eV (>= 0.001 eV); E_f_scf = {Ef} eV,  E_f_nscf = {Ef_nscf} eV")
+            if self.plot_from_QE_dos_file:
+                E = []
+                dos = []
+                with open(self.QE_dos_file_path, "r") as dos_file:
+                    for line in dos_file:
+                        print(line)
+                        if "#" not in line:
+                            data = line.strip().split()
+                            E.append(float(data[0]) - Ef)
+                            dos.append(float(data[1]))
+                self.dos.append(dos)
+                self.E_dos.append(E)
+            else:
+                # we are here getting the required information for DOS
+                # self.get_dos(readoutfilesobj)
+                calc = readoutfilesobj.atoms_nscf_objects[0].calc
+                Ef_nscf = readoutfilesobj.atoms_nscf_objects[0].calc.get_fermi_level()
+                dos = DOS(calc, width=0.2)
+                self.dos.append(dos.get_dos())
+                E_nscf = dos.get_energies()
+                Ef_diff = Ef - Ef_nscf
+                if abs(Ef_diff) >= 0.001:
+                    print(f"Warning!!! In {readoutfilesobj.identifier[0]}:\t|E_f_scf-E_f_nscf| = {abs(Ef_diff):.3} eV (>= 0.001 eV); E_f_scf = {Ef} eV,  E_f_nscf = {Ef_nscf} eV")
 
-            if self.pin_fermi != "scf": self.E_dos.append(E_nscf)
-            else: self.E_dos.append([E - Ef_diff for E in E_nscf])
+                if self.pin_fermi != "scf": self.E_dos.append(E_nscf)
+                else: self.E_dos.append([E - Ef_diff for E in E_nscf])
 
         # Test space for k path and k high symmetry points
         # print(kpts)
-        # if self.plot_only_dos == True:
-        path = readoutfilesobj.atoms_bands_objects[0].cell.bandpath(npoints=0)
-        kinks = find_bandpath_kinks(readoutfilesobj.atoms_bands_objects[0].cell, kpts, eps=1e-5)  # These are the high symmetry points in use 
-        pathspec = resolve_custom_points(kpts[kinks], path.special_points, eps=1e-5) # This gives the postions for the relevant high symmetry points
-        path.kpts = kpts
-        path.path = pathspec
+        # print(self.plot_only_dos)
+        if self.plot_only_dos == False:
+            path = readoutfilesobj.atoms_bands_objects[0].cell.bandpath(npoints=0)
+            kinks = find_bandpath_kinks(readoutfilesobj.atoms_bands_objects[0].cell, kpts, eps=1e-5)  # These are the high symmetry points in use 
+            pathspec = resolve_custom_points(kpts[kinks], path.special_points, eps=1e-5) # This gives the postions for the relevant high symmetry points
+            path.kpts = kpts
+            path.path = pathspec
 
-        klengths = []
-        for x in range(0, len(kpts)):
-            if x == 0:
-                kdist = np.sqrt((0.0 - kpts[x][0])**2 + (0.0 - kpts[x][1])**2 +(0.0 - kpts[x][2])**2)
-                klengths.append(kdist)
-            else:
-                kdist = np.sqrt((kpts[x-1][0] - kpts[x][0])**2 + (kpts[x-1][1] - kpts[x][1])**2 + (kpts[x-1][2]- kpts[x][2])**2)
-                klengths.append(kdist+klengths[x-1])
-
-        self.k_locations = []
-        for x in range(len(kinks)):
-            self.k_locations.append(klengths[kinks[x]])
-
-        self.k_symbols = []
-        for x in pathspec:
-            if x == "G":
-                self.k_symbols.append("$\Gamma$")
-            else:
-                self.k_symbols.append(x)
-
-        energies = []
-        for s in range(readoutfilesobj.atoms_bands_objects[0].calc.get_number_of_spins()):
-            energies.append([readoutfilesobj.atoms_bands_objects[0].calc.get_eigenvalues(kpt=k, spin=s) for k in range(len(kpts))])
-        # print(f"lenght of kpoints: {range(len(kpts))}")
-        Energy_to_plot = []
-        if self.Ef_shift == True:
-            for band in energies[0]:
-                if self.pin_fermi != "nscf":
-                    Energy_to_plot.append([E - Ef for E in band])
+            klengths = []
+            for x in range(0, len(kpts)):
+                if x == 0:
+                    kdist = np.sqrt((0.0 - kpts[x][0])**2 + (0.0 - kpts[x][1])**2 +(0.0 - kpts[x][2])**2)
+                    klengths.append(kdist)
                 else:
-                    Energy_to_plot.append([E - Ef_nscf for E in band])  # here the assumption is that if this option is ever reached then the idea is that an nscf calculation has already being done and dos is being plotted.
-        tempMain = []
-        temp = []
-        for x in range(len(Energy_to_plot[0])):
-            for kpoint in Energy_to_plot:
-                temp.append(kpoint[x])
-            tempMain.append(temp)
+                    kdist = np.sqrt((kpts[x-1][0] - kpts[x][0])**2 + (kpts[x-1][1] - kpts[x][1])**2 + (kpts[x-1][2]- kpts[x][2])**2)
+                    klengths.append(kdist+klengths[x-1])
+
+            self.k_locations = []
+            for x in range(len(kinks)):
+                self.k_locations.append(klengths[kinks[x]])
+
+            self.k_symbols = []
+            for x in pathspec:
+                if x == "G":
+                    self.k_symbols.append("$\Gamma$")
+                else:
+                    self.k_symbols.append(x)
+
+            energies = []
+            for s in range(readoutfilesobj.atoms_bands_objects[0].calc.get_number_of_spins()):
+                energies.append([readoutfilesobj.atoms_bands_objects[0].calc.get_eigenvalues(kpt=k, spin=s) for k in range(len(kpts))])
+            # print(f"lenght of kpoints: {range(len(kpts))}")
+            Energy_to_plot = []
+            if self.Ef_shift == True:
+                for band in energies[0]:
+                    if self.pin_fermi != "nscf":
+                        Energy_to_plot.append([E - Ef for E in band])
+                    else:
+                        Energy_to_plot.append([E - Ef_nscf for E in band])  # here the assumption is that if this option is ever reached then the idea is that an nscf calculation has already being done and dos is being plotted.
+            tempMain = []
             temp = []
-        self.y_to_plot.append(tempMain)
-        self.x_to_plot.append(klengths)
-        self.labels.append(label)
+            for x in range(len(Energy_to_plot[0])):
+                for kpoint in Energy_to_plot:
+                    temp.append(kpoint[x])
+                tempMain.append(temp)
+                temp = []
+            self.y_to_plot.append(tempMain)
+            self.x_to_plot.append(klengths)
+            self.labels.append(label)
 
 # class DOSPlotterASE():
 #     # Under costruction!!
