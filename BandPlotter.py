@@ -91,10 +91,6 @@ class BandPlotterASE():
         self.dos_title = "Density of States"
         self.set_y_range = kwargs.get("set_y_range", True)
         self.set_x_range = False
-        self.ylim_low = -5
-        self.ylim_high = 5
-        self.xlim_low = 0
-        self.xlim_high = 0
         self.Ef_shift = True
         self.y_to_plot = []
         self.x_to_plot = []
@@ -112,6 +108,16 @@ class BandPlotterASE():
         self.pin_fermi = kwargs.get("pin_fermi", "scf") # if there are difference in fermi levels (Eg E_scf and E_nscf) then use this to pin the levels There options "off", "scf", "nscf" 
         self.plot_from_QE_dos_file = False  # This will make the code read in files from a QE dos output file.
         self.QE_dos_file_path = ""
+        if self.plot_only_dos:
+            self.ylim_low = -5
+            self.ylim_high = 5
+            self.xlim_low = 0
+            self.xlim_high = 0
+        else:
+            self.ylim_low = 0
+            # self.ylim_high = 5
+            self.xlim_low = -4
+            self.xlim_high = 4
 
     # def get_dos(self, readoutfilesobj):
     #     """
@@ -165,10 +171,13 @@ class BandPlotterASE():
                 pass
         # we plot the dos figure here
         if self.plot_only_dos or self.include_dos:
+            # print(self.include_dos)
             for i,v in enumerate(self.y_to_plot):
+                print(self.plot_only_dos)
                 if self.plot_only_dos:
                     # This will flip the axes
-                    ax2.plot(self.E_dos[i], self.dos[i], self.band_colour[i], label = self.labels[i])
+                    print(f"printing")
+                    ax2.plot(self.x_to_plot[i], self.y_to_plot[i], self.band_colour[i], label = self.labels[i])
                 else:
                     ax2.plot(self.dos[i], self.E_dos[i], self.band_colour[i], label = self.labels[i])
             ax2.set_xlabel("DOS")
@@ -216,13 +225,14 @@ class BandPlotterASE():
                 dos = []
                 with open(self.QE_dos_file_path, "r") as dos_file:
                     for line in dos_file:
-                        print(line)
+                        # print(line)
                         if "#" not in line:
                             data = line.strip().split()
                             E.append(float(data[0]) - Ef)
                             dos.append(float(data[1]))
-                self.dos.append(dos)
-                self.E_dos.append(E)
+                self.y_to_plot.append(dos)
+                self.x_to_plot.append(E)
+                self.labels.append(label)
             else:
                 # we are here getting the required information for DOS
                 # self.get_dos(readoutfilesobj)
