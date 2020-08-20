@@ -111,6 +111,7 @@ class RunScriptHandler():
                                 "cell_factor"     : kwargs.get("cell_factor", 1.2),
                                 "cell_dofree"     : kwargs.get("cell_dofree", 'z'),
 
+
                                 }
 
         if self.calculator == "SIESTA":
@@ -131,6 +132,8 @@ class RunScriptHandler():
             self.espresso_inputs.update({"occupations"     : kwargs.get("occupations", "smearing")})
         if "smearing" in kwargs:
             self.espresso_inputs.update({"smearing"        : kwargs.get("smearing", "gaussian")})
+        if "cell_dynamics" in kwargs:
+            self.espresso_inputs.update({"cell_dynamics"   : kwargs.get("cell_dynamics", "none")})         
 
         if self.pseudo_dir != False:
             # Since if not set we want the value to be the default value Thereby reading in machine defaults and not appearing in the .in file
@@ -655,6 +658,9 @@ class RunScriptHandler():
             bat_file = open(f"{self.base_folder}/rsyn_in.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz --max-size=5m -e "ssh -p 33301" rathnayake@localhost:~/Run_files/ ./')
             bat_file.close()
+            bat_file = open(f"{self.base_folder}/rsyn_in_{run_name}.bat", "w+")
+            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e "ssh -p 33301" "rathnayake@localhost:~/Run_files/{run_name}" ./')
+            bat_file.close()
             bat_file = open(f"{self.base_folder}/login.bat", "w+")
             bat_file.write(f'ssh -v -L 33301:carbon:22 rathnayake@mega.cnm.anl.gov')
             bat_file.close()
@@ -669,6 +675,9 @@ class RunScriptHandler():
             bat_file = open(f"{self.base_folder}/rsyn_in_eraubuntu.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz --max-size=5m -e ssh era@192.168.0.23:~/Documents/Run_files/ ./')
             bat_file.close()
+            bat_file = open(f"{self.base_folder}/rsyn_in_{run_name}_eraubuntu.bat", "w+")
+            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e ssh "era@192.168.0.23:~/Documents/Run_files/{run_name}" ./')
+            bat_file.close()            
             self.create_job()
         elif self.job_handler == "slurm":
             bat_file = open(f"{self.base_folder}/rsyn_out_slurm.bat", "w+")
@@ -677,6 +686,9 @@ class RunScriptHandler():
             bat_file = open(f"{self.base_folder}/rsyn_in_slurm.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz --max-size=5m -e ssh cluster:/home/erathnayake/Synced/ ./')
             bat_file.close()
+            bat_file = open(f"{self.base_folder}/rsyn_in_{run_name}_slurm.bat", "w+")
+            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e ssh "cluster:/home/erathnayake/Synced/{run_name}" ./')
+            bat_file.close()            
             # self.create_slurm_job()   already done   
         elif self.job_handler == "era_pc" or self.job_handler == "sl_laptop":
             self.create_job()  # since they are identical
