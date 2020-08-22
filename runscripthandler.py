@@ -110,8 +110,6 @@ class RunScriptHandler():
                                 "mixing_mode"     : kwargs.get("mixing_mode", "plain"),
                                 "cell_factor"     : kwargs.get("cell_factor", 1.2),
                                 "cell_dofree"     : kwargs.get("cell_dofree", 'z'),
-
-
                                 }
 
         if self.calculator == "SIESTA":
