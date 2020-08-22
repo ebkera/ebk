@@ -53,7 +53,7 @@ def get_machine_paths():
     This function returns a dict with the relevant paths
     """
     try:
-        print(f"This computer is: {os.environ['COMPUTERNAME']}")
+        # print(f"get_machine_path: This computer is: {os.environ['COMPUTERNAME']}")
         if os.environ['COMPUTERNAME'] == "ERA-PC":
             pps = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/PseudopotentialDatabase"
             xyz = f"C:/Users/Eranjan/OneDrive - Sivananthan Laboratories/Run_files/XYZdatabase"
@@ -177,7 +177,7 @@ def get_pseudopotential(id):
         pseudopotential = {'Sn': f"Sn.pbesol-dn-kjpaw_psl.1.0.0.UPF"}
     #LDA pps
     elif identifier == "QE_PZ_FR_NLCC_1":
-            pseudopotential = {'Sn': f"Sn.rel-pz-dn-kjpaw_psl.0.2.UPF"}
+        pseudopotential = {'Sn': f"Sn.rel-pz-dn-kjpaw_psl.0.2.UPF"}
     elif identifier == "MCT_Slab_EDT" or identifier == "MCT_Slab_BDT12" or identifier == "MCT_Slab_BDT14":
         pseudopotential = {'C': f"c_pbe_v1.2.uspp.F.UPF", "H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "S":"s_pbe_v1.4.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF"}
     elif "Slabs_passivation" in identifier:
@@ -188,7 +188,7 @@ def get_pseudopotential(id):
         pseudopotential = {"H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF"}
         #For the ligand: pps are ultrasoft
     elif identifier == "EDT" or identifier == "BDT12" or identifier == "BDT14":
-            pseudopotential = {'C': 'c_pbe_v1.2.uspp.F.UPF', 'H': 'h_pbe_v1.4.uspp.F.UPF', 'S': 's_pbe_v1.4.uspp.F.UPF'}
+        pseudopotential = {'C': 'c_pbe_v1.2.uspp.F.UPF', 'H': 'h_pbe_v1.4.uspp.F.UPF', 'S': 's_pbe_v1.4.uspp.F.UPF'}
     elif "MCT_Slab_110_bilayers_" in identifier:
         # This is for the relaxation of slabs
         pseudopotential = {"H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF"}         
