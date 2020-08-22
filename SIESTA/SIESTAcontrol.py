@@ -268,4 +268,20 @@ class Generatefdf:
 #     - This gives us the bulk modulus
 
 if __name__ == "__main__":
-    run = optimize_parameter()
+    pass
+
+    # This is an example and is commented out so that nothing actually happens if this file is accidentally run and "pass" is set above this to ensure that.
+    # # making the fdf_file
+    # kwargs = {"SystemLabel":label, "fdf_type" : "NP_ligand", "PAO_define" : "block", "ElectronicTemperature" : 0.0244, "MD": True, "PDOS": True, "PDOS_MPGrid": 0, "LDOS": False, "include_coordinate_file": True}
+    # if XC == "LDA": kwargs.update({"XC_Functional":"LDA", "XC_Authors":"CA"})
+    # kwargs.update({"NumberOfSpecies": 4})
+    # kwargs.update({"coordinates_file_name": f"{label}_coordinates.fdf"})
+    # kwargs.update({"constrain_centre_atom" : False})
+    # kwargs.update({"constrain_atom_list": atoms_to_constrain})
+    # kwargs.update({"Spin": "spin-orbit"})
+    # kwargs.update({"MPGrid" : 0})
+    # kwargs.update({"SO_strength": SO})
+    # kwargs.update({"bands_block": False})
+    # kwargs.update({"PAO_define_global": True})
+    # kwargs.update({"PAO_SplitNorm": 0.30})
+    # kwargs.update({"include_H_in_block": True})
