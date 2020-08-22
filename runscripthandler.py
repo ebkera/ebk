@@ -48,11 +48,14 @@ class RunScriptHandler():
             "structure" (int): vlaue will determine the cell
                 1: fcc structure with a0 as the lattice constant
         """
+        # Here we have some variables for the script
         self.d = f"^"  # Here you can set the desired delimiter
-        self.equals = f"="  # Here you can set the desired symbol for value assigner
+        self.equals = f"="  # Here you can set the desired symbol for value assigner\
+        self.files_to_move = []
+        self.files_to_copy = []
 
         # Gettings args here
-            # No args to get currently
+        # No args to get currently
 
         # Setting kwargs here
         # Base Run inits
@@ -309,8 +312,6 @@ class RunScriptHandler():
                 file.write(f"/\n")
             os.rename(f"{self.identifier}.ldos.in", f"./{self.base_folder}/{run_name}/{self.identifier}.ldos.in")  
 
-
-
     def write_SIESTA_inputfile(self, run_name):
         """
         This method creates SIESTA input files
@@ -318,7 +319,30 @@ class RunScriptHandler():
         fdf = Generatefdf(**self.SIESTA_inputs)
         fdf.description = "Testing the bulk band structure and PDOS when cutoffs are set from the PAO basis block and values are from the paper. Here the values are for the GGA PP."
         fdf.write()
-        os.rename(f"{self.SIESTA_inputs['SystemLabel']}.fdf", f"./{self.base_folder}/{run_name}/{self.SIESTA_inputs['SystemLabel']}.fdf")  
+        os.rename(f"{self.SIESTA_inputs['SystemLabel']}.fdf", f"./{self.base_folder}/{run_name}/{self.SIESTA_inputs['SystemLabel']}.fdf")
+        
+        # Copying PP files for siesta
+        from ebk import get_machine_paths
+        paths = get_machine_paths()
+        # os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
+        shutil.copy(f"{paths['pps']}/_LDA_their/Sn.psf", f'./{self.base_folder}/{run_name}/Sn.psf')
+        shutil.copy(f"{paths['pps']}/H.psf", f'./{self.base_folder}/{run_name}/H.psf')
+        shutil.copy(f"{paths['pps']}/C.psf", f'./{self.base_folder}/{run_name}/C.psf')
+        shutil.copy(f"{paths['pps']}/S.psf", f'./{self.base_folder}/{run_name}/S.psf')
+
+    def move_files_to_run_folder(self, run_name):
+        """
+        This method addf functionality to add any other file into a runfolder. This is will enable adding files generated seperately into the folder.
+        Examples are pp files or maybe xyz or fdf files.
+        Functionality:
+            Copies files that are already in the main folder where this script is run into the base_folder/{run_name}/
+        """
+        if len(self.files_to_copy) == 0 and len(self.files_to_move) == 0: return
+        else:
+            for file_name in self.files_to_move:
+                shutil.move(file_name, f'./{self.base_folder}/{run_name}/{file_name}')
+            for file_name in self.files_to_copy:
+                shutil.copy(file_name, f'./{self.base_folder}/{run_name}/{file_name}')
 
     def get_number_of_calculations(self):
         return (len(self.KE_cut)*len(self.a0)*len(self.k)*len(self.R))
@@ -407,7 +431,6 @@ class RunScriptHandler():
         """
         This is the most generic job creator. Will create all jobs
         """
-
         def create_runline(self):
             """On going project for bringing in all the line creators together. Not implemented"""
             if "bands" in self.calculation:
@@ -514,13 +537,15 @@ class RunScriptHandler():
                                 file_torque.write(f"    sumpdos.x *\({x[0]}\)* > {self.identifier}.{x[0]}_all.PDOS\n")
                             else:
                                 file_torque.write(f"    sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
-                    # file_torque.write(f'    rm *wfc*\n')
-                    # file_torque.write(f'    echo "Removed wavefunction files"\n')
+                    if "dos" in self.calculation and "pdos" not in self.calculation and "ldos" not in self.calculation:
+                        file_torque.write(f'    echo "Calculationg DOS"\n')
+                        file_torque.write(f"    mpirun dos.x < {self.identifier}.dos.in > {self.identifier}.dos.out\n")
                     if "ldos" in self.calculation:
+                        file_torque.write(f'    echo "Calculationg LDOS"\n')
                         file_torque.write(f"    mpirun projwfc.x < {self.identifier}.ldos.in > {self.identifier}.ldos.out\n")
             # file.write(f'rm *wfc*\n')
                 if self.calculator == "SIESTA":
-                    file_torque.write(f"    mpirun -np {self.nodes*self.procs} siesta -in {self.identifier}.fdf > {self.identifier}.out\n")
+                    file_torque.write(f"    mpirun siesta -in {self.identifier}.fdf > {self.identifier}.out\n")
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Completed fdf run"\n')
                 file_torque.write(f"END_JOB_SCRIPT\n")
@@ -635,6 +660,7 @@ class RunScriptHandler():
                             elif self.calculator == "SIESTA":
                                 self.write_SIESTA_inputfile(run_name)
                             self.all_runs_list.append(run_name)
+                            self.move_files_to_run_folder(run_name)
 
                         # Creating jobs
                         # This if else block is pending deletion upon making a seperate method for slurm jobs.
