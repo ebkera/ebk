@@ -128,7 +128,7 @@ class Generatefdf:
             if self.PAO_define_global:
             # This used to be set to work only if above condition but sice we have defined the block for all we need does not hurn to have it for all other atoms
             # This way we can have H to not be forced to some value we set and have it free
-                fdf_file.write(f"# These values are from the paper\n")
+                fdf_file.write(f"# These are the global values\n")
                 fdf_file.write(f"PAO.BasisSize         DZP\n")
                 fdf_file.write(f"PAO.EnergyShift       {self.PAO_EnergyShift} Ry    #Range of first zeta (A standard for orbital-confining cutoff radii)\n")
                 fdf_file.write(f"PAO.BasisType         SPLIT       #Split Valance\n")
