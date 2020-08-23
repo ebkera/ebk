@@ -6,6 +6,12 @@ import matplotlib
 import numpy as np
 from datetime import datetime
 
+atomic_weights = {}
+atomic_weights.update({"Sn": 50})
+atomic_weights.update({"H": 1})
+atomic_weights.update({"S": 16})
+atomic_weights.update({"C": 6})
+
 class Generatefdf:
     def __init__(self, *args, **kwargs):
         """
@@ -70,10 +76,12 @@ class Generatefdf:
 
             fdf_file.write(f"\n")
             fdf_file.write(f"%block Chemical_Species_Label\n")
-            fdf_file.write(f"1   50    Sn\n")
-            if "dot" in self.fdf_type or "NP" in self.fdf_type: fdf_file.write(f"2    1    H\n")
-            fdf_file.write(f"3    6    C\n")
-            fdf_file.write(f"4   16    S\n")
+            for i,v in enumerate(self.Species):
+                fdf_file.write(f"{i+1}    {atomic_weights[v]}    {v}\n")
+            # fdf_file.write(f"1   50    Sn\n")
+            # if "dot" in self.fdf_type or "NP" in self.fdf_type: fdf_file.write(f"2    1    H\n")
+            # fdf_file.write(f"3    6    C\n")
+            # fdf_file.write(f"4   16    S\n")
             fdf_file.write(f"%endblock Chemical_Species_Label\n")
             fdf_file.write(f"\n")
             fdf_file.write(f"MaxSCFIterations      5000\n")
