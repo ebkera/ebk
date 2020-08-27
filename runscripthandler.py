@@ -81,12 +81,20 @@ class RunScriptHandler():
         self.base_folder      = kwargs.get("base_folder", "Runs")
         if "occupations" in kwargs: self.occupations      = kwargs.get("occupations",'smearing')
         if "occupations_nscf" in kwargs: self.occupations_nscf = kwargs.get("occupations_nscf",'tetrahedra')
-        # For PDOS calculations. This does not use ASE.
-        self.PDOS_EMIN       = kwargs.get("PDOS_EMIN",-20)
-        self.PDOS_EMAX       = kwargs.get("PDOS_EMAX",20)
-        self.PDOS_DeltaE     = kwargs.get("PDOS_DeltaE",0.1)
-        self.PDOS_degauss    = kwargs.get("PDOS_degauss",0.01)
+        # For DOS PDOS and LDOS calculations. This does not use ASE.
+        self.DOS_EMIN       = kwargs.get("DOS_EMIN",-20)
+        self.DOS_EMAX       = kwargs.get("DOS_EMAX",20)
+        self.DOS_DeltaE     = kwargs.get("DOS_DeltaE",0.1)
+        self.DOS_degauss    = kwargs.get("DOS_degauss",0.01)
+        self.PDOS_EMIN       = kwargs.get("PDOS_EMIN", self.DOS_EMIN)
+        self.PDOS_EMAX       = kwargs.get("PDOS_EMAX", self.DOS_EMAX)
+        self.PDOS_DeltaE     = kwargs.get("PDOS_DeltaE", self.DOS_DeltaE)
+        self.PDOS_degauss    = kwargs.get("PDOS_degauss", self.DOS_degauss)
         self.PDOS_required_projections = kwargs.get("PDOS_required_projections", [["Hg","all"],["Hg","s"],["Hg","p"],["Hg","d"],["Te","all"],["Te","s"],["Te","p"],["Te","d"],["H","s"],["S","all"],["S","s"],["S","p"],["C","all"],["C","s"],["C","p"]])
+        self.LDOS_EMIN       = kwargs.get("PDOS_EMIN", self.DOS_EMIN)
+        self.LDOS_EMAX       = kwargs.get("PDOS_EMAX", self.DOS_EMAX)
+        self.LDOS_DeltaE     = kwargs.get("PDOS_DeltaE", self.DOS_DeltaE)
+        self.LDOS_degauss    = kwargs.get("PDOS_degauss", self.DOS_degauss)
         self.fft_grid        = kwargs.get("fft_grid", [40, 40, 432])
         self.n_proj_boxes    = kwargs.get("n_proj_boxes", self.fft_grid[2])
 
@@ -267,33 +275,30 @@ class RunScriptHandler():
             ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             # Putting files into folders
             os.rename(f"{self.identifier}.nscf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.nscf.in")
-
         if "dos" in self.calculation and "pdos" not in self.calculation and "ldos" not in self.calculation:
             # We are not using ASE to write this file. It is simple and that is one reason
             with open(f"{self.identifier}.dos.in", "w+") as file:
                 file.write(f"&DOS\n")
                 file.write(f"  prefix  = '{self.espresso_inputs['prefix']}'\n")
-                file.write(f"  fildos = '{self.espresso_inputs['prefix']}'\n")
-                file.write(f"  Emin    = {self.PDOS_EMIN}\n")
-                file.write(f"  Emax    = {self.PDOS_EMAX}\n")
-                file.write(f"  DeltaE  = {self.PDOS_DeltaE}\n")
-                file.write(f"  degauss = {self.PDOS_degauss}\n")
+                file.write(f"  fildos = '{self.espresso_inputs['prefix']}.dos.dat'\n")
+                file.write(f"  Emin    = {self.DOS_EMIN}\n")
+                file.write(f"  Emax    = {self.DOS_EMAX}\n")
+                file.write(f"  DeltaE  = {self.DOS_DeltaE}\n")
+                file.write(f"  degauss = {self.DOS_degauss}\n")
                 file.write(f"/\n")
             os.rename(f"{self.identifier}.dos.in", f"./{self.base_folder}/{run_name}/{self.identifier}.dos.in")  
-
         if "pdos" in self.calculation:
             # We are not using ASE to write this file. It is simple and that is one reason
             with open(f"{self.identifier}.pdos.in", "w+") as file:
                 file.write(f"&projwfc\n")
                 file.write(f"  prefix  = '{self.espresso_inputs['prefix']}'\n")
-                file.write(f"  filpdos = '{self.espresso_inputs['prefix']}'\n")
+                file.write(f"  filpdos = '{self.espresso_inputs['prefix']}.pdos.dat'\n")
                 file.write(f"  Emin    = {self.PDOS_EMIN}\n")
                 file.write(f"  Emax    = {self.PDOS_EMAX}\n")
                 file.write(f"  DeltaE  = {self.PDOS_DeltaE}\n")
                 file.write(f"  degauss = {self.PDOS_degauss}\n")
                 file.write(f"/\n")
             os.rename(f"{self.identifier}.pdos.in", f"./{self.base_folder}/{run_name}/{self.identifier}.pdos.in")  
-
         if "ldos" in self.calculation:
             # We are not using ASE to write this file. It is simple and that is one reason
             with open(f"{self.identifier}.ldos.in", "w+") as file:
@@ -302,8 +307,8 @@ class RunScriptHandler():
                 # file.write(f"  filpdos = '{self.espresso_inputs['prefix']}'\n")
                 # file.write(f"  Emin    = {self.PDOS_EMIN}\n")
                 # file.write(f"  Emax    = {self.PDOS_EMAX}\n")
-                file.write(f"  DeltaE       = {self.PDOS_DeltaE},\n")
-                file.write(f"  degauss      = {self.PDOS_degauss},\n")
+                file.write(f"  DeltaE       = {self.LDOS_DeltaE},\n")
+                file.write(f"  degauss      = {self.LDOS_degauss},\n")
                 file.write(f"  tdosinboxes  = .true.,\n")
                 file.write(f"  plotboxes    = .true.,\n")
                 file.write(f"  n_proj_boxes = {self.n_proj_boxes},\n")
