@@ -21,7 +21,6 @@ class Generatefdf:
         """
         self.SystemLabel           = kwargs.get("SystemLabel", "Sn")
         self.description           = kwargs.get("description", "A General Run")
-        self.NumberOfSpecies       = kwargs.get("NumberOfSpecies", 2)
         self.Species               = kwargs.get("Species", ["Sn", "H"])
         self.coordinates_file_name = kwargs.get("coordinates_file_name", "coordinates.fdf")
         self.include_coordinate_file = kwargs.get("include_coordinate_file", False)
@@ -63,12 +62,7 @@ class Generatefdf:
             fdf_file.write(f"\n")
             fdf_file.write(f"SystemName         alpha-Sn\t\t\t\t# Descriptive name of the system\n")
             fdf_file.write(f"SystemLabel        {self.SystemLabel}\t\t\t\t# Short name for naming files\n")
-            if self.fdf_type == "bulk":
-                fdf_file.write(f"NumberOfSpecies    1\t\t\t\t# Number of species\n")
-            elif self.fdf_type == "dot":
-                fdf_file.write(f"NumberOfSpecies    2\t\t\t\t# Number of species\n")
-            else:
-                fdf_file.write(f"NumberOfSpecies    {self.NumberOfSpecies}\t\t\t\t# Number of species\n")
+            fdf_file.write(f"NumberOfSpecies    {len(self.Species)}\t\t\t\t# Number of species\n")
             fdf_file.write(f"XC.Functional      {self.XC_Functional}\t\t\t\t# Exchange-correlation functional (Defaults to LDA)\n")
             fdf_file.write(f"XC.Authors         {self.XC_Authors}\t\t\t\t# Exchange-correlation version (PBE for GGA, PW92 or CA for LDAs)\n")
             if self.fdf_type == "bulk":
@@ -162,21 +156,23 @@ class Generatefdf:
                 #     fdf_file.write(f"  n=5  2  1  # n, l, Nzeta, Polarization, NzetaPol\n")
                 #     fdf_file.write(f"  4.170\n")
                 #     fdf_file.write(f"  1.000\n")
-                fdf_file.write(f"C  2  # Species label, number of l-shells\n")
-                fdf_file.write(f"  n=2  0  2  # n, l, Nzeta \n")
-                fdf_file.write(f"  6.911  3.563\n")
-                fdf_file.write(f"  1.000  1.000   \n")
-                fdf_file.write(f"  n=2  1  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
-                fdf_file.write(f"  9.099  3.841\n")
-                fdf_file.write(f"  1.000  1.000\n")
-                fdf_file.write(f"S  2  # Species label, number of l-shells\n")
-                fdf_file.write(f"  n=3  0  2  # n, l, Nzeta \n")
-                fdf_file.write(f"  6.702  3.587   \n")
-                fdf_file.write(f"  1.000  1.000   \n")
-                fdf_file.write(f"  n=3  1  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
-                fdf_file.write(f"  8.823  4.116\n")
-                fdf_file.write(f"  1.000  1.000\n")
-                if (self.fdf_type == "dot" or "NP" in self.fdf_type) and self.include_H_in_block:
+                if "C" in self.Species:
+                    fdf_file.write(f"C  2  # Species label, number of l-shells\n")
+                    fdf_file.write(f"  n=2  0  2  # n, l, Nzeta \n")
+                    fdf_file.write(f"  6.911  3.563\n")
+                    fdf_file.write(f"  1.000  1.000   \n")
+                    fdf_file.write(f"  n=2  1  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
+                    fdf_file.write(f"  9.099  3.841\n")
+                    fdf_file.write(f"  1.000  1.000\n")
+                if "S" in self.Species:
+                    fdf_file.write(f"S  2  # Species label, number of l-shells\n")
+                    fdf_file.write(f"  n=3  0  2  # n, l, Nzeta \n")
+                    fdf_file.write(f"  6.702  3.587   \n")
+                    fdf_file.write(f"  1.000  1.000   \n")
+                    fdf_file.write(f"  n=3  1  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
+                    fdf_file.write(f"  8.823  4.116\n")
+                    fdf_file.write(f"  1.000  1.000\n")
+                if "H" in self.Species:
                     fdf_file.write(f"H  1  # H from ligands with ES:0.0001\n")
                     fdf_file.write(f"  n=1  0  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
                     fdf_file.write(f"  8.800  4.208\n")
