@@ -49,7 +49,7 @@ def get_machine_paths():
     """This function will get the machine paths to the directories that contain teh following depending on the computer in use.
     1) Pseudopotentials
     2) structure files (eg. xyz)
-    3) 
+    3) Path to the run files (run)
     This function returns a dict with the relevant paths
     """
     try:
