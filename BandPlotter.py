@@ -5,72 +5,73 @@ from ase.dft.kpoints import resolve_custom_points, find_bandpath_kinks
 from ase.dft.dos import DOS
 from matplotlib import gridspec
 
-class BandPlotter():
-    def __init__(self, x, y, k_locations, k_symbols):
-        """
-        |All the inputs needed for a band plot are set here
-        |Inputs:
-        |   x          : The k path distance as floats
-        |   y          : This should be a list of lists with the lists being the individual bands
-        |   k_locations: The locations of the High symmetry points as a list
-        |   k_symbols  : The Latexified version of the K path High symmetry point symbols
-        """
-        self.file_name = "band_diagram"
-        self.x = x
-        self.y = y
-        self.k_symbols = k_symbols
-        self.k_locations = k_locations
-        self.number_of_bands_to_plot = 30
-        self.fermi_level = 0
-        self.hlines = False
-        self.vlines = False
-        self.title = "Band diagram"
-        self.set_y_range = False
-        self.ylim_low = -5
-        self.ylim_high = 5
-        self.xlim_low = 0
-        self.xlim_high = 0
-        self.Ef_shift = 0
-        self.y_to_plot = []
-        self.same_band_colour = False
-        self.band_colour = "b"
-        self.new_fig = False
+# class BandPlotter():
+    # """Retianed as legacy code"""
+#     def __init__(self, x, y, k_locations, k_symbols):
+#         """
+#         |All the inputs needed for a band plot are set here
+#         |Inputs:
+#         |   x          : The k path distance as floats
+#         |   y          : This should be a list of lists with the lists being the individual bands
+#         |   k_locations: The locations of the High symmetry points as a list
+#         |   k_symbols  : The Latexified version of the K path High symmetry point symbols
+#         """
+#         self.file_name = "band_diagram"
+#         self.x = x
+#         self.y = y
+#         self.k_symbols = k_symbols
+#         self.k_locations = k_locations
+#         self.number_of_bands_to_plot = 30
+#         self.fermi_level = 0
+#         self.hlines = False
+#         self.vlines = False
+#         self.title = "Band diagram"
+#         self.set_y_range = False
+#         self.ylim_low = -5
+#         self.ylim_high = 5
+#         self.xlim_low = 0
+#         self.xlim_high = 0
+#         self.Ef_shift = 0
+#         self.y_to_plot = []
+#         self.same_band_colour = False
+#         self.band_colour = "b"
+#         self.new_fig = False
 
-    def plot(self):
-        """
-        |All the features of the band plot are set here
-        |Inputs: None
-        """
-        for i in range(0,len(self.y)):
-            self.y_to_plot.append([x - self.Ef_shift for x in self.y[i]])
+#     def plot(self):
+#         """
+#         |All the features of the band plot are set here
+#         |Inputs: None
+#         """
+#         for i in range(0,len(self.y)):
+#             self.y_to_plot.append([x - self.Ef_shift for x in self.y[i]])
         
-        # To get multiple band diagrams together just plot them on the same figure (with the same file name) and when ever you want a new figure with just the new plots
-        #  just do new_fig = True. If you want to save individual figures just give a new file name (with new_fig = True).
-        if self.new_fig == True:
-            plt.figure()
+#         # To get multiple band diagrams together just plot them on the same figure (with the same file name) and when ever you want a new figure with just the new plots
+#         #  just do new_fig = True. If you want to save individual figures just give a new file name (with new_fig = True).
+#         if self.new_fig == True:
+#             plt.figure()
         
-        # Setting vertical lines
-        if self.vlines == True:
-            for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
-                plt.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
+#         # Setting vertical lines
+#         if self.vlines == True:
+#             for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
+#                 plt.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
 
-        # Setting y ranges
-        if self.set_y_range == True:
-            plt.ylim([self.ylim_low,self.ylim_high])
+#         # Setting y ranges
+#         if self.set_y_range == True:
+#             plt.ylim([self.ylim_low,self.ylim_high])
 
-        # We plot the figure here
-        for band in range(0,len(self.y)):
-            if self.same_band_colour == True:
-                plt.plot(self.x, self.y_to_plot[band], self.band_colour)
-            else:
-                plt.plot(self.x, self.y_to_plot[band])
+#         # We plot the figure here
+#         for band in range(0,len(self.y)):
+#             if self.same_band_colour == True:
+#                 plt.plot(self.x, self.y_to_plot[band], self.band_colour)
+#             else:
+#                 plt.plot(self.x, self.y_to_plot[band])
 
-        plt.xticks(self.k_locations, self.k_symbols)
-        plt.xlabel("K path")
-        plt.ylabel("Energy (eV)")
-        plt.title(f"{self.title}")
-        plt.savefig(f"Bands_{self.file_name}.pdf")
-        plt.show()
+#         plt.xticks(self.k_locations, self.k_symbols)
+#         plt.xlabel("K path")
+#         plt.ylabel("Energy (eV)")
+#         plt.title(f"{self.title}")
+#         plt.savefig(f"Bands_{self.file_name}.pdf")
+#         plt.show()
 
 class BandPlotterASE():
     def __init__(self, **kwargs):
@@ -107,16 +108,10 @@ class BandPlotterASE():
         self.pin_fermi = kwargs.get("pin_fermi", "scf") # if there are difference in fermi levels (Eg E_scf and E_nscf) then use this to pin the levels There options "off", "scf", "nscf" 
         self.plot_from_QE_dos_file = True  # This will make the code read in files from a QE dos output file.
         self.QE_dos_file_path = ""
-        if self.plot_only_dos:
-            self.ylim_low = -5
-            self.ylim_high = 5
-            self.xlim_low = 0
-            self.xlim_high = 0
-        else:
-            self.ylim_low = 0
-            # self.ylim_high = 5
-            self.xlim_low = -4
-            self.xlim_high = 4
+        self.ylim_low = -5
+        self.ylim_high = 5
+        # self.xlim_low = 0
+        # self.xlim_high = 0
 
     # def get_dos(self, readoutfilesobj):
     #     """
@@ -158,9 +153,12 @@ class BandPlotterASE():
                 ax1.axhline(linewidth=0.1, color='k')
         # Setting y ranges
         if self.set_y_range == True:
-            if self.plot_only_dos or self.include_dos:
+            if self.plot_only_dos:
                 ax2.set_ylim([self.ylim_low, self.ylim_high])
-            if not self.plot_only_dos :
+            elif self.include_dos:
+                ax1.set_ylim([self.ylim_low, self.ylim_high])
+                ax2.set_ylim([self.ylim_low, self.ylim_high])
+            else:
                 ax1.set_ylim([self.ylim_low, self.ylim_high])
         if self.set_x_range == True:
             if self.plot_only_dos or self.include_dos:
@@ -172,13 +170,7 @@ class BandPlotterASE():
         if self.plot_only_dos or self.include_dos:
             # print(self.include_dos)
             for i,v in enumerate(self.y_to_plot):
-                print(self.plot_only_dos)
-                if self.plot_only_dos:
-                    # This will flip the axes
-                    print(f"printing")
-                    ax2.plot(self.x_to_plot[i], self.y_to_plot[i], self.band_colour[i], label = self.labels[i])
-                else:
-                    ax2.plot(self.dos[i], self.E_dos[i], self.band_colour[i], label = self.labels[i])
+                ax2.plot(self.dos[i], self.E_dos[i], self.band_colour[i], label = self.labels[i])
             ax2.set_xlabel("DOS")
             ax2.set_ylabel("Energy (eV)")
             ax2.set_title(f"{self.dos_title}")
@@ -222,16 +214,20 @@ class BandPlotterASE():
             if self.plot_from_QE_dos_file:
                 E = []
                 dos = []
-                with open(self.QE_dos_file_path, "r") as dos_file:
+                with open(readoutfilesobj.dos_file_name, "r") as dos_file:
                     for line in dos_file:
                         # print(line)
                         if "#" not in line:
                             data = line.strip().split()
                             E.append(float(data[0]) - Ef)
                             dos.append(float(data[1]))
-                self.y_to_plot.append(dos)
-                self.x_to_plot.append(E)
-                self.labels.append(label)
+                # self.y_to_plot.append(dos)
+                # self.x_to_plot.append(E)
+                self.dos.append(dos)
+                self.E_dos.append(E)
+                if self.plot_only_dos:  # Other wise we wil lappend to labels twice sicnce we will do it again at theloading of bands
+                    self.labels.append(label)
+
             else:
                 # we are here getting the required information for DOS
                 # self.get_dos(readoutfilesobj)
@@ -250,6 +246,7 @@ class BandPlotterASE():
         # print(kpts)
         # print(self.plot_only_dos)
         if self.plot_only_dos == False:
+            # This is for teh band structure
             path = readoutfilesobj.atoms_bands_objects[0].cell.bandpath(npoints=0)
             kinks = find_bandpath_kinks(readoutfilesobj.atoms_bands_objects[0].cell, kpts, eps=1e-5)  # These are the high symmetry points in use 
             pathspec = resolve_custom_points(kpts[kinks], path.special_points, eps=1e-5) # This gives the postions for the relevant high symmetry points
