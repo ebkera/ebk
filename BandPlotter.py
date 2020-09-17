@@ -72,7 +72,6 @@ class BandPlotter():
         plt.savefig(f"Bands_{self.file_name}.pdf")
         plt.show()
 
-
 class BandPlotterASE():
     def __init__(self, **kwargs):
         """
@@ -106,7 +105,7 @@ class BandPlotterASE():
         self.include_dos = kwargs.get("include_dos", False)
         self.plot_only_dos = kwargs.get("only_dos", False)
         self.pin_fermi = kwargs.get("pin_fermi", "scf") # if there are difference in fermi levels (Eg E_scf and E_nscf) then use this to pin the levels There options "off", "scf", "nscf" 
-        self.plot_from_QE_dos_file = False  # This will make the code read in files from a QE dos output file.
+        self.plot_from_QE_dos_file = True  # This will make the code read in files from a QE dos output file.
         self.QE_dos_file_path = ""
         if self.plot_only_dos:
             self.ylim_low = -5
@@ -244,7 +243,6 @@ class BandPlotterASE():
                 Ef_diff = Ef - Ef_nscf
                 if abs(Ef_diff) >= 0.001:
                     print(f"Warning!!! In {readoutfilesobj.identifier[0]}:\t|E_f_scf-E_f_nscf| = {abs(Ef_diff):.3} eV (>= 0.001 eV); E_f_scf = {Ef} eV,  E_f_nscf = {Ef_nscf} eV")
-
                 if self.pin_fermi != "scf": self.E_dos.append(E_nscf)
                 else: self.E_dos.append([E - Ef_diff for E in E_nscf])
 
