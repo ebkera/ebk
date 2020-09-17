@@ -68,7 +68,9 @@ class Insert_ligand():
 
         #deleting the relevant atoms
         del attach_to.atoms[attach_at]
+        write("attach_to.ion.xyz", attach_to.atoms)
         del self.atoms[attach_through]
+        write(f"{self.name}.ion.xyz", self.atoms)
 
         # Logging all the indeces in case we have to constrain them
         attach_to.NP_atoms = []
