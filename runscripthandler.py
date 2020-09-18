@@ -276,7 +276,7 @@ class RunScriptHandler():
             ase.io.write(f"{self.identifier}.nscf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
             # Putting files into folders
             os.rename(f"{self.identifier}.nscf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.nscf.in")
-        if f"{self.dm}dos{self.dm}":
+        if f"{self.dm}dos":
             # Here we have to be careful since if we just use "dos" in the if statement we will get all teh pdos and ldos stuff as well
             # We are not using ASE to write this file. It is simple and that is one reason
             with open(f"{self.identifier}.dos.in", "w+") as file:
@@ -804,7 +804,7 @@ class ReadOutfiles():
         self.calculator       = kwargs.get("calculator", [])
         self.structure_type   = kwargs.get("structure_type", [])
         self.xc               = kwargs.get("xc", [])
-        self.calculation      = kwargs.get("calculation", [])
+        self.calculation      = kwargs.get("calculation", [])  # This give types of calculations in the folder eg scf+nscf+bands+dos+pdos
         self.species          = kwargs.get("species", [])
         self.high_verbosity   = kwargs.get("high_verbosity", False)
         self.MHP_base         = kwargs.get("MHP_base", "x")  # This is what you want to base you analysis on.
@@ -935,8 +935,10 @@ class ReadOutfiles():
         from pathlib import Path
         cur_dir = Path(os.getcwd())
         runs_dir = cur_dir.parent.parent
+        from ebk import get_machine_paths
+        paths = get_machine_paths()
         if dir == "thesis":
-            mydir = Path(runs_dir, "Run_files_git", "Run_files")
+            mydir = paths["run"]
         elif dir == "sivalabs":
             mydir = Path(runs_dir, "Run_files_SL", "Synced")
         elif dir== "here":
@@ -969,6 +971,10 @@ class ReadOutfiles():
                         nscf_file = ase.io.read(f"{path}.nscf.out", format = "espresso-out")
                         if self.high_verbosity:
                             print(f"read_outfiles: Opening file: {path}.nscf.out")
+                    if "+dos" in self.calculation:
+                        self.dos_file_name = f"{path}.dos.dat"
+                        if self.high_verbosity:
+                            print(f"read_outfiles: Saving file name for dos file for further processing")
                 elif self.folder_data[x]["Calc"].lower() == "siesta":
                     # Opening Quatnum Espresso Files
                     file = ase.io.read(f"{path}.out", format = "espresso-out")
