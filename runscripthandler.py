@@ -544,11 +544,11 @@ class RunScriptHandler():
                                 file_torque.write(f"    sumpdos.x *\({x[0]}\)* > {self.identifier}.{x[0]}_all.PDOS\n")
                             else:
                                 file_torque.write(f"    sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
-                    if f"{self.dm}dos{self.dm}" in self.calculation:
-                        file_torque.write(f'    echo "Calculationg DOS"\n')
+                    if f"{self.dm}dos" in self.calculation:
+                        file_torque.write(f'    echo "Calculating DOS"\n')
                         file_torque.write(f"    mpirun dos.x < {self.identifier}.dos.in > {self.identifier}.dos.out\n")
                     if "ldos" in self.calculation:
-                        file_torque.write(f'    echo "Calculationg LDOS"\n')
+                        file_torque.write(f'    echo "Calculating LDOS"\n')
                         file_torque.write(f"    mpirun projwfc.x < {self.identifier}.ldos.in > {self.identifier}.ldos.out\n")
             # file.write(f'rm *wfc*\n')
                 if self.calculator == "SIESTA":
@@ -944,7 +944,7 @@ class ReadOutfiles():
         elif dir== "here":
             mydir = Path(cur_dir)
         else:
-            mydir = Path(dir)    
+            mydir = Path(dir)
         if self.high_verbosity:
             print(f"The Runs directory is: {mydir}")
         self.read_folder_data(mydir)
