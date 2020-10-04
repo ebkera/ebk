@@ -199,4 +199,5 @@ def get_pseudopotential(id):
         pseudopotential = {"H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF", 'C': 'c_pbe_v1.2.uspp.F.UPF', 'H': 'h_pbe_v1.4.uspp.F.UPF', 'S': 's_pbe_v1.4.uspp.F.UPF'}                 
     return pseudopotential
 
-    
+   def make_mini_proj():
+       mkdir() 
