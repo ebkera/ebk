@@ -199,5 +199,36 @@ def get_pseudopotential(id):
         pseudopotential = {"H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF", 'C': 'c_pbe_v1.2.uspp.F.UPF', 'H': 'h_pbe_v1.4.uspp.F.UPF', 'S': 's_pbe_v1.4.uspp.F.UPF'}                 
     return pseudopotential
 
-   def make_mini_proj():
-       mkdir() 
+def make_mini_proj():
+    """
+    Useful when wanting to create a quick mini project"""
+    import os
+    # os.mkdir("media")
+    tex_file_text = r"""%This mini project
+\documentclass[a4paper,12pt]{article}
+\usepackage[hidelinks]{hyperref}
+\usepackage{float}
+\usepackage{graphicx}
+\graphicspath{{media/}} %Setting the graphicspath
+
+\title{Sn Bulk and NP band/energy structure optimization - with tuned DZP basis set}
+\author{Eranjan Kandegedara}
+\begin{document}
+\maketitle
+\tableofcontents
+
+\section{Background}
+This is dummy text.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale = 0.45]{Rivero_band_gaps.JPG}
+    \caption{Bands from the rivero paper. We are looking at the dashed green line.}
+    \label{fig:rivero_bands}
+\end{figure}
+
+\bibliographystyle{unsrt}
+\bibliography{../../referencesCQD}
+\end{document}"""
+
+    with open("main.tex", "w+") as tex_file:
+        tex_file.write(tex_file_text)
