@@ -203,7 +203,7 @@ def make_mini_proj():
     """
     Useful when wanting to create a quick mini project"""
     import os
-    # os.mkdir("media")
+    os.mkdir("media")
     tex_file_text = r"""%This mini project
 \documentclass[a4paper,12pt]{article}
 \usepackage[hidelinks]{hyperref}
