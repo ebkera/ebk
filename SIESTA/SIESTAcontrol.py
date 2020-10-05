@@ -44,6 +44,7 @@ class Generatefdf:
         self.ElectronicTemperature = kwargs.get("ElectronicTemperature", False)
         self.constrain_centre_atom = kwargs.get("constrain_centre_atom", False)  # for when doing dots we can have the central atom fixed.
         self.constrain_atom_list   = kwargs.get("constrain_atom_list", False)
+        self.UseStructFile         = kwargs.get("UseStructFile", False)
         if self.XC_Functional == "LDA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.432)
         if self.XC_Functional == "GGA":
@@ -220,6 +221,8 @@ class Generatefdf:
 
             fdf_file.write(f"SaveTotalPotential true\n")
             fdf_file.write(f"SaveElectrostaticPotential true\n")
+            if self.UseStructFile == True:
+                fdf_file.write(f"UseStructFile true\n")
             if self.Spin: 
                 fdf_file.write(f"Spin {self.Spin}\n")
                 fdf_file.write(f"Spin.OrbitStrength {self.SO_strength}\n")
