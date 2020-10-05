@@ -324,7 +324,6 @@ class RunScriptHandler():
         This method creates SIESTA input files
         """
         fdf = Generatefdf(**self.SIESTA_inputs)
-        fdf.description = "Testing the bulk band structure and PDOS when cutoffs are set from the PAO basis block and values are from the paper. Here the values are for the GGA PP."
         fdf.write()
         os.rename(f"{self.SIESTA_inputs['SystemLabel']}.fdf", f"./{self.base_folder}/{run_name}/{self.SIESTA_inputs['SystemLabel']}.fdf")
         
@@ -561,37 +560,42 @@ class RunScriptHandler():
             else:
                 file_torque.write(f'    cd "$PWD/$dir"\n')
                 file_torque.write(f"\n")
-                file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npools {self.npools} < {self.identifier}.scf.in | tee {self.identifier}.scf.out\n")
-                file_torque.write(f"    now=$(date)\n")
-                file_torque.write(f'    echo "$now : $dir : completed scf" >> ../all_jobs.log\n')
-                if "bands" in self.calculation:
-                    file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
+                if self.calculator == "QE":
+                    file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x -npools {self.npools} < {self.identifier}.scf.in | tee {self.identifier}.scf.out\n")
                     file_torque.write(f"    now=$(date)\n")
-                    file_torque.write(f'    echo "$now : $dir : completed bands" >> ../all_jobs.log\n')
-                if "nscf" in self.calculation:
-                    file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x < {self.identifier}.nscf.in | tee {self.identifier}.nscf.out\n")
-                    file_torque.write(f"    now=$(date)\n")
-                    file_torque.write(f'    echo "$now : $dir : completed nscf" >> ../all_jobs.log\n')
-                if "pdos" in self.calculation:
-                    file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}projwfc.x < {self.identifier}.pdos.in > {self.identifier}.pdos.out\n")
-                    file_torque.write(f'    echo "Calculating PDOS components"\n')
-                    for x in self.PDOS_required_projections:
-                        if x[1] == "all":
-                            file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}sumpdos.x *\({x[0]}\)* > {self.identifier}.{x[0]}_all.PDOS\n")
-                        else:
-                            file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
-                    file_torque.write(f"    now=$(date)\n")
-                    file_torque.write(f'    echo "$now : $dir : completed pdos" >> ../all_jobs.log\n')
-                if f"{self.dm}dos{self.dm}" in self.calculation:
-                    file_torque.write(f'    echo "Calculationg DOS"\n')
-                    file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}dos.x < {self.identifier}.dos.in > {self.identifier}.dos.out\n")
-                    file_torque.write(f"    now=$(date)\n")
-                    file_torque.write(f'    echo "$now : $dir : completed dos" >> ../all_jobs.log\n')
-                if "ldos" in self.calculation:
-                    file_torque.write(f'    echo "Calculationg LDOS"\n')
-                    file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}projwfc.x < {self.identifier}.ldos.in > {self.identifier}.ldos.out\n")
-                    file_torque.write(f"    now=$(date)\n")
-                    file_torque.write(f'    echo "$now : $dir : completed ldos" >> ../all_jobs.log\n')
+                    file_torque.write(f'    echo "$now : $dir : completed scf" >> ../all_jobs.log\n')
+                    if "bands" in self.calculation:
+                        file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x < {self.identifier}.bands.in | tee {self.identifier}.bands.out\n")
+                        file_torque.write(f"    now=$(date)\n")
+                        file_torque.write(f'    echo "$now : $dir : completed bands" >> ../all_jobs.log\n')
+                    if "nscf" in self.calculation:
+                        file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}pw.x < {self.identifier}.nscf.in | tee {self.identifier}.nscf.out\n")
+                        file_torque.write(f"    now=$(date)\n")
+                        file_torque.write(f'    echo "$now : $dir : completed nscf" >> ../all_jobs.log\n')
+                    if "pdos" in self.calculation:
+                        file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}projwfc.x < {self.identifier}.pdos.in > {self.identifier}.pdos.out\n")
+                        file_torque.write(f'    echo "Calculating PDOS components"\n')
+                        for x in self.PDOS_required_projections:
+                            if x[1] == "all":
+                                file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}sumpdos.x *\({x[0]}\)* > {self.identifier}.{x[0]}_all.PDOS\n")
+                            else:
+                                file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}sumpdos.x *\({x[0]}\)*\({x[1]}\) > {self.identifier}.{x[0]}_{x[1]}.PDOS\n")
+                        file_torque.write(f"    now=$(date)\n")
+                        file_torque.write(f'    echo "$now : $dir : completed pdos" >> ../all_jobs.log\n')
+                    if f"{self.dm}dos{self.dm}" in self.calculation:
+                        file_torque.write(f'    echo "Calculationg DOS"\n')
+                        file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}dos.x < {self.identifier}.dos.in > {self.identifier}.dos.out\n")
+                        file_torque.write(f"    now=$(date)\n")
+                        file_torque.write(f'    echo "$now : $dir : completed dos" >> ../all_jobs.log\n')
+                    if "ldos" in self.calculation:
+                        file_torque.write(f'    echo "Calculationg LDOS"\n')
+                        file_torque.write(f"    mpirun -np {self.ntasks} {self.executable_path[self.job_handler]}projwfc.x < {self.identifier}.ldos.in > {self.identifier}.ldos.out\n")
+                        file_torque.write(f"    now=$(date)\n")
+                        file_torque.write(f'    echo "$now : $dir : completed ldos" >> ../all_jobs.log\n')
+                elif self.calculator == "SIESTA":
+                    file_torque.write(f"    siesta -in {self.identifier}.fdf | tee {self.identifier}.out\n")
+                    file_torque.write(f'    date\n')
+                    file_torque.write(f'    echo "Completed fdf run"\n')
                 file_torque.write("    cd .. \n")
             # file_torque.write('    cp all_jobs.log "$PWD/$dir/all_jobs.log"\n')
             file_torque.write(f"\n")
