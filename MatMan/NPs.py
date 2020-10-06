@@ -95,10 +95,49 @@ def analyze_bonds(file_name, central_atom_index = 0, passivant = "H", dot_specie
 
 def create_shell_NP(file_name, central_atom_index = 0, passivant = "H", dot_species = "Sn", bond_length = False, N_shells = 1):
     """
-    eads in an XYZ file.
+    Reads in an XYZ file.
     This function does the following,
     Creates a given number of shells for a given nano-particle
     """
+
+    def hydrogenate(bond_length):
+        """This method will add hydrogen atoms to surface atoms of the dot that has any dangling bonds"""
+        multi_factor = bond_length/(lattice_constant*0.4330127018922)  # Since the coordinates are in lattice constants where 0.4330127018922 is the length of a bond 
+        # These are the sites of the nearest neighbours
+        positive_set = [[0.25,0.25,0.25],[-0.25,-0.25,0.25],[-0.25,0.25,-0.25],[0.25,-0.25,-0.25]]
+        negative_set = [[-0.25,-0.25,-0.25],[0.25,0.25,-0.25],[0.25,-0.25,0.25],[-0.25,0.25,0.25]]
+        new_H_atoms = []
+        for atom in atoms_ase:
+            displacement_vectors = []  # This will store the displacement vectors between current atoms connected to "atom" which is the site where we want to hydrogenate
+            # This will store all the new Hydrogen atoms that will be introduced and we can add all of them at once at the end
+            # Taking only the surface atoms of the quantum dot
+            if atom.symbol == "C":
+                # Finding the current neighbours for the site and also the displacement vectors for each site
+                for atom2 in atoms_ase:
+                    displacement_vector_x = atom2[0] - atom[0]
+                    displacement_vector_y = atom2[1] - atom[1]
+                    displacement_vector_z = atom2[2] - atom[2]
+                    displacement_vector_mag2 = abs(displacement_vector_x) ** 2 + abs(displacement_vector_y) ** 2 + abs(displacement_vector_z) ** 2
+                    if displacement_vector_mag2 == 0.1875:
+                        displacement_vector = [displacement_vector_x,displacement_vector_y,displacement_vector_z]
+                        displacement_vectors.append(displacement_vector)
+                to_edit = []
+                for v in positive_set:
+                    if v not in displacement_vectors:
+                        to_edit.append(v)
+                if len(to_edit) == 4: # if the count here is 4 then obviously we have to use the negative set
+                    to_edit = []
+                    for v in negative_set:
+                        if v not in displacement_vectors:
+                            to_edit.append(v)
+                for x in to_edit:
+                    new_atom = [atom[0]+x[0]*multi_factor,atom[1]+x[1]*multi_factor,atom[2]+x[2]*multi_factor,"H"]
+                    new_H_atoms.append(new_atom)
+        no_of_atoms_for_passivation = len(new_H_atoms)
+        for x in new_H_atoms:
+            atoms_ase.append(x)
+        print("hydrogenate: Successfully passivated with hydrogen")
+
     fname = file_name.split(".")
     del fname[-1]
     fname = ".".join(fname)
@@ -152,14 +191,18 @@ def create_shell_NP(file_name, central_atom_index = 0, passivant = "H", dot_spec
 
     for layer in range(1,N_shells+1):
         print(f"Working on layer: {layer}")
-
         for i in surface_atom_indeces:
+            # print(f"i is {i}")
             # print(atoms_ase[i].position)
             radial_dist = atoms_ase.get_distance(0, i)
             for pos in default_positions:
                 new_position = [atoms_ase[i].position[0] + pos[0], atoms_ase[i].position[1] + pos[1], atoms_ase[i].position[2] + pos[2]]
+                # print(new_position)
                 new_dist = np.sqrt(new_position[0]**2+new_position[1]**2+new_position[2]**2)
-                if new_dist < radial_dist: continue
+                # print(f"{new_dist} vs {radial_dist}")
+                if new_dist <= radial_dist: 
+                    # print(f"radial and other dist less")
+                    continue
                 atoms_ase.append("C") # for newly added
                 atoms_ase[-1].position = [atoms_ase[i].position[0] + pos[0], atoms_ase[i].position[1] + pos[1], atoms_ase[i].position[2] + pos[2]]
                 added_atoms_list.append(len(atoms_ase)-1)
@@ -172,6 +215,36 @@ def create_shell_NP(file_name, central_atom_index = 0, passivant = "H", dot_spec
                 if i != j and atoms_ase.get_distance(i, j) < bond_length_threshold:
                     atoms_to_delete.append(j)
 
+    write(f"{fname}_final_coded_nonpassivated.xyz", atoms_ase)
+
+
+    bond_length = 1.7
+    default_positions = [[bond_length,bond_length,bond_length],[-bond_length,-bond_length,bond_length],[-bond_length,bond_length,-bond_length],[bond_length,-bond_length,-bond_length]]
+    added_passivation_atoms_list = []
+
+    for layer in range(1,2):
+        print(f"Passivating")
+        for i in added_atoms_list:
+            # print(f"i is {i}")
+            # print(atoms_ase[i].position)
+            radial_dist = atoms_ase.get_distance(0, i)
+            for pos in default_positions:
+                new_position = [atoms_ase[i].position[0] - pos[0], atoms_ase[i].position[1] - pos[1], atoms_ase[i].position[2] - pos[2]]
+                # print(new_position)
+                new_dist = np.sqrt(new_position[0]**2+new_position[1]**2+new_position[2]**2)
+                # print(f"{new_dist} vs {radial_dist}")
+                if new_dist <= radial_dist: 
+                    # print(f"radial and other dist less")
+                    continue
+                atoms_ase.append("H") # for newly added
+                atoms_ase[-1].position = [atoms_ase[i].position[0] + pos[0], atoms_ase[i].position[1] + pos[1], atoms_ase[i].position[2] + pos[2]]
+                added_passivation_atoms_list.append(len(atoms_ase)-1)
+        print(added_atoms_list)
+
+    write(f"{fname}_final_coded_passivated.xyz", atoms_ase)
+
+    for i, atom in enumerate(atoms_ase):
+        if atom.symbol == "S" or atom.symbol == "C": atom.symbol = "Sn"
     write(f"{fname}_final.xyz", atoms_ase)
 
 
@@ -179,8 +252,7 @@ def create_relaxed(file_name, replace_with):
     """
     Reads in an XYZ file.
     This function does the following,
-    Creates a given number of shells for a given nano-particle
-    replacewith should also be a file name.
+    Takes in two passivated NPs and repalces teh first ones atoms with teh appropriate atoms from teh second one.
     """
     fname = file_name.split(".")
     del fname[-1]
