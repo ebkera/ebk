@@ -504,7 +504,7 @@ class RunScriptHandler():
                 if self.calculator == "SIESTA":
                     file_torque.write(f"    module load intel/16\n")
                     file_torque.write(f"    module load impi\n")
-                    file_torque.write(f"    module load fftw3/3.3/impi-5\n")
+                    # file_torque.write(f"    module load fftw3/3.3/impi-5\n")
                     file_torque.write(f"    module load siesta\n")
                 file_torque.write(f"    module list\n\n")
                 file_torque.write(f'    echo "PBS_O_WORKDIR: $PBS_O_WORKDIR"\n')
@@ -552,7 +552,7 @@ class RunScriptHandler():
             # file.write(f'rm *wfc*\n')
                 if self.calculator == "SIESTA":
                     file_torque.write(f"    ln -s ~/SIESTA_compile/siesta-master/Obj/siesta siesta_v0\n")
-                    file_torque.write(f"    mpirun ./siesta_v0 -in {self.identifier}.fdf > {self.identifier}.out\n")
+                    file_torque.write(f"    mpirun ~/bin_era/siesta_b4wb1preq -in {self.identifier}.fdf > {self.identifier}.out\n")
                     # file_torque.write(f"    mpirun siesta -in {self.identifier}.fdf > {self.identifier}.out\n")
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Completed fdf run"\n')
