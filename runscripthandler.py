@@ -503,8 +503,10 @@ class RunScriptHandler():
                     file_torque.write(f"    module load quantum-espresso/5.4/openmpi-1.10\n")
                 if self.calculator == "SIESTA":
                     file_torque.write(f"    module load intel/18\n")
-                    file_torque.write(f"    module load impi/\n")
-                    # file_torque.write(f"    module load fftw3/3.3/impi-5\n")
+                    # file_torque.write(f"    module load impi/5/\n")
+                    file_torque.write(f"    module load impi/\n")  # Loads the impi18 module
+                    # file_torque.write(f"    module load fftw3/3.3/impi-5\n")  # this is what the 4.1-b2-2 uses
+                    file_torque.write(f"    module load fftw3/3.3/intel/3.3.2-1\n")  # this is what the 4.1-b2-2 uses
                     # file_torque.write(f"    module load siesta\n")
                 file_torque.write(f"    module list\n\n")
                 file_torque.write(f'    echo "PBS_O_WORKDIR: $PBS_O_WORKDIR"\n')
@@ -552,7 +554,7 @@ class RunScriptHandler():
             # file.write(f'rm *wfc*\n')
                 if self.calculator == "SIESTA":
                     # file_torque.write(f"    ln -s ~/SIESTA_compile/siesta-master/Obj/siesta siesta_v0\n")
-                    file_torque.write(f"    mpirun ~/bin_era/siesta_b4wb1preqintel18impi19 -in {self.identifier}.fdf > {self.identifier}.out\n")
+                    file_torque.write(f"    mpirun ~/bin_era/siesta_b4wb1preqintel18impi19fftw3 -in {self.identifier}.fdf > {self.identifier}.out\n")
                     # file_torque.write(f"    mpirun siesta -in {self.identifier}.fdf > {self.identifier}.out\n")
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Completed fdf run"\n')
