@@ -6,11 +6,12 @@ import matplotlib
 import numpy as np
 from datetime import datetime
 
-atomic_weights = {}
-atomic_weights.update({"Sn": 50})
-atomic_weights.update({"H": 1})
-atomic_weights.update({"S": 16})
-atomic_weights.update({"C": 6})
+atomic_numbers = {}
+atomic_numbers.update({"Sn": 50})
+atomic_numbers.update({"H": 1})
+atomic_numbers.update({"S": 16})
+atomic_numbers.update({"C": 6})
+atomic_numbers.update({"O": 8})
 
 class Generatefdf:
     def __init__(self, *args, **kwargs):
@@ -20,6 +21,7 @@ class Generatefdf:
         PAO_define_global (bool)  # Setting this means we can set energyyshift and splitnorm. But setting this to false just means defualt value
         """
         self.SystemLabel           = kwargs.get("SystemLabel", "Sn")
+        self.SystemName            = kwargs.get("SystemName", "A General Run")
         self.description           = kwargs.get("description", "A General Run")
         self.Species               = kwargs.get("Species", ["Sn", "H"])
         self.coordinates_file_name = kwargs.get("coordinates_file_name", "coordinates.fdf")
@@ -61,7 +63,7 @@ class Generatefdf:
             fdf_file.write(f"# Eranjan Kandegedara\n")
             fdf_file.write(f"# -----------------------------------------------------------------------------\n")
             fdf_file.write(f"\n")
-            fdf_file.write(f"SystemName         alpha-Sn\t\t\t\t# Descriptive name of the system\n")
+            fdf_file.write(f"SystemName         {self.SystemName}\t\t\t\t# Descriptive name of the system\n")
             fdf_file.write(f"SystemLabel        {self.SystemLabel}\t\t\t\t# Short name for naming files\n")
             fdf_file.write(f"NumberOfSpecies    {len(self.Species)}\t\t\t\t# Number of species\n")
             fdf_file.write(f"XC.Functional      {self.XC_Functional}\t\t\t\t# Exchange-correlation functional (Defaults to LDA)\n")
@@ -72,7 +74,7 @@ class Generatefdf:
             fdf_file.write(f"\n")
             fdf_file.write(f"%block Chemical_Species_Label\n")
             for i,v in enumerate(self.Species):
-                fdf_file.write(f"{i+1}    {atomic_weights[v]}    {v}\n")
+                fdf_file.write(f"{i+1}    {atomic_numbers[v]}    {v}\n")
             # fdf_file.write(f"1   50    Sn\n")
             # if "dot" in self.fdf_type or "NP" in self.fdf_type: fdf_file.write(f"2    1    H\n")
             # fdf_file.write(f"3    6    C\n")

@@ -331,10 +331,11 @@ class RunScriptHandler():
         from ebk import get_machine_paths
         paths = get_machine_paths()
         # os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
-        shutil.copy(f"{paths['pps']}/_LDA_their/Sn.psf", f'./{self.base_folder}/{run_name}/Sn.psf')
-        shutil.copy(f"{paths['pps']}/H.psf", f'./{self.base_folder}/{run_name}/H.psf')
-        shutil.copy(f"{paths['pps']}/C.psf", f'./{self.base_folder}/{run_name}/C.psf')
-        shutil.copy(f"{paths['pps']}/S.psf", f'./{self.base_folder}/{run_name}/S.psf')
+        if "Sn" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/_LDA_their/Sn.psf", f'./{self.base_folder}/{run_name}/Sn.psf')
+        if "H" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/H.psf", f'./{self.base_folder}/{run_name}/H.psf')
+        if "C" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/C.psf", f'./{self.base_folder}/{run_name}/C.psf')
+        if "S" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/S.psf", f'./{self.base_folder}/{run_name}/S.psf')
+        if "O" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/O.psf", f'./{self.base_folder}/{run_name}/O.psf')
 
     def move_files_to_run_folder(self, run_name):
         """
