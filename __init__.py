@@ -201,15 +201,16 @@ def get_pseudopotential(id):
 
 def make_mini_proj():
     """
-    Useful when wanting to create a quick mini project"""
+    Useful when wanting to create a quick mini project
+    """
     import os
-    os.mkdir("media")
-    tex_file_text = r"""%This mini project
+    os.mkdir("tex_media")
+    tex_file_text = r"""%This is a mini project
 \documentclass[a4paper,12pt]{article}
 \usepackage[hidelinks]{hyperref}
 \usepackage{float}
 \usepackage{graphicx}
-\graphicspath{{media/}} %Setting the graphicspath
+\graphicspath{{tex_media/}} %Setting the graphicspath
 
 \title{Sn Bulk and NP band/energy structure optimization - with tuned DZP basis set}
 \author{Eranjan Kandegedara}
