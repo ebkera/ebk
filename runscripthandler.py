@@ -237,12 +237,12 @@ class RunScriptHandler():
             # The relax runs will also be saved with the .scf.out extension
             self.espresso_inputs.update({"calculation" : "relax"})
             ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
-            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")       
+            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
         if "relax" in self.calculation and "vc" in self.calculation:
             # This is a vc relax calculation.
             self.espresso_inputs.update({"calculation" : "vc-relax"})
             ase.io.write(f"{self.identifier}.scf.in", self.atoms_object, format = "espresso-in", **self.espresso_inputs)
-            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")            
+            os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
         if "bands" in self.calculation:
             # Then with the bands file
             self.espresso_inputs.update({"calculation" : "bands"})
