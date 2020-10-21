@@ -23,7 +23,7 @@ class Generatefdf:
         self.SystemLabel           = kwargs.get("SystemLabel", "Sn")
         self.SystemName            = kwargs.get("SystemName", "A General Run")
         self.description           = kwargs.get("description", "A General Run")
-        self.Species               = kwargs.get("Species", ["Sn", "H"])
+        self.Species               = kwargs.get("Species", ["Sn", "H"])  # in order as appearing on the fdf file.
         self.coordinates_file_name = kwargs.get("coordinates_file_name", "coordinates.fdf")
         self.include_coordinate_file = kwargs.get("include_coordinate_file", False)
         self.fdf_type              = kwargs.get("fdf_type", "dot") # 
@@ -100,6 +100,7 @@ class Generatefdf:
 
             if self.include_coordinate_file:
                 fdf_file.write(f"%include {self.coordinates_file_name}\n\n")
+                # fdf_file.write(f"%block AtomicCoordinatesAndAtomicSpecies < {self.coordinates_file_name}\n\n")
 
             if self.MPGrid or self.fdf_type == "bulk":
                 fdf_file.write(f"# Monkhorst-Pack Grid\n")
