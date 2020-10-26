@@ -7,11 +7,12 @@ import numpy as np
 from datetime import datetime
 
 atomic_numbers = {}
-atomic_numbers.update({"Sn": 50})
 atomic_numbers.update({"H": 1})
-atomic_numbers.update({"S": 16})
 atomic_numbers.update({"C": 6})
+atomic_numbers.update({"N": 7})
 atomic_numbers.update({"O": 8})
+atomic_numbers.update({"S": 16})
+atomic_numbers.update({"Sn": 50})
 
 class Generatefdf:
     def __init__(self, *args, **kwargs):
