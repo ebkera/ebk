@@ -129,7 +129,7 @@ class BandPlotterASE():
         |Inputs: None
         """
         # Setting the dimensions of the saved image
-        plt.rcParams["figure.figsize"] = (18,9)
+        plt.rcParams["figure.figsize"] = (8,4)
         if self.include_dos:
             # fig, (ax1, ax2) = plt.subplots(1,2)
             gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1])
