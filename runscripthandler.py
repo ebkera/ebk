@@ -336,6 +336,8 @@ class RunScriptHandler():
         if "C" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/C.psf", f'./{self.base_folder}/{run_name}/C.psf')
         if "S" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/S.psf", f'./{self.base_folder}/{run_name}/S.psf')
         if "O" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/O.psf", f'./{self.base_folder}/{run_name}/O.psf')
+        if "N" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/N.psf", f'./{self.base_folder}/{run_name}/N.psf')
+        if "F" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/F.psf", f'./{self.base_folder}/{run_name}/F.psf')
 
     def move_files_to_run_folder(self, run_name):
         """
@@ -715,6 +717,10 @@ class RunScriptHandler():
         if self.job_handler == "torque":
             bat_file = open(f"{self.base_folder}/rsyn_out.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" ./ rathnayake@localhost:~/Run_files')
+            bat_file.close()
+            bat_file = open(f"{self.base_folder}/rsyn_out_{run_name}.bat", "w+")
+            # bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" --include="{run_name}" --include="{self.identifier}*" ../ rathnayake@localhost:~/Run_files')
+            bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" --include="{self.identifier}*" ../ rathnayake@localhost:~/Run_files')
             bat_file.close()
             bat_file = open(f"{self.base_folder}/rsyn_in.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz --max-size=5m -e "ssh -p 33301" rathnayake@localhost:~/Run_files/ ./')

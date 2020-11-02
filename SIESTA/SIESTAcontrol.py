@@ -11,6 +11,7 @@ atomic_numbers.update({"H": 1})
 atomic_numbers.update({"C": 6})
 atomic_numbers.update({"N": 7})
 atomic_numbers.update({"O": 8})
+atomic_numbers.update({"F": 9})
 atomic_numbers.update({"S": 16})
 atomic_numbers.update({"Sn": 50})
 

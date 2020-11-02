@@ -154,13 +154,15 @@ class Band():
             for i in range(1, length):
                 x = self.band_data_x[i]
                 y = self.band_data_y[i]
-                plt.plot(x, y, linewidth=0.4)
+                # plt.plot(x, y, linewidth=0.4)
+                plt.plot(x, y, "b")
         else:
             for band in bands_to_plot:
                 # E_to_return_temp = []
                 x = self.band_data_x[band]
                 y = self.band_data_y[band]
-                plt.plot(x, y, linewidth=0.4)
+                # plt.plot(x, y, linewidth=0.4)
+                plt.plot(x, y, "b")
                 # print(x)
                 if x[0] == 0:
                     # print(y[0])
