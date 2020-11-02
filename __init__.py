@@ -1,8 +1,9 @@
 """
 This program has all the constants and device parameters that we will need and also some 
 conversion functions that is very commonly used in code in this package.
-It will also include functions that we would have to use all the time but does not blong 
+It will also include functions that we would have to use all the time but does not belong 
 anywhere else.
+More diverse funtionality has been added since initial planned scope was set. 
 """
 
 # import os
@@ -10,6 +11,7 @@ import sys
 import scipy.constants
 
 #Here are some global innitializations
+
 
 # from matplotlib import pyplot as plt
 import matplotlib
