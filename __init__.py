@@ -3,6 +3,7 @@ This program has all the constants and device parameters that we will need and a
 conversion functions that is very commonly used in code in this package.
 It will also include functions that we would have to use all the time but does not belong 
 anywhere else.
+More diverse funtionality has been added since initial planned scope was set. 
 """
 
 # import os
