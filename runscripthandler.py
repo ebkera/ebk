@@ -339,7 +339,7 @@ class RunScriptHandler():
             if x == "Sn":
                 shutil.copy(f"{paths['pps']}/_LDA_their/Sn.psf", f'./{self.base_folder}/{run_name}/Sn.psf')
             else:
-                shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/H.psf", f'./{self.base_folder}/{run_name}/H.psf')
+                shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/{x}.psf", f'./{self.base_folder}/{run_name}/{x}.psf')
 
     def move_files_to_run_folder(self, run_name):
         """
