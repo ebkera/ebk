@@ -326,18 +326,20 @@ class RunScriptHandler():
         fdf = Generatefdf(**self.SIESTA_inputs)
         fdf.write()
         os.rename(f"{self.SIESTA_inputs['SystemLabel']}.fdf", f"./{self.base_folder}/{run_name}/{self.SIESTA_inputs['SystemLabel']}.fdf")
+        if self.SIESTA_inputs["Write.Denchar"]:
+            fdf.write_denchar()
+            os.rename(f"{self.SIESTA_inputs['SystemLabel']}.Denchar.fdf", f"./{self.base_folder}/{run_name}/{self.SIESTA_inputs['SystemLabel']}.Denchar.fdf")
         
         # Copying PP files for siesta
         from ebk import get_machine_paths
         paths = get_machine_paths()
         # os.rename(f"{self.identifier}.scf.in", f"./{self.base_folder}/{run_name}/{self.identifier}.scf.in")
-        if "Sn" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/_LDA_their/Sn.psf", f'./{self.base_folder}/{run_name}/Sn.psf')
-        if "H" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/H.psf", f'./{self.base_folder}/{run_name}/H.psf')
-        if "C" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/C.psf", f'./{self.base_folder}/{run_name}/C.psf')
-        if "S" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/S.psf", f'./{self.base_folder}/{run_name}/S.psf')
-        if "O" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/O.psf", f'./{self.base_folder}/{run_name}/O.psf')
-        if "N" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/N.psf", f'./{self.base_folder}/{run_name}/N.psf')
-        if "F" in self.SIESTA_inputs["Species"]: shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/F.psf", f'./{self.base_folder}/{run_name}/F.psf')
+        for x in self.SIESTA_inputs["Species"]:
+            # Here we copy the required PP files. Ideally this can be pulled from the net but we need to work offline. Use git to control the content and use ebk.get_achine_paths()
+            if x == "Sn":
+                shutil.copy(f"{paths['pps']}/_LDA_their/Sn.psf", f'./{self.base_folder}/{run_name}/Sn.psf')
+            else:
+                shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/H.psf", f'./{self.base_folder}/{run_name}/H.psf')
 
     def move_files_to_run_folder(self, run_name):
         """
@@ -562,6 +564,9 @@ class RunScriptHandler():
                     # file_torque.write(f"    mpirun siesta -in {self.identifier}.fdf > {self.identifier}.out\n")
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Completed fdf run"\n')
+                    file_torque.write(f"    mpirun ~/bin_era/denchar -in {self.identifier}.Denchar.fdf > {self.identifier}.Denchar.out\n")
+                    file_torque.write(f'    date\n')
+                    file_torque.write(f'    echo "Completed denchar run"\n')
                 file_torque.write(f"END_JOB_SCRIPT\n")
             else:
                 file_torque.write(f'    cd "$PWD/$dir"\n')
