@@ -49,6 +49,32 @@ class Generatefdf:
         self.constrain_centre_atom = kwargs.get("constrain_centre_atom", False)  # for when doing dots we can have the central atom fixed.
         self.constrain_atom_list   = kwargs.get("constrain_atom_list", False)
         self.UseStructFile         = kwargs.get("UseStructFile", False)
+        # Here we have all inputs for Denchar specifically
+        self.Write_Denchar         = kwargs.get("Write.Denchar", True)  # This will be in the siesta fdf
+        self.WriteWaveFunctions    = kwargs.get("WriteWaveFunctions", True)  # This will be in the siesta fdf
+        self.Denchar_TypeOfRun     = kwargs.get("Denchar.TypeOfRun", "2D")
+        self.Denchar_PlotCharge    = kwargs.get("Denchar.PlotCharge ", False)
+        self.Denchar_PlotWaveFunctions = kwargs.get("Denchar.PlotWaveFunctions", True)
+        self.Denchar_CoorUnits     = kwargs.get("Denchar.CoorUnits", "Ang")  # Can also be Bohr
+        self.Denchar_DensityUnits  = kwargs.get("Denchar.DensityUnits ", "Ele/Ang**3")
+        self.Denchar_NumberPointsX = kwargs.get("Denchar.NumberPointsX", "50")
+        self.Denchar_NumberPointsY = kwargs.get("Denchar.NumberPointsX", "50")
+        self.Denchar_NumberPointsZ = kwargs.get("Denchar.NumberPointsX", "50")
+        self.Denchar_MinX          = kwargs.get("Denchar.MinX", "-3.0 Ang")
+        self.Denchar_MaxX          = kwargs.get("Denchar.MaxX", "+3.0 Ang")
+        self.Denchar_MinY          = kwargs.get("Denchar.MinY", "-3.0 Ang")
+        self.Denchar_MaxY          = kwargs.get("Denchar.MaxY", "+3.0 Ang")
+        self.Denchar_MinZ          = kwargs.get("Denchar.MinZ", "-3.0 Ang")
+        self.Denchar_MaxZ          = kwargs.get("Denchar.MaxZ", "+3.0 Ang")  # data type is real length
+        self.Denchar_PlaneGeneration = kwargs.get("Denchar.PlaneGeneration", "NormalVector")
+        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
+        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
+        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
+        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
+        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
+        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
+        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
+        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
         if self.XC_Functional == "LDA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.432)
         if self.XC_Functional == "GGA":
@@ -74,14 +100,10 @@ class Generatefdf:
                 fdf_file.write(f"LatticeConstant    {self.LatticeConstant}  Ang\t\t\t# Exchange-correlation version (PBE for GGA, PW92 or CA for LDAs)\n")
 
             fdf_file.write(f"\n")
-            fdf_file.write(f"%block Chemical_Species_Label\n")
+            fdf_file.write(f"%block ChemicalSpeciesLabel\n")
             for i,v in enumerate(self.Species):
-                fdf_file.write(f"{i+1}    {atomic_numbers[v]}    {v}\n")
-            # fdf_file.write(f"1   50    Sn\n")
-            # if "dot" in self.fdf_type or "NP" in self.fdf_type: fdf_file.write(f"2    1    H\n")
-            # fdf_file.write(f"3    6    C\n")
-            # fdf_file.write(f"4   16    S\n")
-            fdf_file.write(f"%endblock Chemical_Species_Label\n")
+                fdf_file.write(f"{i+1}\t{atomic_numbers[v]}\t{v}\n")
+            fdf_file.write(f"%endblock ChemicalSpeciesLabel\n")
             fdf_file.write(f"\n")
             fdf_file.write(f"MaxSCFIterations      5000\n")
             fdf_file.write(f"SCF.MustConverge      false\n")
@@ -224,15 +246,64 @@ class Generatefdf:
                 # fdf_file.write(f"WriteMDXMol            T\n")
                 # fdf_file.write(f"MD.MaxCGDispl          0.02 Bohr\n")
 
-            fdf_file.write(f"SaveTotalPotential true\n")
-            fdf_file.write(f"SaveElectrostaticPotential true\n")
+            fdf_file.write(f"SaveTotalPotential\t\t\t\t\ttrue\n")
+            fdf_file.write(f"SaveElectrostaticPotential\ttrue\n")
             if self.UseStructFile == True:
-                fdf_file.write(f"UseStructFile true\n")
+                fdf_file.write(f"UseStructFile              true\n")
             if self.Spin: 
-                fdf_file.write(f"Spin {self.Spin}\n")
-                fdf_file.write(f"Spin.OrbitStrength {self.SO_strength}\n")
+                fdf_file.write(f"Spin                       {self.Spin}\n")
+                fdf_file.write(f"Spin.OrbitStrength         {self.SO_strength}\n")
             if self.ElectronicTemperature: 
-                fdf_file.write(f"ElectronicTemperature {self.ElectronicTemperature} eV\n")
+                fdf_file.write(f"ElectronicTemperature       {self.ElectronicTemperature} eV\n")
+            if self.write_denchar:
+                fdf_file.write("WriteDenchar                true\n")
+            if self.WriteWaveFunctions:
+                fdf_file.write("COOP.Write                  true\n")
+                fdf_file.write("WriteWaveFunctions          true\n")
+                fdf_file.write("%block WaveFuncKPoints\n")
+                fdf_file.write("0.0 0.0 0.0\n")
+                fdf_file.write("%endblock WaveFuncKPoints\n")
+
+    def write_denchar(self, *args, **kwargs):
+        with open(f"{self.SystemLabel}.Denchar.fdf", "w+") as fdf_file:
+            fdf_file.write(f"# -----------------------------------------------------------------------------\n")
+            fdf_file.write(f"# Started on:   {datetime.now()}\n")
+            fdf_file.write(f"# Description:  (Denchar) {self.description}\n")
+            fdf_file.write(f"# Zincblende Sn I (alpha, grey)\n")
+            fdf_file.write(f"# space group:  Fd3m\n")
+            fdf_file.write(f"# lattice parameters:  a = {self.LatticeConstant} Ang ( beta tin is: a = 3.70 A, c = 3.37 A)\n")
+            fdf_file.write(f"# Eranjan Kandegedara\n")
+            fdf_file.write(f"# -----------------------------------------------------------------------------\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"SystemName         {self.SystemName}\t\t\t\t# Descriptive name of the system\n")
+            fdf_file.write(f"SystemLabel        {self.SystemLabel}\t\t\t\t# Short name for naming files\n")
+            fdf_file.write(f"NumberOfSpecies    {len(self.Species)}\t\t\t\t# Number of species\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"%block ChemicalSpeciesLabel\n")
+            for i,v in enumerate(self.Species):
+                fdf_file.write(f"{i+1}\t{atomic_numbers[v]}\t{v}\n")
+            fdf_file.write(f"%endblock ChemicalSpeciesLabel\n")
+            fdf_file.write(f"\n")
+
+            fdf_file.write(f"Denchar.TypeOfRun       {self.Denchar_TypeOfRun}\n")
+            if self.Denchar_PlotCharge:
+                fdf_file.write(f"Denchar.PlotCharge      {self.Denchar_PlotCharge}\n")
+            if self.Denchar_PlotWaveFunctions:
+                fdf_file.write(f"Denchar.PlotWaveFunctions  {self.Denchar_PlotWaveFunctions}\n")
+
+            fdf_file.write(f"Denchar.CoorUnits       {self.Denchar_CoorUnits}\n")
+            fdf_file.write(f"Denchar.DensityUnits    {self.Denchar_DensityUnits}\n")
+            fdf_file.write(f"\n")
+            fdf_file.write(f"# Setting the mesh for Wavefunction/Charge density plot\n")
+            fdf_file.write(f"Denchar.NumberPointsX   {self.Denchar_NumberPointsX}\n")
+            fdf_file.write(f"Denchar.NumberPointsX   {self.Denchar_NumberPointsY}\n")
+            fdf_file.write(f"Denchar.NumberPointsX   {self.Denchar_NumberPointsZ}\n")
+            fdf_file.write(f"Denchar.MinX            {self.Denchar_MinX}\n")
+            fdf_file.write(f"Denchar.MaxX            {self.Denchar_MaxY}\n")
+            fdf_file.write(f"Denchar.MinY            {self.Denchar_MinY}\n")
+            fdf_file.write(f"Denchar.MaxY            {self.Denchar_MaxY}\n")
+            fdf_file.write(f"Denchar.MinZ            {self.Denchar_MinZ}\n")
+            fdf_file.write(f"Denchar.MaxZ            {self.Denchar_MaxZ}\n")
 
 
 # -----------------------------------------------------------------------------
