@@ -287,17 +287,17 @@ class Generatefdf:
 
             fdf_file.write(f"Denchar.TypeOfRun       {self.Denchar_TypeOfRun}\n")
             if self.Denchar_PlotCharge:
-                fdf_file.write(f"Denchar.PlotCharge      {self.Denchar_PlotCharge}\n")
+                fdf_file.write(f"Denchar.PlotCharge      true\n")
             if self.Denchar_PlotWaveFunctions:
-                fdf_file.write(f"Denchar.PlotWaveFunctions  {self.Denchar_PlotWaveFunctions}\n")
+                fdf_file.write(f"Denchar.PlotWaveFunctions  true\n")
 
             fdf_file.write(f"Denchar.CoorUnits       {self.Denchar_CoorUnits}\n")
             fdf_file.write(f"Denchar.DensityUnits    {self.Denchar_DensityUnits}\n")
             fdf_file.write(f"\n")
             fdf_file.write(f"# Setting the mesh for Wavefunction/Charge density plot\n")
             fdf_file.write(f"Denchar.NumberPointsX   {self.Denchar_NumberPointsX}\n")
-            fdf_file.write(f"Denchar.NumberPointsX   {self.Denchar_NumberPointsY}\n")
-            fdf_file.write(f"Denchar.NumberPointsX   {self.Denchar_NumberPointsZ}\n")
+            fdf_file.write(f"Denchar.NumberPointsY   {self.Denchar_NumberPointsY}\n")
+            fdf_file.write(f"Denchar.NumberPointsZ   {self.Denchar_NumberPointsZ}\n")
             fdf_file.write(f"Denchar.MinX            {self.Denchar_MinX}\n")
             fdf_file.write(f"Denchar.MaxX            {self.Denchar_MaxY}\n")
             fdf_file.write(f"Denchar.MinY            {self.Denchar_MinY}\n")
