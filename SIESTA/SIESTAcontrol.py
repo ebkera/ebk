@@ -52,29 +52,23 @@ class Generatefdf:
         # Here we have all inputs for Denchar specifically
         self.Write_Denchar         = kwargs.get("Write.Denchar", True)  # This will be in the siesta fdf
         self.WriteWaveFunctions    = kwargs.get("WriteWaveFunctions", True)  # This will be in the siesta fdf
-        self.Denchar_TypeOfRun     = kwargs.get("Denchar.TypeOfRun", "2D")
+        self.Denchar_TypeOfRun     = kwargs.get("Denchar.TypeOfRun", "3D")
         self.Denchar_PlotCharge    = kwargs.get("Denchar.PlotCharge ", False)
         self.Denchar_PlotWaveFunctions = kwargs.get("Denchar.PlotWaveFunctions", True)
         self.Denchar_CoorUnits     = kwargs.get("Denchar.CoorUnits", "Ang")  # Can also be Bohr
         self.Denchar_DensityUnits  = kwargs.get("Denchar.DensityUnits ", "Ele/Ang**3")
-        self.Denchar_NumberPointsX = kwargs.get("Denchar.NumberPointsX", "50")
-        self.Denchar_NumberPointsY = kwargs.get("Denchar.NumberPointsX", "50")
-        self.Denchar_NumberPointsZ = kwargs.get("Denchar.NumberPointsX", "50")
-        self.Denchar_MinX          = kwargs.get("Denchar.MinX", "-3.0 Ang")
-        self.Denchar_MaxX          = kwargs.get("Denchar.MaxX", "+3.0 Ang")
-        self.Denchar_MinY          = kwargs.get("Denchar.MinY", "-3.0 Ang")
-        self.Denchar_MaxY          = kwargs.get("Denchar.MaxY", "+3.0 Ang")
-        self.Denchar_MinZ          = kwargs.get("Denchar.MinZ", "-3.0 Ang")
-        self.Denchar_MaxZ          = kwargs.get("Denchar.MaxZ", "+3.0 Ang")  # data type is real length
+        self.Denchar_NumberPointsX = kwargs.get("Denchar.NumberPointsX", "75")
+        self.Denchar_NumberPointsY = kwargs.get("Denchar.NumberPointsX", "75")
+        self.Denchar_NumberPointsZ = kwargs.get("Denchar.NumberPointsX", "75")
+        self.Denchar_MinX          = kwargs.get("Denchar.MinX", "-6.5 Ang")
+        self.Denchar_MaxX          = kwargs.get("Denchar.MaxX", "+6.5 Ang")
+        self.Denchar_MinY          = kwargs.get("Denchar.MinY", "-6.5 Ang")
+        self.Denchar_MaxY          = kwargs.get("Denchar.MaxY", "+6.5 Ang")
+        self.Denchar_MinZ          = kwargs.get("Denchar.MinZ", "-6.5 Ang")
+        self.Denchar_MaxZ          = kwargs.get("Denchar.MaxZ", "+6.5 Ang")  # data type is real length
         self.Denchar_PlaneGeneration = kwargs.get("Denchar.PlaneGeneration", "NormalVector")
-        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
-        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
-        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
-        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
-        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
-        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
-        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
-        # self.DencharTypeOfRun      = kwargs.get("DencharTypeOfRun", "2D")
+        self.WFS_to_write_range    = kwargs.get("WFS_to_write_range", [35,40])
+
         if self.XC_Functional == "LDA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.432)
         if self.XC_Functional == "GGA":
@@ -261,7 +255,7 @@ class Generatefdf:
                 fdf_file.write("COOP.Write                  true\n")
                 fdf_file.write("WriteWaveFunctions          true\n")
                 fdf_file.write("%block WaveFuncKPoints\n")
-                fdf_file.write("0.0 0.0 0.0\n")
+                fdf_file.write("0.0 0.0 0.0 from 30 to 70\n")
                 fdf_file.write("%endblock WaveFuncKPoints\n")
 
     def write_denchar(self, *args, **kwargs):
