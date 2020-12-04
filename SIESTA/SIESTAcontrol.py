@@ -49,9 +49,10 @@ class Generatefdf:
         self.constrain_centre_atom = kwargs.get("constrain_centre_atom", False)  # for when doing dots we can have the central atom fixed.
         self.constrain_atom_list   = kwargs.get("constrain_atom_list", False)
         self.UseStructFile         = kwargs.get("UseStructFile", False)
+        self.NetCharge             = kwargs.get("NetCharge", None)
         # Here we have all inputs for Denchar specifically
-        self.Write_Denchar         = kwargs.get("Write.Denchar", True)  # This will be in the siesta fdf
-        self.WriteWaveFunctions    = kwargs.get("WriteWaveFunctions", True)  # This will be in the siesta fdf
+        self.Write_Denchar         = kwargs.get("Write.Denchar", False)  # This will be in the siesta fdf
+        self.WriteWaveFunctions    = kwargs.get("WriteWaveFunctions", False)  # This will be in the siesta fdf
         self.Denchar_TypeOfRun     = kwargs.get("Denchar.TypeOfRun", "3D")
         self.Denchar_PlotCharge    = kwargs.get("Denchar.PlotCharge ", False)
         self.Denchar_PlotWaveFunctions = kwargs.get("Denchar.PlotWaveFunctions", True)
@@ -247,9 +248,12 @@ class Generatefdf:
             if self.Spin: 
                 fdf_file.write(f"Spin                       {self.Spin}\n")
                 fdf_file.write(f"Spin.OrbitStrength         {self.SO_strength}\n")
+
+            if self.NetCharge != None:
+                fdf_file.write(f"NetCharge                   {self.NetCharge}\n")
             if self.ElectronicTemperature: 
                 fdf_file.write(f"ElectronicTemperature       {self.ElectronicTemperature} eV\n")
-            if self.write_denchar:
+            if self.Write_Denchar:
                 fdf_file.write("WriteDenchar                true\n")
             if self.WriteWaveFunctions:
                 fdf_file.write("COOP.Write                  true\n")
