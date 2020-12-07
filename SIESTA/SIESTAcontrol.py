@@ -33,7 +33,7 @@ class Generatefdf:
         self.PAO_define            = kwargs.get("PAO_define", "global")  # SEt this to block to make the blocks work anything else and the block is ignored make sure to set the PAO_define_global to True since otherwise it will jsut be default values
         self.XC_Functional         = kwargs.get("XC_Functional", "LDA")
         self.XC_Authors            = kwargs.get("XC_Authors", "CA")
-        self.lattice_vectors       = kwargs.get("lattice_vectors", "fcc")
+        self.LatticeVectors        = kwargs.get("LatticeVectors", [[0.0, 0.5, 0.5], [0.5, 0.0, 0.5], [0.5, 0.5,]])
         self.bands_block           = kwargs.get("bands_block", True)
         self.MPGrid                = kwargs.get("MPGrid", 10)
         self.PDOS                  = kwargs.get("PDOS", True)
@@ -105,7 +105,7 @@ class Generatefdf:
             fdf_file.write(f"DM.MixingWeight       0.01\n\n")
 
             if self.fdf_type == "bulk":
-                if self.lattice_vectors == "fcc":
+                if self.LatticeVectors == "fcc":
                     fdf_file.write(f"AtomicCoordinatesFormat Fractional              # Format for coordinates\n")
                     fdf_file.write(f"%block AtomicCoordinatesAndAtomicSpecies        # Two atoms in the basis\n")
                     fdf_file.write(f".000   .000   .000   1\n")
@@ -115,6 +115,13 @@ class Generatefdf:
                     fdf_file.write(f"0.000  0.500  0.500\n")
                     fdf_file.write(f"0.500  0.000  0.500\n")
                     fdf_file.write(f"0.500  0.500  0.000\n")
+                    fdf_file.write(f"%endblock LatticeVectors\n\n")
+                else:
+                    fdf_file.write(f"AtomicCoordinatesFormat Fractional              # Format for coordinates\n")
+                    fdf_file.write(f"%block LatticeVectors  				#FCC lattices\n")
+                    fdf_file.write(f"{self.LatticeVectors[0][0]}  {self.LatticeVectors[0][1]}  {self.LatticeVectors[0][2]}\n")
+                    fdf_file.write(f"{self.LatticeVectors[1][0]}  {self.LatticeVectors[1][1]}  {self.LatticeVectors[1][2]}\n")
+                    fdf_file.write(f"{self.LatticeVectors[2][0]}  {self.LatticeVectors[2][1]}  {self.LatticeVectors[2][2]}\n")
                     fdf_file.write(f"%endblock LatticeVectors\n\n")
 
             if self.include_coordinate_file:
