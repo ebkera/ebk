@@ -326,9 +326,10 @@ class RunScriptHandler():
         fdf = Generatefdf(**self.SIESTA_inputs)
         fdf.write()
         os.rename(f"{self.SIESTA_inputs['SystemLabel']}.fdf", f"./{self.base_folder}/{run_name}/{self.SIESTA_inputs['SystemLabel']}.fdf")
-        if self.SIESTA_inputs["Write.Denchar"]:
-            fdf.write_denchar()
-            os.rename(f"{self.SIESTA_inputs['SystemLabel']}.Denchar.fdf", f"./{self.base_folder}/{run_name}/{self.SIESTA_inputs['SystemLabel']}.Denchar.fdf")
+        if "Write.Denchar" in self.SIESTA_inputs.keys():
+            if self.SIESTA_inputs["Write.Denchar"]:
+                fdf.write_denchar()
+                os.rename(f"{self.SIESTA_inputs['SystemLabel']}.Denchar.fdf", f"./{self.base_folder}/{run_name}/{self.SIESTA_inputs['SystemLabel']}.Denchar.fdf")
         
         # Copying PP files for siesta
         from ebk import get_machine_paths
