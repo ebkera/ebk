@@ -253,8 +253,9 @@ class Generatefdf:
             if self.UseStructFile == True:
                 fdf_file.write(f"UseStructFile              true\n")
             if self.Spin: 
-                fdf_file.write(f"Spin                       {self.Spin}\n")
-                fdf_file.write(f"Spin.OrbitStrength         {self.SO_strength}\n")
+                fdf_file.write(f"Spin                        {self.Spin}\n")
+                if self.Spin == "SpinOrbit" or self.Spin == "spin-orbit":
+                    fdf_file.write(f"Spin.OrbitStrength         {self.SO_strength}\n")
 
             if self.NetCharge != None:
                 fdf_file.write(f"NetCharge                   {self.NetCharge}\n")
