@@ -47,13 +47,14 @@ class PlotEnergy():
         self.dots = kwargs.get("dots", False)
         self.ylim_low = -9
         self.ylim_high = 0
+        self.x_ticks_rotation = kwargs.get("x_ticks_rotation", 0)
 
     def load(self, file_name, pin_level, label = None, *args, **kwargs):
         """
         Will load the relevent files and values and prep for plotting
         inputs:
             file_name: Path to .EIG file
-            pin_level: Level to which we should pin the energy levels
+            pin_level: Level to which we should pin the energy levels. This will have to be input everytime.
         """
         self.labels.append(label)
         self.pin_levels.append(pin_level)
@@ -107,7 +108,7 @@ class PlotEnergy():
         for x in temp_energies:
             old=new
             new = x
-            if new >= Ef:
+            if new >= Ef - pin_level:
                 break
         self.HOMOs.append(old)
         self.LUMOs.append(new)
@@ -131,22 +132,26 @@ class PlotEnergy():
 
         E = range(1,len(self.Energies)+1)
         for x in E:
-            print(f"Plotting {x} of {len(E)}")
+            print(f"Plotting {x}\tof {len(E)}")
             for y in self.Energies[x-1]:
                 # print(f".", end = "")
                 x_coordinates = [x-self.line_widths, x+self.line_widths]
                 y_coordinates = [y, y]
                 plt.plot(x_coordinates, y_coordinates, **self.kwargs_list[x-1])
             if self.show_fermi:
-                plt.plot(x_coordinates, [self.fermi_energies[x-1], self.fermi_energies[x-1]], "b--")
+                plt.plot(x_coordinates, [self.fermi_energies[x-1], self.fermi_energies[x-1]], "b--", label="Fermi Level")
             if self.show_homo:
-                plt.plot([x_coordinates[1]+0.1, x_coordinates[1]+0.1], [self.HOMOs[x-1], self.HOMOs[x-1]], "<b")
+                plt.plot([x_coordinates[1]+0.1, x_coordinates[1]+0.1], [self.HOMOs[x-1], self.HOMOs[x-1]], "<b", label="HOMO")
             if self.show_lumo:
-                plt.plot([x_coordinates[1]+0.1, x_coordinates[1]+0.1], [self.LUMOs[x-1], self.LUMOs[x-1]], "<g")
+                plt.plot([x_coordinates[1]+0.1, x_coordinates[1]+0.1], [self.LUMOs[x-1], self.LUMOs[x-1]], "<g", label="LUMO")
         ax1.set_xticks(E)
         ax1.set_xticklabels(self.labels)
         ax1.set_xlabel("Ligand")
         ax1.set_ylabel("Energy (eV) (vac = 0)")
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        plt.legend(by_label.values(), by_label.keys(), loc = 'upper right')
+        plt.xticks(rotation=self.x_ticks_rotation, ha='right')
         ax1.set_title(f"{self.title}")
         plt.savefig(f"{self.file_name}.pdf")
         plt.show()
