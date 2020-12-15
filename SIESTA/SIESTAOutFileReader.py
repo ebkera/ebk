@@ -37,7 +37,7 @@ class SiestaReadOut():
         |Inputs:
         |    None
         |Outputs:
-        |    None
+        |    Float: The fermi energy in eV
         """
         self.Ef = 0
         for line in self.file:
