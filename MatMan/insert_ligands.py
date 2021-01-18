@@ -13,7 +13,9 @@ class Insert_ligand():
     This class will isert a ligand at a given position and at a given orientation.
     """
     def __init__(self, *args, **kwargs):
-        pass
+        self.name = kwargs.get("name", "EDT12")
+        self.path = kwargs.get("path", f"{xyz_path}/Ligands/Relaxed/{self.name}_LDA.xyz")
+        self.atoms = read(self.path, index=None, format="xyz")
 
     def orient(self, direction):
         """
@@ -44,15 +46,49 @@ class Insert_ligand():
     def save(self, format):
         write(f"{self.name}.{format}", self.atoms)
 
+    def invert(self):
+        for atom in self.atoms:
+            for i in range(3):
+                atom.position[i] = -atom.position[i]
+
+    def find_cell(self, **kwargs):
+        """X, y, z will add extra vacuum"""
+        x = kwargs.get("x", 0)
+        y = kwargs.get("y", 0)
+        z = kwargs.get("z", 0)
+        max_x = 0
+        max_y = 0
+        max_z = 0
+        min_x = 1000000
+        min_y = 1000000
+        min_z = 1000000
+        for atom in self.atoms:
+            if atom.position[0] > max_x: max_x = atom.position[0]
+            if atom.position[1] > max_y: max_y = atom.position[1]
+            if atom.position[2] > max_z: max_z = atom.position[2]
+            if atom.position[0] < min_x: min_x = atom.position[0]
+            if atom.position[1] < min_y: min_y = atom.position[1]
+            if atom.position[2] < min_z: min_z = atom.position[2]
+        x_vec = max_x-min_x
+        y_vec = max_y-min_y
+        z_vec = max_z-min_z
+        self.atoms.set_cell([x_vec/2+x, y_vec/2+y, z_vec+z])
+        return [x_vec/2, y_vec/2, z_vec]
+
+    # def set_cell(self):
+    #     vecs = self.find_cell()
+        
+
     def attach(self, attach_to, attach_at, attach_through):
         """
-        This is the main function that attacheds the ligand to a atoms type object
+        This is the main function that attaches the ligand to an atoms type object
         attach_to: The atoms type object that the ligand will attach to
         attach_at: Will attach at this atom in the atoms object(attach_to) and if there is an atom there already it will remove it and attach the ligand
-        attach_through: The ligand will remove this atom and the resulting will attach throught the resulting dangling bond. to the attach_at site in the ligand.
+        attach_through: The ligand will remove this atom and will attach through the resulting dangling bond. to the attach_at site in the attach_to object.
         """
         # print(attach_to.atoms)
-        site_attach_at = attach_to.atoms[attach_at]
+        # site_attach_at = attach_to.atoms[attach_at]
+        site_attach_at = attach_to[attach_at]
         site_attach_through = self.atoms[attach_through]
 
         diff_vec = [0, 0, 0]
@@ -67,22 +103,31 @@ class Insert_ligand():
             atom.position = (atom.position[0] + diff_vec[0], atom.position[1] + diff_vec[1], atom.position[2] + diff_vec[2])
 
         #deleting the relevant atoms
-        del attach_to.atoms[attach_at]
-        write("attach_to.ion.xyz", attach_to.atoms)
+        # del attach_to.atoms[attach_at]
+        del attach_to[attach_at]
+        # write("attach_to.ion.xyz", attach_to.atoms)
+        write("attach_to.ion.xyz", attach_to)
         del self.atoms[attach_through]
         write(f"{self.name}.ion.xyz", self.atoms)
 
-        # Logging all the indeces in case we have to constrain them
-        attach_to.NP_atoms = []
-        for atom in attach_to.atoms:
-            attach_to.NP_atoms.append(atom.index)
+        # # Logging all the indeces in case we have to constrain them
+        # attach_to.NP_atoms = []
+        # for atom in attach_to.atoms:
+        #     attach_to.NP_atoms.append(atom.index)
 
-        attach_to.ligand_atoms = []
-        for atom in self.atoms:
-            attach_to.atoms.append(atom)
-            attach_to.ligand_atoms.append(len(attach_to.atoms)-1)
-            # print(attach_to.ligand_atoms)
-        return attach_to
+        # attach_to.ligand_atoms = []
+        # for atom in self.atoms:
+        #     # attach_to.atoms.append(atom)
+        #     attach_to.append(atom)
+        #     attach_to.ligand_atoms.append(len(attach_to)-1)
+        #     # print(attach_to.ligand_atoms)
+        # return attach_to
+
+        for atom in attach_to:
+            self.atoms.append(atom)
+
+        # for atom in attach_to:
+
 
 class BDT14(Insert_ligand):
     def __init__(self, *args, **kwargs):
