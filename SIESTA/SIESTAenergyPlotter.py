@@ -29,6 +29,10 @@ class PlotEnergy():
         self.fermi_energies = []
         self.HOMOs = []
         self.LUMOs = []
+        self.occupied_shifts = []
+        self.unoccupied_shifts = []
+        self.EAs = []
+        self.IEs = []
         self.hlines = kwargs.get("hlines", True)
         self.vlines = kwargs.get("vlines", True)
         self.title = "Energy Levels"
@@ -53,7 +57,7 @@ class PlotEnergy():
         """
         Will load the relevent files and values and prep for plotting
         inputs:
-            file_name: Path to .EIG file
+            file_name: Path to .EIG file (Should not contatain '.'s except for the one for thefile extension)
             pin_level: Level to which we should pin the energy levels. This will have to be input everytime.
         """
         self.labels.append(label)
@@ -66,16 +70,48 @@ class PlotEnergy():
         for x in range(1, len(path_to_file_components)-1):
             path_to_file = f"{path_to_file}/{path_to_file_components[x]}"
 
-        # Failed attempt to get vac level automatically
-        # print(f"./{path_to_file}/{SystemLabel}")
-        # print(os.getcwd())
-        # vac = SiestaReadOut(f"./{path_to_file}/{SystemLabel}").read_vacuum()
-        # print(vac)
-        # print(vac.file)
-        # vac_max = vac.Vac_max
+        # Abandoned attempt at trying to do all steps for teh adjustment of energy levels from DSCF here.
+        # path_to_file_NP1 = kwargs.get({"path_to_file_NP1":None})
+        # path_to_file_NM1 = kwargs.get({"path_to_file_NM1":None})
 
-        # print(SystemLabel)
-        # self.SystemLabels.append(SystemLabel)
+        # if path_to_file_NM1 != None and path_to_file_NP1 != None:
+        #     N = SiestaReadOut()
+        #     NM1 = SiestaReadOut(path_to_file_NM1)
+        #     NP1 = SiestaReadOut(path_to_file_NP1)
+        #     self.E_NM1 = NM1.read_total_energy()
+        #     self.E_NP1 = NP1.read_total_energy()
+        #     self.E_N = N.read_total_energy()
+
+        #     # print(ligand)
+        #     # print(f"{(E_N)} {(E_NM1)} {(E_NP1)}")
+        #     # if type(E_N) == None: NC = 0
+        #     # if type(E_NM1) == None: E_NM1 = 0
+        #     # if type(E_NP1) == None: print("haha")
+
+        #     EA = -(E_NP1 - E_N)
+        #     IE = (E_NM1 - E_N)
+        #     Gap = E_NP1 + E_NM1 - 2*E_N
+
+        #     plt.plot(NP_list.index(NP)+1, Gap, "bx", label = "Gap")
+        #     leg_EA = plt.plot(NP_list.index(NP)+1, EA, "g<", label = "EA")
+        #     leg_IE = plt.plot(NP_list.index(NP)+1, IE, "r<", label = "IE")
+
+            # Failed attempt to get vac level automatically
+            # print(f"./{path_to_file}/{SystemLabel}")
+            # print(os.getcwd())
+            # vac = SiestaReadOut(f"./{path_to_file}/{SystemLabel}").read_vacuum()
+            # print(vac)
+            # print(vac.file)
+            # vac_max = vac.Vac_max
+
+            # print(SystemLabel)
+            # self.SystemLabels.append(SystemLabel)
+
+        # Here we are planning to adjust the energy levels for the EA and IE that we got from DeltaSCF
+        self.EAs.append(kwargs.get("EA",None))
+        self.IEs.append(kwargs.get("IE",None))
+        if "EA" in kwargs: del kwargs["EA"]
+        if "IE" in kwargs: del kwargs["IE"]
 
         print(f"Opening file: {file_name}")
         file_lines = []
@@ -100,7 +136,6 @@ class PlotEnergy():
                 temp_energies.append(float(add_this[i]))
         temp_energies = [x - pin_level for x in temp_energies]
         # print(temp_energies)
-        self.Energies.append(temp_energies)
 
         # Finding HOMO and LUMO levels
         old=temp_energies[0]
@@ -114,6 +149,23 @@ class PlotEnergy():
         self.LUMOs.append(new)
         # print(Ef, old, new)
         self.kwargs_list.append(kwargs)
+
+        # Adjusting the HOMO and LUMO levels if IE and EA are present:
+        if self.EAs[-1] != None and self.IEs[-1] !=None:
+            print(f"Adjusting occ/unocc levels as per DeltaSCF calculations")
+            occupied_shift = (-1*self.IEs[-1]) - old  # Converting the postive IE to negative. adn old corresponds to homo
+            unoccupied_shift = new - (-1*self.EAs[-1])
+            # print(f"Delta_occ:\t{occupied_shift}") # For debugging
+            # print(f"Delta_uoc:\t{unoccupied_shift}") # For debugging
+            temp_energies = [x+occupied_shift if x<= Ef-pin_level else x-unoccupied_shift if x>=Ef-pin_level else x for x in temp_energies]
+            # temp_energies = [x+occupied_shift for x in temp_energies if x<= Ef-pin_level]
+            # temp_energies = [x-unoccupied_shift for x in temp_energies if x>= Ef-pin_level]
+            self.HOMOs[-1]=self.HOMOs[-1]+occupied_shift
+            self.LUMOs[-1]=self.LUMOs[-1]-unoccupied_shift
+            # self.fermi_energies = self.fermi_energies[-1]
+
+        # We are doing this at the end so we can adjust all the adjustments
+        self.Energies.append(temp_energies)
 
 
     def plot(self, *args, **kwargs):
