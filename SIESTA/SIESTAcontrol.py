@@ -163,7 +163,7 @@ class Generatefdf:
                 fdf_file.write(f"# These are the global values\n")
                 fdf_file.write(f"PAO.BasisSize         DZP\n")
                 fdf_file.write(f"PAO.EnergyShift       {self.PAO_EnergyShift} Ry   #Range of first zeta (A standard for orbital-confining cutoff radii)\n")
-                fdf_file.write(f"PAO.BasisType         SPLIT       #Split Valance\n")
+                fdf_file.write(f"PAO.BasisType         SPLIT      #Split Valance\n")
                 fdf_file.write(f"PAO.SplitNorm         {self.PAO_SplitNorm}        #Range of second-zeta\n\n")
             if self.PAO_define == "block":
                 fdf_file.write(f"%block PAO.Basis                 # Define Basis set\n")
@@ -255,7 +255,7 @@ class Generatefdf:
             if self.Spin: 
                 fdf_file.write(f"Spin                        {self.Spin}\n")
                 if self.Spin == "SpinOrbit" or self.Spin == "spin-orbit":
-                    fdf_file.write(f"Spin.OrbitStrength         {self.SO_strength}\n")
+                    fdf_file.write(f"Spin.OrbitStrength          {self.SO_strength}\n")
 
             if self.NetCharge != None:
                 fdf_file.write(f"NetCharge                   {self.NetCharge}\n")
