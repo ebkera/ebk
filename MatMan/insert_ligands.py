@@ -29,6 +29,13 @@ class Insert_ligand():
         if direction == [1,1,0]:
             self.atoms.rotate(45, 'z')
 
+    def align(self, atom1, atom2, axis = [0,0,1]):
+        """
+        Aligns atom1 and atom 2 to be on the same line (eg: have the same z coordinate)
+        What we want to do is to rotate the ligand so that the two atoms are in the same z coordinate
+        """
+        pass
+
     def edit(self):
         self.atoms.edit()
 
@@ -50,6 +57,18 @@ class Insert_ligand():
         for atom in self.atoms:
             for i in range(3):
                 atom.position[i] = -atom.position[i]
+
+    def chop(self, chop_type = "bisect", coor1 = [0,0,0], coor2 = [1,1,1]):
+        """
+        This function will slice a ligand according to the parameters passed
+        chop_type (String): The type of chop
+            bisect: Will need two coordinates and the code will take one the bisector of the two coordinates and will chop off the rest.
+            chop  : Will take two coordinates and then try to chop off all the rest that falls onto one side of the coordinates. Will retain any atoms that fall on the line joininig the two coordinates.
+        """
+        if chop_type == "bisect":
+            pass
+        elif chop_type == "chop":
+            pass
 
     def find_cell(self, **kwargs):
         """X, y, z will add extra vacuum"""
@@ -86,8 +105,8 @@ class Insert_ligand():
         attach_through: The ligand will remove this atom and will attach through the resulting dangling bond. to the attach_at site in the attach_to object.
         """
         # print(attach_to.atoms)
-        # site_attach_at = attach_to.atoms[attach_at]
-        site_attach_at = attach_to[attach_at]
+        # site_attach_at = attach_to.atoms[attach_at]  # Use this if the object is atoms type.
+        site_attach_at = attach_to[attach_at]  # Use this if the object is not of atoms type. eg: slabs are bulk type and not atoms type.
         site_attach_through = self.atoms[attach_through]
 
         diff_vec = [0, 0, 0]
