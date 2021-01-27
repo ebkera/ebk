@@ -136,6 +136,12 @@ class Insert_ligand():
         x_cell = (x_vec+x, 0, 0)
         y_cell = (0, y_vec+y, 0)
         z_cell = (xcell, ycell, z_vec + z)
+        
+        vec = [(x_vec+a0/4)/2, (y_vec+y+a0/4)/2, (z_vec+z)/2]
+        for atom in self.atoms:
+            atom.position = (atom.position[0] + vec[0], atom.position[1] + vec[1], atom.position[2] + vec[2]) 
+
+
 
         print(x,y,z)
         # self.atoms.set_cell([x_vec/2+x, y_vec/2+y, z_vec+z])
@@ -246,9 +252,6 @@ class Insert_ligand():
 
         for x in range(len(self.atoms), -1):
             print(x)
-
-            
-
 
 class BDT14(Insert_ligand):
     def __init__(self, *args, **kwargs):
