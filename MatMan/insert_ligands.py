@@ -2,6 +2,7 @@ from ase.io import read, write
 from ase.atom import Atom
 from ebk import get_machine_paths
 import numpy as np
+
 xyz_path = get_machine_paths()["xyz"]
 EDT12_path = f"{xyz_path}/1,2-ethaneDithiol_relaxed.xyz"
 BDT12_path = f"{xyz_path}/1,2-benzeneDithiol_relaxed.xyz"
@@ -29,7 +30,7 @@ class Insert_ligand():
         if direction == [1,1,0]:
             self.atoms.rotate(45, 'z')
 
-    def align(self, atom1, atom2, pivot = [0,0,0], axis = [0,0,1]):
+    def align_atoms_along_axis(self, atom1, atom2, pivot = [0,0,0], axis = [0,0,1]):
         """
         Aligns atom1 and atom 2 to be on the same line (eg: have the same z coordinate)
         What we want to do is to rotate the ligand so that the two atoms are in the same z coordinate
@@ -41,8 +42,8 @@ class Insert_ligand():
         """
         atom2 = list(self.atoms[atom2].position)
         atom1 = list(self.atoms[atom1].position)
-        print(f"atom1: {atom1}")
-        print(f"atom2: {atom2}")
+        # print(f"atom1: {atom1}")
+        # print(f"atom2: {atom2}")
         if axis == [0,0,1]:
             y = atom2[1]-atom1[1]
             z = atom2[2]-atom1[2]
@@ -50,16 +51,18 @@ class Insert_ligand():
             theta = theta_radians*360/(2*np.pi)
             self.atoms.rotate(theta, 'x')
 
-    def make_to_match_lattice(self, atom1, atom2, xy_offset, pivot = [0,0,0], axis = [0,0,1]):
+    def adsorb_on_slab_atom(self, atom1, atom2, xy_offset, pivot = [0,0,0], axis = [0,0,1]):
         """
+        Was formerly named make_to_match_lattice. In consideration to be legacy code.
         This method will make the given atom1 and atom2 align with the lattice by doing a rotation of the ligand thereby making the 
-        two binding atoms a_0/4 off in the x and y directions. Usually and alignment of the said two atoms into the perpendicular axis is done using the align method before
+        two binding atoms a_0/4 off in the x and y directions. Usually an alignment of the said two atoms into the perpendicular axis is done using the align method before
         we can use this method.
+        This method might be similar to method adsorb in ASE. But instead of an xyz coordinates where you can attach a ligand, Here we use a atoms as the coordinate.
         """
         atom2 = list(self.atoms[atom2].position)
         atom1 = list(self.atoms[atom1].position)
-        print(f"atom1: {atom1}")
-        print(f"atom2: {atom2}")
+        # print(f"atom1: {atom1}")
+        # print(f"atom2: {atom2}")
         if axis == [0,0,1]:
             y = atom2[1]-atom1[1]
             z = atom2[2]-atom1[2]
@@ -67,6 +70,79 @@ class Insert_ligand():
             theta = theta_radians*360/(2*np.pi)
             self.atoms.rotate(theta, 'x')
             self.atoms.rotate(theta, 'y')
+
+    def make_centre(self, atom1, atom2):
+        """Centres the ligand at the bisector of the two atoms."""
+        atom2 = self.atoms[atom2].position
+        atom1 = self.atoms[atom1].position
+        diff_vec = [0, 0, 0]
+        for i in range(3):
+            diff_vec[i] = (atom1[i] + atom2[i])/2
+        
+        for atom in self.atoms:
+            for i in range(3):
+                atom.position[i] = atom.position[i] - diff_vec[i]
+
+    def attach_to_slab(self, slab, sb, sp, lb, lp, center_atom1, center_atom2):
+        """
+        Attaches the ligand by removing the passivation atoms on the slab and ligand.
+        Will align the passivation atom vectors of the slab and ligand. There by preserving the dihedral angle.
+        Requirements:
+            Will need to have the centre of ligand at [0,0,0]. This can be changed in the future.
+            Slab will need to be passivated
+            Ligand needs to be aligned along the Z axis as desired. This can be changed in the future.
+        Inputs,
+            slab: will be a zincblende type object which will attach onto the ligand
+            sb  : slab bulk atom at site
+            sp  : slab passivation atom at site
+            lb  : ligand bulk atom at site
+            lp  : ligand passivation atom at site
+        """
+        Vsp = [0, 0, 0]  # The vector between the slab atoms and the passivation atom
+        Vlp = [0, 0, 0]  # The vector between the ligand atoms and the attaching atom
+        As = [0,0,0]  # The angles in the slab vector
+        Al = [0,0,0]  # The angles in the ligand vector
+        for i in range(3):
+            # Getting the vectors
+            Vsp[i] = slab[sb].position[i] - slab[sp].position[i]
+            Vlp[i] = self.atoms[lp].position[i] - self.atoms[lb].position[i]
+        # print(Vsp, Vlp)
+        # for i in range(3):
+        #     # Getting the Angles
+        #     if i == 0: other_directions = [1,2]
+        #     if i == 1: other_directions = [2,0]
+        #     if i == 2: other_directions = [0,1]
+        #     # Here we calculate individual azimuthal angles for an axis. We use the AZ in the var name for azimuthal angle and s and l for slab and ligand.
+        #     AZs[i] = np.arctan(np.sqrt(Vsp[other_directions[0]]**2+Vsp[other_directions[1]]**2)/Vsp[i])*180/np.pi
+        #     AZl[i] = np.arctan(np.sqrt(Vlp[other_directions[0]]**2+Vlp[other_directions[1]]**2)/Vlp[i])*180/np.pi
+
+        # print(As, Al)
+        # self.edit()
+        self.atoms.rotate(Vlp, Vsp, center = self.atoms[lb].position)
+        # self.edit()
+        # slab.edit()
+
+        diff_vec = [0, 0, 0]
+        for i in range(3):
+            diff_vec[i] = slab[sp].position[i] - self.atoms[lb].position[i]
+
+        for atom in slab:
+            atom.position = (atom.position[0] - diff_vec[0], atom.position[1] - diff_vec[1], atom.position[2] - diff_vec[2])
+
+        # Deleting the relevant atoms
+        del slab[sp]
+        del self.atoms[lp]
+
+        for atom in slab:
+            self.atoms.append(atom)
+        self.edit()
+
+        # Rotating back so that we have original starting positions
+        # self.atoms.rotate(Vsp, Vlp, center = self.atoms[lb].position)
+        # self.edit()
+
+        self.make_centre(center_atom1, center_atom2)
+        self.edit()
 
     def edit(self):
         self.atoms.edit()
@@ -85,7 +161,7 @@ class Insert_ligand():
     def save(self, format):
         write(f"{self.name}.{format}", self.atoms)
 
-    def invert(self):
+    def invert_legacy(self):
         for atom in self.atoms:
             for i in range(3):
                 atom.position[i] = -atom.position[i]
@@ -140,8 +216,6 @@ class Insert_ligand():
         vec = [(x_vec+a0/4)/2, (y_vec+y+a0/4)/2, (z_vec+z)/2]
         for atom in self.atoms:
             atom.position = (atom.position[0] + vec[0], atom.position[1] + vec[1], atom.position[2] + vec[2]) 
-
-
 
         print(x,y,z)
         # self.atoms.set_cell([x_vec/2+x, y_vec/2+y, z_vec+z])
@@ -208,7 +282,7 @@ class Insert_ligand():
         get rid of passivation and end atoms.
         Right now works only in the Z axis. The centre of the ligand is taken to be [0,0,0] and therefore the attach_on atom will have z coordinates of 0
         """
-        centre_of_ligand = [0,0,0]
+        centre_of_ligand = [0,0,0]  # This is not hard coded and should be changed. Maybe a self.centre_of_ligand property to be added.
         site_attach_at = attach_to[attach_at]  # Use this if the object is not of atoms type. eg: slabs are bulk type and not atoms type.
         site_attach_through = self.atoms[attach_through]  # This is for the ligand
 
@@ -216,7 +290,7 @@ class Insert_ligand():
         for i in range(3):
             diff_vec[i] = site_attach_at.position[i] - centre_of_ligand[i]
 
-        # Realigning teh attach at position to be inline with the centre of the ligand
+        # Realigning the attach at position to be inline with the centre of the ligand
         z_offset = site_attach_at.position[2] - centre_of_ligand[2]
         for atom in attach_to:
             atom.position = (atom.position[0] - diff_vec[0], atom.position[1] - diff_vec[1], atom.position[2] - z_space)
