@@ -153,7 +153,6 @@ class Insert_ligand():
         # calculating the cell offsets in teh x, y, z directions. Here we assume the ligand is centred at the origin to startwith
         x_offset = a0/4-self.atoms[self.sb].position[0]*2
         y_offset = -a0/4-self.atoms[self.sb].position[1]*2
-        print(self.sb)
 
         # These are the cell vectors
         x_cell = (a0 + x, 0, 0)
