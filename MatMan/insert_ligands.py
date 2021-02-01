@@ -100,49 +100,23 @@ class Insert_ligand():
         """
         Vsp = [0, 0, 0]  # The vector between the slab atoms and the passivation atom
         Vlp = [0, 0, 0]  # The vector between the ligand atoms and the attaching atom
-        As = [0,0,0]  # The angles in the slab vector
-        Al = [0,0,0]  # The angles in the ligand vector
         for i in range(3):
             # Getting the vectors
             Vsp[i] = slab[sb].position[i] - slab[sp].position[i]
             Vlp[i] = self.atoms[lp].position[i] - self.atoms[lb].position[i]
-        # print(Vsp, Vlp)
-        # for i in range(3):
-        #     # Getting the Angles
-        #     if i == 0: other_directions = [1,2]
-        #     if i == 1: other_directions = [2,0]
-        #     if i == 2: other_directions = [0,1]
-        #     # Here we calculate individual azimuthal angles for an axis. We use the AZ in the var name for azimuthal angle and s and l for slab and ligand.
-        #     AZs[i] = np.arctan(np.sqrt(Vsp[other_directions[0]]**2+Vsp[other_directions[1]]**2)/Vsp[i])*180/np.pi
-        #     AZl[i] = np.arctan(np.sqrt(Vlp[other_directions[0]]**2+Vlp[other_directions[1]]**2)/Vlp[i])*180/np.pi
-
-        # print(As, Al)
         # self.edit()
         self.atoms.rotate(Vlp, Vsp, center = self.atoms[lb].position)
-        # self.edit()
-        # slab.edit()
-
         diff_vec = [0, 0, 0]
         for i in range(3):
             diff_vec[i] = slab[sp].position[i] - self.atoms[lb].position[i]
-
         for atom in slab:
             atom.position = (atom.position[0] - diff_vec[0], atom.position[1] - diff_vec[1], atom.position[2] - diff_vec[2])
-
         # Deleting the relevant atoms
         del slab[sp]
         del self.atoms[lp]
-
         for atom in slab:
             self.atoms.append(atom)
-        self.edit()
-
-        # Rotating back so that we have original starting positions
-        # self.atoms.rotate(Vsp, Vlp, center = self.atoms[lb].position)
-        # self.edit()
-
         self.make_centre(center_atom1, center_atom2)
-        self.edit()
 
     def edit(self):
         self.atoms.edit()
@@ -322,10 +296,21 @@ class Insert_ligand():
         print(f"zg0: {zg0}")
         print(f"ze0: {ze0}")
         print(f"zl0: {zl0}")
-        print(len(self.atoms))
+        # print(len(self.atoms))
 
-        for x in range(len(self.atoms), -1):
-            print(x)
+        for x in zl0:
+            self.atoms.append(self.atoms[x])
+            last_atom = len(self.atoms)-1
+            for i in range(3):
+                self.atoms[last_atom].position[i] = -self.atoms[last_atom].position[i]
+
+        for x in range(len(self.atoms), -1, -1):
+            if x in zg0: del self.atoms[x]
+
+        # for i in zl0:
+        #     for i in range(3):
+        #         atom.position[i] = -atom.position[i]
+
 
 class BDT14(Insert_ligand):
     def __init__(self, *args, **kwargs):
