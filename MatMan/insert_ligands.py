@@ -51,26 +51,6 @@ class Insert_ligand():
             theta = theta_radians*360/(2*np.pi)
             self.atoms.rotate(theta, 'x')
 
-    def adsorb_on_slab_atom(self, atom1, atom2, xy_offset, pivot = [0,0,0], axis = [0,0,1]):
-        """
-        Was formerly named make_to_match_lattice. In consideration to be legacy code.
-        This method will make the given atom1 and atom2 align with the lattice by doing a rotation of the ligand thereby making the 
-        two binding atoms a_0/4 off in the x and y directions. Usually an alignment of the said two atoms into the perpendicular axis is done using the align method before
-        we can use this method.
-        This method might be similar to method adsorb in ASE. But instead of an xyz coordinates where you can attach a ligand, Here we use a atoms as the coordinate.
-        """
-        atom2 = list(self.atoms[atom2].position)
-        atom1 = list(self.atoms[atom1].position)
-        # print(f"atom1: {atom1}")
-        # print(f"atom2: {atom2}")
-        if axis == [0,0,1]:
-            y = atom2[1]-atom1[1]
-            z = atom2[2]-atom1[2]
-            theta_radians = np.arctan(xy_offset/z)
-            theta = theta_radians*360/(2*np.pi)
-            self.atoms.rotate(theta, 'x')
-            self.atoms.rotate(theta, 'y')
-
     def make_centre(self, atom1, atom2):
         """Centres the ligand at the bisector of the two atoms."""
         atom2 = self.atoms[atom2].position
@@ -83,21 +63,27 @@ class Insert_ligand():
             for i in range(3):
                 atom.position[i] = atom.position[i] - diff_vec[i]
 
-    def attach_to_slab(self, slab, sb, sp, lb, lp, center_atom1, center_atom2):
+    def attach_to_slab(self, slab, sb, sp, lb, lp, center_atom1, center_atom2, bond_length = 0):
         """
         Attaches the ligand by removing the passivation atoms on the slab and ligand.
         Will align the passivation atom vectors of the slab and ligand. There by preserving the dihedral angle.
+        Then the slab passivation atom is removed and replced by the ligand non passivation atom at site of attachment.
+        The ligands bonding atoms will also be replaced.
         Requirements:
-            Will need to have the centre of ligand at [0,0,0]. This can be changed in the future.
             Slab will need to be passivated
-            Ligand needs to be aligned along the Z axis as desired. This can be changed in the future.
         Inputs,
             slab: will be a zincblende type object which will attach onto the ligand
             sb  : slab bulk atom at site
             sp  : slab passivation atom at site
             lb  : ligand bulk atom at site
             lp  : ligand passivation atom at site
+            center_atom1,2: position of the centre atoms of the ligand so that we can set teh 0,0,0 for the system. 
+            bond_length = Here we can set the coordinates for the bond length of the attaching bond (eg Sn-S bond). if length is zero no adjustment is made
+                This is done by repositioning the slab passivation atom so that it will be at the right distance when being replaced.
         """
+        self.lb = lb  # Saving the ligand bulk site globaly
+        if bond_length != 0 :
+            pass
         Vsp = [0, 0, 0]  # The vector between the slab atoms and the passivation atom
         Vlp = [0, 0, 0]  # The vector between the ligand atoms and the attaching atom
         for i in range(3):
@@ -109,14 +95,19 @@ class Insert_ligand():
         diff_vec = [0, 0, 0]
         for i in range(3):
             diff_vec[i] = slab[sp].position[i] - self.atoms[lb].position[i]
-        for atom in slab:
+        for i,atom in enumerate(slab):
             atom.position = (atom.position[0] - diff_vec[0], atom.position[1] - diff_vec[1], atom.position[2] - diff_vec[2])
         # Deleting the relevant atoms
         del slab[sp]
         del self.atoms[lp]
-        for atom in slab:
+        for i,atom in enumerate(slab):
             self.atoms.append(atom)
+            if i == sb:
+                # print(sb)
+                self.sb = len(self.atoms)-1  # saving the slab bulk site globally
+                # print(self.sb)
         self.make_centre(center_atom1, center_atom2)
+        # self.edit()
 
     def edit(self):
         self.atoms.edit()
@@ -140,26 +131,11 @@ class Insert_ligand():
             for i in range(3):
                 atom.position[i] = -atom.position[i]
 
-    def chop(self, chop_type = "bisect", coor1 = [0,0,0], coor2 = [1,1,1]):
-        """
-        This function will slice a ligand according to the parameters passed
-        chop_type (String): The type of chop
-            bisect: Will need two coordinates and the code will take one the bisector of the two coordinates and will chop off the rest.
-            chop  : Will take two coordinates and then try to chop off all the rest that falls onto one side of the coordinates. Will retain any atoms that fall on the line joininig the two coordinates.
-        """
-        if chop_type == "bisect":
-            pass
-        elif chop_type == "chop":
-            pass
-
     def find_cell(self, a0, **kwargs):
-        """X, y, z will add extra vacuum"""
-        x = kwargs.get("x", 0)
+        """x, y, z will add extra vacuum"""
+        x = kwargs.get("x", 0)  # Any vaccuum that you want to insert
         y = kwargs.get("y", 0)
         z = kwargs.get("z", 0)
-        xcell = kwargs.get("xcell", 0)
-        ycell = kwargs.get("ycell", 0)
-        zcell = kwargs.get("zcell", 0)
         max_x = 0
         max_y = 0
         max_z = 0
@@ -173,31 +149,23 @@ class Insert_ligand():
             if atom.position[0] < min_x: min_x = atom.position[0]
             if atom.position[1] < min_y: min_y = atom.position[1]
             if atom.position[2] < min_z: min_z = atom.position[2]
-        # x_vec = max_x-min_x
-        # y_vec = max_y-min_y
-        x_vec = a0
-        y_vec = a0
-        z_vec = max_z-min_z
-        #Making the three unit cell vectors
-        # x_cell = (x_vec/2+x, 0, 0)
-        # y_cell = (0, y_vec/2+y, 0)
-        # z_cell = (xcell, ycell, z_vec/2 + z)
 
-        x_cell = (x_vec+x, 0, 0)
-        y_cell = (0, y_vec+y, 0)
-        z_cell = (xcell, ycell, z_vec + z)
-        
-        vec = [(x_vec+a0/4)/2, (y_vec+y+a0/4)/2, (z_vec+z)/2]
+        # calculating the cell offsets in teh x, y, z directions. Here we assume the ligand is centred at the origin to startwith
+        x_offset = a0/4-self.atoms[self.sb].position[0]*2
+        y_offset = -a0/4-self.atoms[self.sb].position[1]*2
+        print(self.sb)
+
+        # These are the cell vectors
+        x_cell = (a0 + x, 0, 0)
+        y_cell = (0, a0 + y, 0)
+        z_cell = (x_offset, y_offset, max_z-min_z + a0/4)  # Here we have to add a0/4 since there is no information on that.
+
+        cell = [x_cell, y_cell, z_cell]
+        translation_vec = [(x_cell[0]+x_offset)/2, (y_cell[1]+y_offset)/2, (z_cell[2])/2]
         for atom in self.atoms:
-            atom.position = (atom.position[0] + vec[0], atom.position[1] + vec[1], atom.position[2] + vec[2]) 
-
-        print(x,y,z)
-        # self.atoms.set_cell([x_vec/2+x, y_vec/2+y, z_vec+z])
-        self.atoms.set_cell([x_cell, y_cell, z_cell])
-        return [x_vec/2, y_vec/2, z_vec]
-
-    # def set_cell(self):
-    #     vecs = self.find_cell()
+            atom.position = (atom.position[0] + translation_vec[0], atom.position[1] + translation_vec[1], atom.position[2] + translation_vec[2])
+        self.atoms.set_cell(cell)
+        return cell
 
     def attach(self, attach_to, attach_at, attach_through, atoms_to_delete = [], move_ligand = False):
         """
@@ -293,9 +261,9 @@ class Insert_ligand():
             elif v.position[2] == 0: ze0.append(i)
             elif v.position[2] < 0: zl0.append(i)
 
-        print(f"zg0: {zg0}")
-        print(f"ze0: {ze0}")
-        print(f"zl0: {zl0}")
+        # print(f"zg0: {zg0}")
+        # print(f"ze0: {ze0}")
+        # print(f"zl0: {zl0}")
         # print(len(self.atoms))
 
         for x in zl0:
@@ -305,12 +273,10 @@ class Insert_ligand():
                 self.atoms[last_atom].position[i] = -self.atoms[last_atom].position[i]
 
         for x in range(len(self.atoms), -1, -1):
-            if x in zg0: del self.atoms[x]
-
-        # for i in zl0:
-        #     for i in range(3):
-        #         atom.position[i] = -atom.position[i]
-
+            if x in zg0:
+                if x < self.sb: self.sb = self.sb - 1
+                elif x == self.sb: self.sb = "Has been deleted"
+                del self.atoms[x]
 
 class BDT14(Insert_ligand):
     def __init__(self, *args, **kwargs):
