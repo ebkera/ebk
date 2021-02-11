@@ -51,7 +51,8 @@ class PlotEnergy():
         self.dots = kwargs.get("dots", False)
         self.ylim_low = -9
         self.ylim_high = 0
-        self.x_ticks_rotation = kwargs.get("x_ticks_rotation", 0)
+        if "x_ticks_rotation" in kwargs:
+            self.x_ticks_rotation = kwargs.get("x_ticks_rotation", 0)
 
     def load(self, file_name, pin_level, label = None, *args, **kwargs):
         """
@@ -203,7 +204,7 @@ class PlotEnergy():
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend(by_label.values(), by_label.keys(), loc = 'upper right')
-        plt.xticks(rotation=self.x_ticks_rotation, ha='right')
+        if hasattr(self, "x_ticks_rotation"): plt.xticks(rotation=self.x_ticks_rotation, ha='right')
         ax1.set_title(f"{self.title}")
         plt.savefig(f"{self.file_name}.pdf")
         plt.show()
