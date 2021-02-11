@@ -18,7 +18,7 @@ atomic_numbers.update({"Sn": 50})
 class Generatefdf:
     def __init__(self, *args, **kwargs):
         """
-        fdf_type: (string) ["bulk", "dot"]
+        system_type: (string) ["bulk", "dot"]  # used to be fdf_type
         PAO_define: (string) ["global", "block"]-> global: Using energyshift and split norm, block: using a PAO.basis block
         PAO_define_global (bool)  # Setting this means we can set energyyshift and splitnorm. But setting this to false just means defualt value
         """
@@ -28,12 +28,13 @@ class Generatefdf:
         self.Species               = kwargs.get("Species", ["Sn", "H"])  # in order as appearing on the fdf file.
         self.coordinates_file_name = kwargs.get("coordinates_file_name", "coordinates.fdf")
         self.include_coordinate_file = kwargs.get("include_coordinate_file", False)
-        self.fdf_type              = kwargs.get("fdf_type", "dot") # 
+        self.system_type           = kwargs.get("fdf_type", "dot") # left here for legacy code. Will be over written in teh next line if system_type is given
+        self.system_type           = kwargs.get("system_type", "dot") # Can be bulk or anything else like dot or NP
         self.PAO_define_global     = kwargs.get("PAO_define_global", False)  # Setting this so we can set energyshift and splitnorm. But setting this to false just means defualt value
-        self.PAO_define            = kwargs.get("PAO_define", "global")  # SEt this to block to make the blocks work anything else and the block is ignored make sure to set the PAO_define_global to True since otherwise it will jsut be default values
+        self.PAO_define            = kwargs.get("PAO_define", "global")  # Set this to "block" to make the blocks work anything else and the block is ignored make sure to set the PAO_define_global to True since otherwise it will jsut be default values
         self.XC_Functional         = kwargs.get("XC_Functional", "LDA")
         self.XC_Authors            = kwargs.get("XC_Authors", "CA")
-        self.LatticeVectors        = kwargs.get("LatticeVectors", [[0.0, 0.5, 0.5], [0.5, 0.0, 0.5], [0.5, 0.5,]])
+        self.LatticeVectors        = kwargs.get("LatticeVectors", [[0.0, 0.5, 0.5], [0.5, 0.0, 0.5], [0.5, 0.5,]])  # This only works if system_type == bulk
         self.bands_block           = kwargs.get("bands_block", True)
         self.MPGrid                = kwargs.get("MPGrid", 10)
         self.PDOS                  = kwargs.get("PDOS", True)
@@ -91,7 +92,7 @@ class Generatefdf:
             fdf_file.write(f"NumberOfSpecies    {len(self.Species)}\t\t\t\t# Number of species\n")
             fdf_file.write(f"XC.Functional      {self.XC_Functional}\t\t\t\t# Exchange-correlation functional (Defaults to LDA)\n")
             fdf_file.write(f"XC.Authors         {self.XC_Authors}\t\t\t\t# Exchange-correlation version (PBE for GGA, PW92 or CA for LDAs)\n")
-            if self.fdf_type == "bulk":
+            if self.system_type == "bulk":
                 fdf_file.write(f"LatticeConstant    {self.LatticeConstant}  Ang\t\t\t# Exchange-correlation version (PBE for GGA, PW92 or CA for LDAs)\n")
 
             fdf_file.write(f"\n")
@@ -104,7 +105,7 @@ class Generatefdf:
             fdf_file.write(f"SCF.MustConverge      false\n")
             fdf_file.write(f"DM.MixingWeight       0.01\n\n")
 
-            if self.fdf_type == "bulk":
+            if self.system_type == "bulk":
                 if self.LatticeVectors == "fcc":
                     fdf_file.write(f"AtomicCoordinatesFormat Fractional              # Format for coordinates\n")
                     fdf_file.write(f"%block AtomicCoordinatesAndAtomicSpecies        # Two atoms in the basis\n")
@@ -128,7 +129,7 @@ class Generatefdf:
                 fdf_file.write(f"%include {self.coordinates_file_name}\n\n")
                 # fdf_file.write(f"%block AtomicCoordinatesAndAtomicSpecies < {self.coordinates_file_name}\n\n")
 
-            if self.MPGrid or self.fdf_type == "bulk":
+            if self.MPGrid or self.system_type == "bulk":
                 fdf_file.write(f"# Monkhorst-Pack Grid\n")
                 fdf_file.write(f"%block kgrid.MonkhorstPack. \n")
                 fdf_file.write(f"{self.MPGrid}  0  0  0.5\n")
