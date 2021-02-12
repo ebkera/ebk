@@ -33,7 +33,7 @@ class Generatefdf:
         self.PAO_define_global     = kwargs.get("PAO_define_global", False)  # Setting this so we can set energyshift and splitnorm. But setting this to false just means defualt value
         self.PAO_define            = kwargs.get("PAO_define", "global")  # Set this to "block" to make the blocks work anything else and the block is ignored make sure to set the PAO_define_global to True since otherwise it will jsut be default values
         self.XC_Functional         = kwargs.get("XC_Functional", "LDA")
-        self.XC_Authors            = kwargs.get("XC_Authors", "CA")
+        self.XC_Authors            = kwargs.get("XC_Authors", "CA") # Exchange-correlation version (PBE for GGA, PW92 or CA for LDAs)
         self.LatticeVectors        = kwargs.get("LatticeVectors", [[0.0, 0.5, 0.5], [0.5, 0.0, 0.5], [0.5, 0.5,]])  # This only works if system_type == bulk
         self.bands_block           = kwargs.get("bands_block", True)
         self.MPGrid                = kwargs.get("MPGrid", 10)
