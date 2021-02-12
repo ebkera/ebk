@@ -72,7 +72,7 @@ class Generatefdf:
         self.WFS_to_write_range    = kwargs.get("WFS_to_write_range", [35,40])
 
         if self.XC_Functional == "LDA":
-            self.LatticeConstant       = kwargs.get("LatticeConstant", 6.432)
+            self.LatticeConstant       = kwargs.get("LatticeConstant", 6.479)
         if self.XC_Functional == "GGA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.672)
 
