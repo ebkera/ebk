@@ -351,6 +351,7 @@ class CoordinateMaker():
         file_my.write("Atom count for initial box    &: " + str(len(self.super_cell)) + " \\\\\n")
         file_my.write(f"Initial box length            &: {str(self.radius[0]*2.0*self.lattice_constant)} x {str(self.radius[1]*2.0*self.lattice_constant)} x {str(self.radius[2]*2.0*self.lattice_constant)} (\\AA) ({str(self.radius[0]*2.0)} x {str(self.radius[1]*2.0)} x {str(self.radius[2]*2.0)} conventional unit cells)\\\\\n")
         file_my.write("Coordinate Format             &: " + str(self.coordinate_format)+" \\\\\n")
+        file_my.write("lattice constant              &: " + str(self.lattice_constant)+" \\\\\n")  # This helps to set 
         try:
             file_my.write("Atom count after trimming     &: " + str(self.no_of_atoms_after_trimming) + " \\\\\n")
             file_my.write("Cutoff parameter set to       &: " + str(self.cut_off) + " conventional unit cells\\\\\n")
@@ -375,7 +376,7 @@ class CoordinateMaker():
             file_my.write("% The initial box was not trimmed! - No defined cutoff - No diameter or radius!\n")
         file_my.write("Total atoms                   &: " + str(len(self.finalcell)) + "\n")
         file_my.write("\\end{tabular}\n")
-        file_my.write("\\caption{QD with " + str(len(self.finalcell)) + " total number of atoms} \\label{tab:QD" + str(len(self.finalcell)) + "}\n")
+        file_my.write("\\caption{QD with " + str(len(self.finalcell)) + " total number of atoms and " + str(self.no_of_atoms_after_trimming) + "NP atoms} \\label{tab:QD" + str(len(self.finalcell)) + "}\n")
         file_my.write("\\end{table}\n")
         file_my.close()
         print("write_to_log: Successfully written to the log file")
@@ -388,7 +389,6 @@ class CoordinateMaker():
                 x.append(counter)
                 counter += 1
         print(f"number_atoms: Successfully numbered atoms in order of {type}")
-
 
     def hydrogenate(self, bond_length):
         """This method will add hydrogen atoms to surface atoms of the dot that has any dangling bonds"""
@@ -428,7 +428,6 @@ class CoordinateMaker():
         for x in new_H_atoms:
             self.finalcell.append(x)
         print("hydrogenate: Successfully passivated with hydrogen")
-
 
     def oxygenate(self, bond_length):
         """This method will add Oxyen atoms to surface atoms of the dot that has dangling bonds. All dangling bonds will be passivated by one Oxygen atom in this method"""
