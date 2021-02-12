@@ -98,6 +98,7 @@ class RunScriptHandler():
         self.LDOS_degauss    = kwargs.get("PDOS_degauss", self.DOS_degauss)
         self.fft_grid        = kwargs.get("fft_grid", [40, 40, 432])
         self.n_proj_boxes    = kwargs.get("n_proj_boxes", self.fft_grid[2])
+        self.job_name        = kwargs.get("job_name", self.identifier)
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
@@ -472,7 +473,7 @@ class RunScriptHandler():
             file_torque.write(f"    # the changing middle section as a useful short name.\n")
             # file_torque.write("    job_name=${dir#*KE=}\n")
             # file_torque.write("    job_name=${job_name%^a*}\n")
-            file_torque.write(f"    job_name={self.identifier}")
+            file_torque.write(f"    job_name={self.job_name}")
             file_torque.write(f"    # Use another here-doc to read the job script, to obviate individual files\n")
             file_torque.write(f"    # in each data directory.\n")
             file_torque.write(f"\n")
