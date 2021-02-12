@@ -747,7 +747,7 @@ class RunScriptHandler():
             bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" ../{self.base_folder} rathnayake@localhost:~/Run_files/\n')
             bat_file.close()
             bat_file = open(f"{self.base_folder}/rsyn_in_current_folder.bat", "w+")
-            bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" rathnayake@localhost:~/Run_files/{self.base_folder}/ ./\n')
+            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e "ssh -p 33301" rathnayake@localhost:~/Run_files/{self.base_folder}/ ./\n')
             bat_file.close()            
             self.create_job()
         elif self.job_handler == "era_ubuntu":
