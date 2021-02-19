@@ -14,7 +14,6 @@ from ase import Atoms
 import ase.io
 from ase.io import read, write
 from ebk.QE import QErunfilecreator  # So that we can see how we did it last time
-from ebk.SIESTA import SIESTARunFileCreator  # So that we can see how we did it last time
 import shutil
 from ebk.SIESTA.SIESTAcontrol import Generatefdf
 
@@ -749,7 +748,13 @@ class RunScriptHandler():
             bat_file.close()
             bat_file = open(f"{self.base_folder}/rsyn_in_current_folder.bat", "w+")
             bat_file.write(f'wsl rsync -avtuz --max-size=5m -e "ssh -p 33301" rathnayake@localhost:~/Run_files/{self.base_folder}/ ./\n')
-            bat_file.close()            
+            bat_file.close()
+            submit_file = open(f"{self.base_folder}/run_all_jobs.sh", "w+")
+            submit_file.write(f'for f in *.jobs\n')
+            submit_file.write(f'do\n')
+            submit_file.write(f'  . $f\n')
+            submit_file.write(f'done\n')
+            submit_file.close()
             self.create_job()
         elif self.job_handler == "era_ubuntu":
             bat_file = open(f"{self.base_folder}/rsyn_out_eraubuntu.bat", "w+")
