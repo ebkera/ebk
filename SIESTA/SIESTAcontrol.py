@@ -36,7 +36,7 @@ class Generatefdf:
         self.XC_Authors            = kwargs.get("XC_Authors", "CA") # Exchange-correlation version (PBE for GGA, PW92 or CA for LDAs)
         self.LatticeVectors        = kwargs.get("LatticeVectors", [[0.0, 0.5, 0.5], [0.5, 0.0, 0.5], [0.5, 0.5,]])  # This only works if system_type == bulk
         self.bands_block           = kwargs.get("bands_block", True)
-        self.MPGrid                = kwargs.get("MPGrid", 10)
+        self.MPGrid                = kwargs.get("MPGrid", [10,10,10])
         self.PDOS                  = kwargs.get("PDOS", True)
         self.LDOS                  = kwargs.get("LDOS", False)
         self.PDOS_MPGrid           = kwargs.get("PDOS_MPGrid", 15)
@@ -70,6 +70,7 @@ class Generatefdf:
         self.Denchar_MaxZ          = kwargs.get("Denchar.MaxZ", "+6.5 Ang")  # data type is real length
         self.Denchar_PlaneGeneration = kwargs.get("Denchar.PlaneGeneration", "NormalVector")
         self.WFS_to_write_range    = kwargs.get("WFS_to_write_range", [35,40])
+        self.MaxSCFIterations = kwargs.get("MaxSCFIterations", 0)  # Here ) will set the default value (will not be written to fdf file)
 
         if self.XC_Functional == "LDA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.479)
@@ -132,9 +133,9 @@ class Generatefdf:
             if self.MPGrid or self.system_type == "bulk":
                 fdf_file.write(f"# Monkhorst-Pack Grid\n")
                 fdf_file.write(f"%block kgrid.MonkhorstPack. \n")
-                fdf_file.write(f"{self.MPGrid}  0  0  0.5\n")
-                fdf_file.write(f"0  {self.MPGrid}  0  0.5\n")
-                fdf_file.write(f"0  0  {self.MPGrid}  0.5\n")
+                fdf_file.write(f"{self.MPGrid[0]}  0  0  0.5\n")
+                fdf_file.write(f"0  {self.MPGrid[1]}  0  0.5\n")
+                fdf_file.write(f"0  0  {self.MPGrid[2]}  0.5\n")
                 fdf_file.write(f"%endblock kgrid.MonkhorstPack. \n\n")
 
             if self.PDOS:
@@ -237,8 +238,8 @@ class Generatefdf:
                 fdf_file.write(f"%endblock BandLines\n\n")
 
             if self.MD == True:
-                fdf_file.write(f"MD.TypeOfRun           CG\n")
-                fdf_file.write(f"MD.NumCGsteps          300\n")
+                fdf_file.write(f"MD.TypeOfRun                CG\n")
+                fdf_file.write(f"MD.NumCGsteps               300\n")
                 # fdf_file.write(f"MD.MaxForceTol         0.04\n")
                 # fdf_file.write(f"MD.VariableCell        T\n")  # Is false by default.
                 # fdf_file.write(f"MD.ConstantVolume      F\n")  # Is false by default.
@@ -249,7 +250,7 @@ class Generatefdf:
                 # fdf_file.write(f"WriteMDXMol            T\n")
                 # fdf_file.write(f"MD.MaxCGDispl          0.02 Bohr\n")
 
-            fdf_file.write(f"SaveTotalPotential\t\t\t\t\ttrue\n")
+            fdf_file.write(f"SaveTotalPotential\t\t\ttrue\n")
             fdf_file.write(f"SaveElectrostaticPotential\ttrue\n")
             if self.UseStructFile == True:
                 fdf_file.write(f"UseStructFile              true\n")
@@ -262,6 +263,9 @@ class Generatefdf:
                 fdf_file.write(f"NetCharge                   {self.NetCharge}\n")
             if self.ElectronicTemperature: 
                 fdf_file.write(f"ElectronicTemperature       {self.ElectronicTemperature} eV\n")
+            if self.MaxSCFIterations: 
+                fdf_file.write(f"MaxSCFIterations            {self.MaxSCFIterations}\n")
+
             if self.Write_Denchar:
                 fdf_file.write("WriteDenchar                true\n")
             if self.WriteWaveFunctions:
@@ -270,6 +274,8 @@ class Generatefdf:
                 fdf_file.write("%block WaveFuncKPoints\n")
                 fdf_file.write("0.0 0.0 0.0 from 30 to 70\n")
                 fdf_file.write("%endblock WaveFuncKPoints\n")
+
+            
 
     def write_denchar(self, *args, **kwargs):
         with open(f"{self.SystemLabel}.Denchar.fdf", "w+") as fdf_file:
