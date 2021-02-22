@@ -1,16 +1,20 @@
 """This file contails some utilities to be used with SIESTA"""
 
-def xyz2fdf(file_name, format, lattice=False):
+def xyz2fdf(file_name, format, lattice=False, lattice_constant=0):
     """
     This function takes a .xyz file and converts it into a fdf compliant format file
     |Inputs: file_name :(string) (without extension)
     |        format: (string) "Ang" if anstroms
     |        lattice: (bool) If true will try to write the lattice vectors from data in the xyz file.
+    |        lattice constant: (float) Needed if Lattice is True.
     |output: file_name.fdf file
     """
 
     # with open(f"{file_name}.xyz", 'r') as file: # Use file to refer to the file object
     #     # data = file.read()
+
+    if lattice and lattice_constant == 0:
+        raise Exception("Sorry Lattice Constant not set but lattice vectors are expected to be written. This will make SIESTA treat this as a molecule. Please set lattice_constant or set lattice=False. ")
 
     file = open(f"{file_name}.xyz", 'r')
     data = [line for line in file]
@@ -32,18 +36,10 @@ def xyz2fdf(file_name, format, lattice=False):
         b = []
         c = []
         for x in range(0,9):
-            y = float(txt[x].strip('"'))
+            y = float(txt[x].strip('"'))/lattice_constant
             if x < 3: a.append(y)
             elif x<6: b.append(y)
             elif x<9:c.append(y)
-        # print(a, b, c)
-
-        # %block LatticeVectors  				#FCC lattices
-        # 0.000  0.500  0.500
-        # 0.500  0.000  0.500
-        # 0.500  0.500  0.000
-        # %endblock LatticeVectors
-
     data_to_write = []
     species = []
     for x in range(2,len(data)):
@@ -60,14 +56,15 @@ def xyz2fdf(file_name, format, lattice=False):
     file = open(f"{file_name}.fdf", 'w')
     file.write("# Generated using the xyz2fdf utility by Eranjan in ebk.SIESTA\n")
     file.write(f"NumberOfAtoms    {atom_number}\n")
-    file.write(f"AtomicCoordinatesFormat  {format}\n\n")
+    file.write(f"AtomicCoordinatesFormat  {format}\n")
 
     if lattice:
+        file.write(f"LatticeConstant          {lattice_constant} Ang\n\n")
         if 'Lattice' in comment:
             file.write(f"%block LatticeVectors\n")
-            file.write(f"{a[0]:.3f}  {a[1]:.3f}  {a[2]:.3f}\n")
-            file.write(f"{b[0]:.3f}  {b[1]:.3f}  {b[2]:.3f}\n")
-            file.write(f"{c[0]:.3f}  {c[1]:.3f}  {c[2]:.3f}\n")
+            file.write(f"{a[0]:.12f}  {a[1]:.12f}  {a[2]:.12f}\n")
+            file.write(f"{b[0]:.12f}  {b[1]:.12f}  {b[2]:.12f}\n")
+            file.write(f"{c[0]:.12f}  {c[1]:.12f}  {c[2]:.12f}\n")
             file.write(f"%endblock LatticeVectors\n\n")
         else:
             file.write(f"#  xyz2fdf: WARNING: Tried to read lattice from xyz comments but failed!!!\n\n")
