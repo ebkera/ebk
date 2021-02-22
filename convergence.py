@@ -4,7 +4,6 @@ import sys
 import subprocess
 import time
 import matplotlib
-matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UIs
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
@@ -152,7 +151,7 @@ class E_cut_Optimize():
             plt.title(f"{self.graph_title}")
             plt.xlabel(f"Wave function cutoff (Ry) {self.xlabel}")
             plt.savefig(f"SCFconvergence_{self.name}_Diff{diff}_KE_peratom{self.per_atom}.pdf")
-        # if self.showplot: plt.show()
+        if self.showplot: plt.show()
 
 if __name__ == "__main__":
     pass
