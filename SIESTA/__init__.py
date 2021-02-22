@@ -1,10 +1,11 @@
 """This file contails some utilities to be used with SIESTA"""
 
-def xyz2fdf(file_name, format):
+def xyz2fdf(file_name, format, lattice=False):
     """
     This function takes a .xyz file and converts it into a fdf compliant format file
     |Inputs: file_name :(string) (without extension)
     |        format: (string) "Ang" if anstroms
+    |        lattice: (bool) If true will try to write the lattice vectors from data in the xyz file.
     |output: file_name.fdf file
     """
 
@@ -19,6 +20,29 @@ def xyz2fdf(file_name, format):
     print(f"xyz2fdf:Number of atoms is: {atom_number}")
     print(f"xyz2fdf:Comment           : {comment}")
     file.close()
+
+    if "Lattice" in comment and lattice:
+        # import re
+        # txt = re.sub("[0-9]+", "x", comment)
+        # txt = re.findall(r'[0-9]+', comment) 
+        txt = comment.strip("Lattice")
+        txt = txt.strip('="')
+        txt = txt.split(" ")
+        a = []
+        b = []
+        c = []
+        for x in range(0,9):
+            y = float(txt[x].strip('"'))
+            if x < 3: a.append(y)
+            elif x<6: b.append(y)
+            elif x<9:c.append(y)
+        # print(a, b, c)
+
+        # %block LatticeVectors  				#FCC lattices
+        # 0.000  0.500  0.500
+        # 0.500  0.000  0.500
+        # 0.500  0.500  0.000
+        # %endblock LatticeVectors
 
     data_to_write = []
     species = []
@@ -36,11 +60,22 @@ def xyz2fdf(file_name, format):
     file = open(f"{file_name}.fdf", 'w')
     file.write("# Generated using the xyz2fdf utility by Eranjan in ebk.SIESTA\n")
     file.write(f"NumberOfAtoms    {atom_number}\n")
-    file.write(f"AtomicCoordinatesFormat  {format}\n")
+    file.write(f"AtomicCoordinatesFormat  {format}\n\n")
+
+    if lattice:
+        if 'Lattice' in comment:
+            file.write(f"%block LatticeVectors\n")
+            file.write(f"{a[0]:.3f}  {a[1]:.3f}  {a[2]:.3f}\n")
+            file.write(f"{b[0]:.3f}  {b[1]:.3f}  {b[2]:.3f}\n")
+            file.write(f"{c[0]:.3f}  {c[1]:.3f}  {c[2]:.3f}\n")
+            file.write(f"%endblock LatticeVectors\n\n")
+        else:
+            file.write(f"#  xyz2fdf: WARNING: Tried to read lattice from xyz comments but failed!!!\n\n")
+            
     file.write(f"%block AtomicCoordinatesAndAtomicSpecies\n")
     for line in data_to_write:
         file.write(f"{line}\n")
-    file.write(f"%endblock AtomicCoordinatesAndAtomicSpecies")
+    file.write(f"%endblock AtomicCoordinatesAndAtomicSpecies\n\n")
     file.close()
 
 
