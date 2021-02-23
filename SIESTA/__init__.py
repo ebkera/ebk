@@ -48,7 +48,7 @@ def xyz2fdf(file_name, format, lattice=False, lattice_constant=0):
             species.append(y[0])
         species_number = species.index(y[0])
         # print(species_number)
-        data_to_write.append(f"{y[1]}   {y[2]}   {y[3]}   {species_number + 1}")
+        data_to_write.append(f"{float(y[1]):3.12f}\t{float(y[2]):3.12f}\t{float(y[3]):3.12f}\t{species_number + 1:>}")
 
     if format == "Ang" or "ang" or "angstroms" or "Angstroms":
         format = "Ang"
@@ -62,9 +62,9 @@ def xyz2fdf(file_name, format, lattice=False, lattice_constant=0):
         file.write(f"LatticeConstant          {lattice_constant} Ang\n\n")
         if 'Lattice' in comment:
             file.write(f"%block LatticeVectors\n")
-            file.write(f"{a[0]:.12f}  {a[1]:.12f}  {a[2]:.12f}\n")
-            file.write(f"{b[0]:.12f}  {b[1]:.12f}  {b[2]:.12f}\n")
-            file.write(f"{c[0]:.12f}  {c[1]:.12f}  {c[2]:.12f}\n")
+            file.write(f"{a[0]:.12f}  {a[1]:.12f}  {a[2]:>.12f}\n")
+            file.write(f"{b[0]:.12f}  {b[1]:.12f}  {b[2]:>.12f}\n")
+            file.write(f"{c[0]:.12f}  {c[1]:.12f}  {c[2]:>.12f}\n")
             file.write(f"%endblock LatticeVectors\n\n")
         else:
             file.write(f"#  xyz2fdf: WARNING: Tried to read lattice from xyz comments but failed!!!\n\n")
