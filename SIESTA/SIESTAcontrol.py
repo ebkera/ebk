@@ -102,7 +102,6 @@ class Generatefdf:
                 fdf_file.write(f"{i+1}\t{atomic_numbers[v]}\t{v}\n")
             fdf_file.write(f"%endblock ChemicalSpeciesLabel\n")
             fdf_file.write(f"\n")
-            fdf_file.write(f"MaxSCFIterations      5000\n")
             fdf_file.write(f"SCF.MustConverge      false\n")
             fdf_file.write(f"DM.MixingWeight       0.01\n\n")
 
