@@ -6,12 +6,10 @@ anywhere else.
 More diverse funtionality has been added since initial planned scope was set. 
 """
 
+#Here are some global innitializations
 # import os
 import sys
 import scipy.constants
-
-#Here are some global innitializations
-
 
 # from matplotlib import pyplot as plt
 import matplotlib
