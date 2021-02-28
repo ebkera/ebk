@@ -21,7 +21,7 @@ matplotlib.rc('font', **font)
 # plt.rcParams["font.family"] = "Times New Roman"
 
 # Setting matplotlib to load non gui back end if not on a windows platform THis shoudl only be enabled for wsl systems
-if sys.platform != "win32":
+if sys.platform != "win32" or sys.platform != "linux":
      matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 
 # Universal constants
