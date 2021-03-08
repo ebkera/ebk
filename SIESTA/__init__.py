@@ -75,14 +75,18 @@ def xyz2fdf(file_name, format, lattice=False, lattice_constant=0):
     file.write(f"%endblock AtomicCoordinatesAndAtomicSpecies\n\n")
     file.close()
 
-
 def siesta_convergence_checker(file_name):
     import matplotlib.pyplot as plt
     file = open(f"{file_name}", 'r')
     data = [line for line in file]
     file.close()
+
+    text_to_write = "# Eranjan\n"
+ 
     # print(data)
     iteration_number = []
+    inter_num_count = 1
+    scf_num = []
     Eharris = []
     E_KS = []
     FreeEng = []
@@ -90,16 +94,27 @@ def siesta_convergence_checker(file_name):
     Ef = []
     dHmax = []
     for line in data:
-        if "scf" in line and "compute" not in line and "siesta" not in line and "Eharris" not in line and "Vacuum" not in line and "dfscf" not in line:
+        if "scf" in line and "compute" not in line and "siesta" not in line and "Eharris" not in line and "Vacuum" not in line and "dfscf" not in line and "spin moment" not in line:
             # print(line)
-            vals = line.split()
-            iteration_number.append(int(vals[1]))
-            Eharris.append(float(vals[2]))
-            E_KS.append(float(vals[3]))
-            FreeEng.append(float(vals[4]))
-            dDmax.append(float(vals[5]))
-            Ef.append(float(vals[6]))
-            dHmax.append(float(vals[7]))
+            try:
+                vals = line.split()
+                dDmax.append(float(vals[5]))  # This is here uptop because somtime it breaks for MD steps here and will go into the except before iterating iteration_number
+                iteration_number.append(inter_num_count)
+                scf_num.append(int(vals[1]))
+                inter_num_count+=1
+                Eharris.append(float(vals[2]))
+                E_KS.append(float(vals[3]))
+                FreeEng.append(float(vals[4]))
+                Ef.append(float(vals[6]))
+                dHmax.append(float(vals[7]))
+            except: continue
+        text_to_write+=line
+        text_to_write+=f"{len(iteration_number)}:{len(dDmax)}\n"
+
+
+    # file = open(f"{file_name}_scf_convergence.era", 'w')
+    # file.write(text_to_write)
+    # file.close()
 
     # Eharris = [-x for x in Eharris]
     # E_KS = [-x for x in E_KS]
