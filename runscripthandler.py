@@ -8,7 +8,7 @@ This can be used to run multiple jobs for example
 As of now this code can only do runs with similar job scheduler parameters
 """
 
-import os
+import os, sys
 from ase.build import bulk
 from ase import Atoms
 import ase.io
@@ -724,30 +724,23 @@ class RunScriptHandler():
                             print(f"make_runs: Unrecognized job_handler! Job files not created")
 
         if self.job_handler == "torque":
-            # bat_file = open(f"{self.base_folder}/rsyn_out.bat", "w+")
-            # bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" ./ rathnayake@localhost:~/Run_files\n')
-            # bat_file.close()
-            # bat_file = open(f"{self.base_folder}/rsyn_out_{run_name}.bat", "w+")
-            # # bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" --include="{run_name}" --include="{self.identifier}*" ../ rathnayake@localhost:~/Run_files')
-            # bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" --include="{self.identifier}*" ../ rathnayake@localhost:~/Run_files\n')
-            # bat_file.close()
-            # bat_file = open(f"{self.base_folder}/rsyn_in.bat", "w+")
-            # bat_file.write(f'wsl rsync -avtuz --max-size=5m -e "ssh -p 33301" rathnayake@localhost:~/Run_files/ ./\n')
-            # bat_file.close()
-            # bat_file = open(f"{self.base_folder}/rsyn_in_{run_name}.bat", "w+")
-            # bat_file.write(f'wsl rsync -avtuz --max-size=5m -e "ssh -p 33301" "rathnayake@localhost:~/Run_files/{run_name}" ./\n')
-            # bat_file.close()
-            bat_file = open(f"{self.base_folder}/login.bat", "w+")
-            bat_file.write(f'wsl ssh -v -L 33301:carbon:22 rathnayake@mega.cnm.anl.gov')
+            if sys.platform == "linux":
+                extension = "sh"
+                program = "#!/bin/bash\n"
+            if sys.platform == "win32":
+                extension = "bat"
+                program = "wsl "                
+            bat_file = open(f"{self.base_folder}/login.{extension}", "w+")
+            bat_file.write(f'{program}ssh -v -L 33301:carbon:22 rathnayake@mega.cnm.anl.gov')
             bat_file.close()
-            bat_file = open(f"{self.base_folder}/session.bat", "w+")
-            bat_file.write(f'wsl ssh -Y -p 33301 rathnayake@localhost')
+            bat_file = open(f"{self.base_folder}/session.{extension}", "w+")
+            bat_file.write(f'{program}ssh -Y -p 33301 rathnayake@localhost')
             bat_file.close()
-            bat_file = open(f"{self.base_folder}/rsyn_out_current_folder.bat", "w+")
-            bat_file.write(f'wsl rsync -avtuz -e "ssh -p 33301" ../{self.base_folder} rathnayake@localhost:~/Run_files/\n')
+            bat_file = open(f"{self.base_folder}/rsyn_out_current_folder.{extension}", "w+")
+            bat_file.write(f'{program}rsync -avtuz -e "ssh -p 33301" ../{self.base_folder} rathnayake@localhost:~/Run_files/\n')
             bat_file.close()
-            bat_file = open(f"{self.base_folder}/rsyn_in_current_folder.bat", "w+")
-            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e "ssh -p 33301" rathnayake@localhost:~/Run_files/{self.base_folder}/ ./\n')
+            bat_file = open(f"{self.base_folder}/rsyn_in_current_folder.{extension}", "w+")
+            bat_file.write(f'{program}rsync -avtuz --max-size=5m -e "ssh -p 33301" rathnayake@localhost:~/Run_files/{self.base_folder}/ ./\n')
             bat_file.close()
             submit_file = open(f"{self.base_folder}/run_all_jobs.sh", "w+")
             submit_file.write(f'#!/bin/bash\n')
@@ -759,25 +752,25 @@ class RunScriptHandler():
             submit_file.close()
             self.create_job()
         elif self.job_handler == "era_ubuntu":
-            bat_file = open(f"{self.base_folder}/rsyn_out_eraubuntu.bat", "w+")
-            bat_file.write(f'wsl rsync -avtuz -e ssh era@192.168.0.23 ./ era@192.168.0.23:~/Documents/Run_files\n')
+            bat_file = open(f"{self.base_folder}/rsyn_out_eraubuntu.{extension}", "w+")
+            bat_file.write(f'{program}rsync -avtuz -e ssh era@192.168.0.23 ./ era@192.168.0.23:~/Documents/Run_files\n')
             bat_file.close()
-            bat_file = open(f"{self.base_folder}/rsyn_in_eraubuntu.bat", "w+")
-            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e ssh era@192.168.0.23:~/Documents/Run_files/ ./\n')
+            bat_file = open(f"{self.base_folder}/rsyn_in_eraubuntu.{extension}", "w+")
+            bat_file.write(f'{program}rsync -avtuz --max-size=5m -e ssh era@192.168.0.23:~/Documents/Run_files/ ./\n')
             bat_file.close()
-            bat_file = open(f"{self.base_folder}/rsyn_in_{run_name}_eraubuntu.bat", "w+")
-            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e ssh "era@192.168.0.23:~/Documents/Run_files/{run_name}" ./\n')
+            bat_file = open(f"{self.base_folder}/rsyn_in_{run_name}_eraubuntu.{extension}", "w+")
+            bat_file.write(f'{program}rsync -avtuz --max-size=5m -e ssh "era@192.168.0.23:~/Documents/Run_files/{run_name}" ./\n')
             bat_file.close()
             self.create_job()
         elif self.job_handler == "slurm":
-            bat_file = open(f"{self.base_folder}/rsyn_out_slurm.bat", "w+")
-            bat_file.write(f'wsl rsync -avtuz -e ssh cluster ./ cluster:/home/erathnayake/Synced\n')
+            bat_file = open(f"{self.base_folder}/rsyn_out_slurm.{extension}", "w+")
+            bat_file.write(f'{program}rsync -avtuz -e ssh cluster ./ cluster:/home/erathnayake/Synced\n')
             bat_file.close()
-            bat_file = open(f"{self.base_folder}/rsyn_in_slurm.bat", "w+")
-            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e ssh cluster:/home/erathnayake/Synced/ ./\n')
+            bat_file = open(f"{self.base_folder}/rsyn_in_slurm.{extension}", "w+")
+            bat_file.write(f'{program}rsync -avtuz --max-size=5m -e ssh cluster:/home/erathnayake/Synced/ ./\n')
             bat_file.close()
-            bat_file = open(f"{self.base_folder}/rsyn_in_{run_name}_slurm.bat", "w+")
-            bat_file.write(f'wsl rsync -avtuz --max-size=5m -e ssh "cluster:/home/erathnayake/Synced/{run_name}" ./\n')
+            bat_file = open(f"{self.base_folder}/rsyn_in_{run_name}_slurm.{extension}", "w+")
+            bat_file.write(f'{program}rsync -avtuz --max-size=5m -e ssh "cluster:/home/erathnayake/Synced/{run_name}" ./\n')
             bat_file.close()            
             # self.create_slurm_job()   already done   
         elif self.job_handler == "era_pc" or self.job_handler == "sl_laptop":
