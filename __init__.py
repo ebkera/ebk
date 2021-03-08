@@ -54,17 +54,21 @@ def get_machine_paths():
     This function returns a dict with the relevant paths
     """
     try:
-        # print(f"get_machine_path: This computer is: {os.environ['COMPUTERNAME']}")
-        if os.environ['COMPUTERNAME'] == "ERA-PC":
+        if os.uname()[1] == "ERA-PC":
+            print("get_machine_paths: loading path for ERA-PC")
             pps = f"C:/Users/Eranjan/OneDrive - University of Illinois at Chicago/CQD Research/Run_files/PseudopotentialDatabase"
             xyz = f"C:/Users/Eranjan/OneDrive - University of Illinois at Chicago/CQD Research/Run_files/XYZdatabase"
             run = f"C:/Users/Eranjan/OneDrive - University of Illinois at Chicago/CQD Research/Run_files_git/Run_files"
+        if os.uname()[1] == "era":
+            print("get_machine_paths: loading path for era-ubuntu")
+            pps = f"/home/era/OneDrive_UIC/CQD Research/Run_files/PseudopotentialDatabase"
+            xyz = f"/home/era/OneDrive_UIC/CQD Research/Run_files/XYZdatabase"
+            run = f"/home/era/OneDrive_UIC/CQD Research/Run_files_git/Run_files"
     except:
             print(f"Defaulting to SivaLabs variables")
             pps = f"/mnt/c/Users/erathnayake/OneDrive - University of Illinois at Chicago/CQD Research/Run_files/PseudopotentialDatabase"
             xyz = f"/mnt/c/Users/erathnayake/OneDrive - University of Illinois at Chicago/CQD Research/Run_files/XYZdatabase"
             run = f"/mnt/c/Users/erathnayake/OneDrive - University of Illinois at Chicago/CQD Research/Run_files_git/Run_files"
-
     paths = {"pps": pps, "xyz": xyz, "run": run}
     return paths
 
