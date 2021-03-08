@@ -42,7 +42,14 @@ class Generatefdf:
         self.PDOS_MPGrid           = kwargs.get("PDOS_MPGrid", 15)
         self.PAO_EnergyShift       = kwargs.get("PAO_EnergyShift", 0.001)
         self.PAO_SplitNorm         = kwargs.get("PAO_SplitNorm", 0.001)
+        self.SCF_Mix               = kwargs.get("SCF_Mix", "Hamiltonian")
+        self.SCF_Mixer_Weight      = kwargs.get("SCF_Mixer_Weight", 0.01)
+        self.SCF_Mixer_History     = kwargs.get("SCF_Mixer_History", 5)
+        self.SCF_Mixer_Method      = kwargs.get("SCF_Mixer_Method", "Pulay")  # Options Pulay|Broyden|Linear only broyden provides steps in history
         self.MD                    = kwargs.get("MD", False)
+        self.MD_TypeOfRun          = kwargs.get("MD_TypeOfRun", "Broyden")
+        self.MD_Broyden_History_Steps = kwargs.get("MD_Broyden_History_Steps", 5) # Default value is 5 but set so that we remember this option
+        self.MD_Steps              =kwargs.get("MD_Steps", 300)
         self.Spin                  = kwargs.get("Spin", False)  # can be spin-orbit
         self.SO_strength           = kwargs.get("SO_strength", 1)
         self.include_H_in_block    = kwargs.get("include_H_in_block", False)
@@ -101,9 +108,6 @@ class Generatefdf:
             for i,v in enumerate(self.Species):
                 fdf_file.write(f"{i+1}\t{atomic_numbers[v]}\t{v}\n")
             fdf_file.write(f"%endblock ChemicalSpeciesLabel\n")
-            fdf_file.write(f"\n")
-            fdf_file.write(f"SCF.MustConverge      false\n")
-            fdf_file.write(f"DM.MixingWeight       0.01\n\n")
 
             if self.system_type == "bulk":
                 if self.LatticeVectors == "fcc":
@@ -163,9 +167,9 @@ class Generatefdf:
             # This way we can have H to not be forced to some value we set and have it free
                 fdf_file.write(f"# These are the global values\n")
                 fdf_file.write(f"PAO.BasisSize         DZP\n")
-                fdf_file.write(f"PAO.EnergyShift       {self.PAO_EnergyShift} Ry   #Range of first zeta (A standard for orbital-confining cutoff radii)\n")
-                fdf_file.write(f"PAO.BasisType         SPLIT      #Split Valance\n")
-                fdf_file.write(f"PAO.SplitNorm         {self.PAO_SplitNorm}        #Range of second-zeta\n\n")
+                fdf_file.write(f"PAO.EnergyShift       {self.PAO_EnergyShift} Ry\t\t\t\t\t\t #Range of first zeta (A standard for orbital-confining cutoff radii)\n")
+                fdf_file.write(f"PAO.BasisType         SPLIT    \t\t\t\t\t\t #Split Valance\n")
+                fdf_file.write(f"PAO.SplitNorm         {self.PAO_SplitNorm}    \t\t\t\t\t\t #Range of second-zeta\n\n")
             if self.PAO_define == "block":
                 fdf_file.write(f"%block PAO.Basis                 # Define Basis set\n")
                 # if self.XC_Functional == "LDA":
@@ -214,15 +218,15 @@ class Generatefdf:
                 if self.constrain_centre_atom:
                     fdf_file.write(f"%block Geometry.Constraints\n")
                     fdf_file.write(f"atom 1\n")
-                    fdf_file.write(f"%endblock Geometry.Constraints\n\n")
+                    fdf_file.write(f"%endblock Geometry.Constraints\n")
                 elif self.constrain_atom_list:
                     fdf_file.write(f"%block Geometry.Constraints\n")
                     for x in self.constrain_atom_list:
                         fdf_file.write(f"atom {x}\n")
-                    fdf_file.write(f"%endblock Geometry.Constraints\n\n")
+                    fdf_file.write(f"%endblock Geometry.Constraints\n")
 
             if self.bands_block:
-                fdf_file.write(f"# Band lines path\n")
+                fdf_file.write(f"\n# Band lines path\n")
                 fdf_file.write(f"BandLinesScale pi/a\n")
                 fdf_file.write(f"%block BandLines\n")
                 fdf_file.write(f" 1  0.0000   0.0000  0.0000  \Gamma\n")
@@ -234,22 +238,11 @@ class Generatefdf:
                 fdf_file.write(f"40  1.0000   1.0000  1.0000  L\n")
                 fdf_file.write(f"40  0.0000   0.0000  0.0000  \Gamma\n")
                 fdf_file.write(f"40  0.0000   2.0000  0.0000  X\n")
-                fdf_file.write(f"%endblock BandLines\n\n")
+                fdf_file.write(f"%endblock BandLines\n")
 
-            if self.MD == True:
-                fdf_file.write(f"MD.TypeOfRun                CG\n")
-                fdf_file.write(f"MD.NumCGsteps               300\n")
-                # fdf_file.write(f"MD.MaxForceTol         0.04\n")
-                # fdf_file.write(f"MD.VariableCell        T\n")  # Is false by default.
-                # fdf_file.write(f"MD.ConstantVolume      F\n")  # Is false by default.
-                # fdf_file.write(f"MD.UseSaveXV           T\n")
-                # fdf_file.write(f"MD.UseSaveCG           T\n")
-                # fdf_file.write(f"MD.MaxStressTol        0.0010\n")
-                # fdf_file.write(f"WriteMDHistory         T\n")
-                # fdf_file.write(f"WriteMDXMol            T\n")
-                # fdf_file.write(f"MD.MaxCGDispl          0.02 Bohr\n")
-
-            fdf_file.write(f"SaveTotalPotential\t\t\ttrue\n")
+            fdf_file.write(f"\n# Generic settings\n")
+            fdf_file.write(f"SCF.MustConverge            false\n")
+            fdf_file.write(f"SaveTotalPotential          true\n")
             fdf_file.write(f"SaveElectrostaticPotential\ttrue\n")
             if self.UseStructFile == True:
                 fdf_file.write(f"UseStructFile              true\n")
@@ -257,14 +250,12 @@ class Generatefdf:
                 fdf_file.write(f"Spin                        {self.Spin}\n")
                 if self.Spin == "SpinOrbit" or self.Spin == "spin-orbit":
                     fdf_file.write(f"Spin.OrbitStrength          {self.SO_strength}\n")
-
             if self.NetCharge != None:
                 fdf_file.write(f"NetCharge                   {self.NetCharge}\n")
             if self.ElectronicTemperature: 
                 fdf_file.write(f"ElectronicTemperature       {self.ElectronicTemperature} eV\n")
             if self.MaxSCFIterations: 
                 fdf_file.write(f"MaxSCFIterations            {self.MaxSCFIterations}\n")
-
             if self.Write_Denchar:
                 fdf_file.write("WriteDenchar                true\n")
             if self.WriteWaveFunctions:
@@ -274,7 +265,27 @@ class Generatefdf:
                 fdf_file.write("0.0 0.0 0.0 from 30 to 70\n")
                 fdf_file.write("%endblock WaveFuncKPoints\n")
 
-            
+            fdf_file.write(f"\n# Mixing\n")
+            fdf_file.write(f"SCF.Mix                     {self.SCF_Mix}\t\t\t\t\t\t # default: Hamiltonian others: Hamiltonian|density|charge\n")
+            fdf_file.write(f"SCF.Mixer.Method            {self.SCF_Mixer_Method}\t\t\t\t\t\t # default: Pulay others: Pulay|Broyden|Linear\n")
+            fdf_file.write(f"SCF.Mixer.Weight            {self.SCF_Mixer_Weight}\t\t\t\t\t\t # default: 0.25\n")
+            fdf_file.write(f"SCF.Mixer.History           {self.SCF_Mixer_History}    \t\t\t\t\t\t # default: 2\n")
+
+            if self.MD == True:
+                fdf_file.write(f"\n# Relaxation and Molecular Dynamics\n")
+                fdf_file.write(f"MD.TypeOfRun                {self.MD_TypeOfRun}\t\t\t\t\t\t # default: CG\n")
+                fdf_file.write(f"MD.Broyden.History.Steps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t\t # default: 5\n")
+                fdf_file.write(f"MD.Steps                    {self.MD_Steps}    \t\t\t\t\t\t # default: 0\n")
+
+                # fdf_file.write(f"MD.MaxForceTol         0.04\n")
+                # fdf_file.write(f"MD.VariableCell        T\n")  # Is false by default.
+                # fdf_file.write(f"MD.ConstantVolume      F\n")  # Is false by default.
+                # fdf_file.write(f"MD.UseSaveXV           T\n")
+                # fdf_file.write(f"MD.UseSaveCG           T\n")
+                # fdf_file.write(f"MD.MaxStressTol        0.0010\n")
+                # fdf_file.write(f"WriteMDHistory         T\n")
+                # fdf_file.write(f"WriteMDXMol            T\n")
+                # fdf_file.write(f"MD.MaxCGDispl          0.02 Bohr\n")            
 
     def write_denchar(self, *args, **kwargs):
         with open(f"{self.SystemLabel}.Denchar.fdf", "w+") as fdf_file:
