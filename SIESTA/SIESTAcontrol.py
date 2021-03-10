@@ -44,10 +44,12 @@ class Generatefdf:
         self.PAO_SplitNorm         = kwargs.get("PAO_SplitNorm", 0.001)
         self.SCF_Mix               = kwargs.get("SCF_Mix", "Hamiltonian")
         self.SCF_Mixer_Weight      = kwargs.get("SCF_Mixer_Weight", 0.01)
-        self.SCF_Mixer_History     = kwargs.get("SCF_Mixer_History", 5)
+        self.SCF_Mixer_History     = kwargs.get("SCF_Mixer_History", 8)
         self.SCF_Mixer_Method      = kwargs.get("SCF_Mixer_Method", "Pulay")  # Options Pulay|Broyden|Linear only broyden provides steps in history
+        self.SCF_Mixer_Kick        = kwargs.get("SCF_Mixer_Kick", 0)
+        self.SCF_Mixer_Kick_Weight = kwargs.get("SCF_Mixer_Kick_Weight", self.SCF_Mixer_Weight)
         self.MD                    = kwargs.get("MD", False)
-        self.MD_TypeOfRun          = kwargs.get("MD_TypeOfRun", "Broyden")
+        self.MD_TypeOfRun          = kwargs.get("MD_TypeOfRun", "CG")
         self.MD_Broyden_History_Steps = kwargs.get("MD_Broyden_History_Steps", 5) # Default value is 5 but set so that we remember this option
         self.MD_Steps              =kwargs.get("MD_Steps", 300)
         self.Spin                  = kwargs.get("Spin", False)  # can be spin-orbit
@@ -270,11 +272,14 @@ class Generatefdf:
             fdf_file.write(f"SCF.Mixer.Method            {self.SCF_Mixer_Method}\t\t\t\t\t\t # default: Pulay others: Pulay|Broyden|Linear\n")
             fdf_file.write(f"SCF.Mixer.Weight            {self.SCF_Mixer_Weight}\t\t\t\t\t\t # default: 0.25\n")
             fdf_file.write(f"SCF.Mixer.History           {self.SCF_Mixer_History}    \t\t\t\t\t\t # default: 2\n")
+            fdf_file.write(f"SCF.Mixer.Kick              {self.SCF_Mixer_Kick}    \t\t\t\t\t\t # default: 0 : number of steps before linear kick to get out of local minima\n")
+            fdf_file.write(f"SCF.Mixer.Kick.Weight       {self.SCF_Mixer_Kick_Weight}    \t\t\t\t\t\t # default: =SCF.Mixer.Weight\n")
 
             if self.MD == True:
                 fdf_file.write(f"\n# Relaxation and Molecular Dynamics\n")
                 fdf_file.write(f"MD.TypeOfRun                {self.MD_TypeOfRun}\t\t\t\t\t\t # default: CG\n")
-                fdf_file.write(f"MD.Broyden.History.Steps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t\t # default: 5\n")
+                if self.MD_TypeOfRun == "Broyden":
+                    fdf_file.write(f"MD.Broyden.History.Steps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t\t # default: 5\n")
                 fdf_file.write(f"MD.Steps                    {self.MD_Steps}    \t\t\t\t\t\t # default: 0\n")
 
                 # fdf_file.write(f"MD.MaxForceTol         0.04\n")
