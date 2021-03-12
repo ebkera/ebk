@@ -75,7 +75,7 @@ def xyz2fdf(file_name, format, lattice=False, lattice_constant=0):
     file.write(f"%endblock AtomicCoordinatesAndAtomicSpecies\n\n")
     file.close()
 
-def siesta_convergence_checker(file_name):
+def siesta_convergence_checker(file_name, title_addon="",show_linear_Kicks=False, show_struct_opt_moves=False, show_parameters=False, show_Harris=False):
     import matplotlib.pyplot as plt
     file = open(f"{file_name}", 'r')
     data = [line for line in file]
@@ -93,11 +93,14 @@ def siesta_convergence_checker(file_name):
     dDmax = []
     Ef = []
     dHmax = []
+    Liner_kick_at = []
+    Struct_opt_moves = []
     for line in data:
         if "scf" in line and "compute" not in line and "siesta" not in line and "Eharris" not in line and "Vacuum" not in line and "dfscf" not in line and "spin moment" not in line:
             # print(line)
             try:
                 vals = line.split()
+                if len(vals) != 8 : continue
                 dDmax.append(float(vals[5]))  # This is here uptop because somtime it breaks for MD steps here and will go into the except before iterating iteration_number
                 iteration_number.append(inter_num_count)
                 scf_num.append(int(vals[1]))
@@ -108,39 +111,53 @@ def siesta_convergence_checker(file_name):
                 Ef.append(float(vals[6]))
                 dHmax.append(float(vals[7]))
             except: continue
-        text_to_write+=line
-        text_to_write+=f"{len(iteration_number)}:{len(dDmax)}\n"
+            text_to_write+=line
+            text_to_write+=f"len_vals|len_iter|len_dDmax|len_Ef:{len(vals)|len(iteration_number)}|{len(dDmax)}|{len(Ef)}\n"
+        if "Linear-Kick" in line and "switching mixer" in line:
+            text_to_write+=line
+            text_to_write+=f"linear kick here ->\n"
+            Liner_kick_at.append(inter_num_count)
+        if "Begin" in line and "opt. move =" in line:
+            text_to_write+=line
+            text_to_write+=f"Opt Move here ->\n"
+            if inter_num_count == 1: Struct_opt_moves.append(1)
+            else: Struct_opt_moves.append(inter_num_count+1)
 
+    file = open(f"{file_name}_scf_convergence.era", 'w')
+    file.write(text_to_write)
+    file.close()
 
-    # file = open(f"{file_name}_scf_convergence.era", 'w')
-    # file.write(text_to_write)
-    # file.close()
-
-    # Eharris = [-x for x in Eharris]
-    # E_KS = [-x for x in E_KS]
-    # FreeEng = [-x for x in FreeEng]
-    # # print(FreeEng)
-
-    plt.plot(iteration_number, Eharris, label=("Harris"))
-    plt.plot(iteration_number, E_KS, label=("Khon-Sham"))
-    plt.plot(iteration_number, FreeEng, label=("Free"))
-    plt.title("SCF Convergence")
+    if show_Harris: plt.plot(iteration_number, Eharris, 'c', label=("Harris"))
+    plt.plot(iteration_number, FreeEng, 'g', label=("Free Energy"))
+    plt.plot(iteration_number, E_KS, "b",label=("Kohn-Sham"))
+    plt.title(f"SCF Convergence: {title_addon}")
     plt.xlabel("Iteration")
-    plt.ylabel("Energy")
+    plt.ylabel("Energy (eV)")
+    if show_linear_Kicks:
+        if len(Liner_kick_at) != 0:
+            plt.axvline(Liner_kick_at[0], color='r', linestyle='-', linewidth=.5, label="Linear Kicks")
+            for x in range(1,len(Liner_kick_at)):
+                plt.axvline(Liner_kick_at[x], color='r', linestyle='-', linewidth=.5, )
+    if show_struct_opt_moves:
+        if len(Struct_opt_moves) != 0:
+            plt.axvline(Struct_opt_moves[0], color='m', linestyle='-', linewidth=.5, label="Opt. move")
+            for x in range(1,len(Struct_opt_moves)):
+                plt.axvline(Struct_opt_moves[x], color='m', linewidth=.5, linestyle='-')                
     plt.legend()
     plt.savefig(f"{file_name}_SCF_convergence.pdf")
     plt.show()
 
-    plt.figure()
-    plt.plot(iteration_number, dDmax, label=("dDmax"))
-    plt.plot(iteration_number, Ef, label=("E$_f$"))
-    plt.plot(iteration_number, dHmax, label=("dHmax"))
-    plt.title("Convergence Parameters and Fermi level")
-    plt.xlabel("Iteration")
-    plt.ylabel("Energy")
-    plt.legend()
-    plt.savefig(f"{file_name}_Convergence_parameters.pdf")
-    plt.show()
+    if show_parameters:
+        plt.figure()
+        plt.plot(iteration_number, dDmax, label=("dDmax"))
+        plt.plot(iteration_number, Ef, label=("E$_f$"))
+        plt.plot(iteration_number, dHmax, label=("dHmax"))
+        plt.title(f"Convergence Parameters and Fermi level: {title_addon}")
+        plt.xlabel("Iteration")
+        plt.ylabel("Energy (eV)")
+        plt.legend()
+        plt.savefig(f"{file_name}_Convergence_parameters.pdf")
+        plt.show()
 
 def struct2xyz(file_name):
     """
