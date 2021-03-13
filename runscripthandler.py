@@ -496,6 +496,7 @@ class RunScriptHandler():
                 file_torque.write(f"    #  are <JOBNAME>.o<JOBNUM> and <JOBNAME>.e<JOBNUM>\n")
                 # file.write(f"    #PBS -o job.out\n")
                 file_torque.write(f"    #PBS -e $PWD/$dir/job.err\n")
+                file_torque.write(f"    # Join the output and error streams into the standard error file\n")
                 file_torque.write(f"    #PBS -j eo\n")
                 file_torque.write(f"    # Send mail at begin, end, abort, or never (b, e, a, n). Default is 'a'.\n")
                 file_torque.write(f"    #PBS -m bea\n")
