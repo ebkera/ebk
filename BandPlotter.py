@@ -31,12 +31,13 @@ class BandPlotter():
         self.ylim_high = 5
         self.xlim_low = 0
         self.xlim_high = 0
-        self.Ef_shift = 0
+        self.Ef_shift = True  # notimplemented yet
         self.y_to_plot = []
         self.same_band_colour = False
         self.band_colour = "b"
         self.new_fig = False
         self.x_margins = 0
+        self.saveas_extension = "pdf"
 
     def plot(self):
         """
@@ -44,7 +45,7 @@ class BandPlotter():
         |Inputs: None
         """
         for i in range(0,len(self.y)):
-            self.y_to_plot.append([x - self.Ef_shift for x in self.y[i]])
+            self.y_to_plot.append([x - self.fermi_level for x in self.y[i]])
         
         # To get multiple band diagrams together just plot them on the same figure (with the same file name) and when ever you want a new figure with just the new plots
         #  just do new_fig = True. If you want to save individual figures just give a new file name (with new_fig = True).
@@ -76,7 +77,7 @@ class BandPlotter():
         plt.ylabel("E-E$_f$ (eV)")
         plt.title(f"{self.title}")
         plt.margins(x=self.x_margins)
-        plt.savefig(f"Bands_{self.file_name}.pdf")
+        plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
         plt.show()
 
 class BandPlotterASE():
@@ -119,6 +120,7 @@ class BandPlotterASE():
         self.x_margins = 0
         # self.xlim_low = 0
         # self.xlim_high = 0
+        self.saveas_extension
 
     # def get_dos(self, readoutfilesobj):
     #     """
@@ -201,7 +203,7 @@ class BandPlotterASE():
             ax1.set_title(f"{self.title}")
             ax1.legend()
         plt.margins(x=self.x_margins)
-        plt.savefig(f"Bands_{self.file_name}.pdf")
+        plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
         plt.show()
 
     def add_to_plot(self, readoutfilesobj, label = None):

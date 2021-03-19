@@ -150,6 +150,14 @@ class CoordinateMaker():
         self.evenize = False  # Keeping track of whether the dot was evenized to have equal number of anions and cations
         self.finalcell = []  # This is the final dot. All passivation and evenizing will be included
 
+        #This is for Wulff constructions. Set these attributes to the surface energies (\gamma)
+        self.W_100 = 0
+        self.W_110 = 0
+        self.W_111 = 0
+
+
+        print("Making the initial box...")
+
         if material_type == self.anion_symbol:
         # This makes the current conventional_cell set to the alloy
             self.conventional_cell = self.conventional_cell_alloy_1
@@ -205,6 +213,8 @@ class CoordinateMaker():
                 new_vector = [coordinate[0], coordinate[1], coordinate[2] - float(self.radius[2] + 1), coordinate[3]]
                 self.super_cell.append(new_vector)  # Then we replicated those rows in the y direction
         self.finalcell = self.super_cell
+
+        print("Done making inital box")
 
     def T2SL(self, monolayers):
         """Expected that the input be a non replicated slab. All coordinates are postive values"""
@@ -647,7 +657,66 @@ class CoordinateMaker():
             if x[3] == "L":
                 pass
                 # self.finalcell.append(x[3],[],[])
+    
+    def atomistic_wulff(self, c):
+        """
+        c: the constant that the surface energies will be multipled by.
+        """
+        global to_del
+        to_del = []
 
+        def test_feasibility():
+            " This function will test to see if the initial box made is larger than the surfaces that we will be cutting out."
+            print(f"Atomtic_wulff: Checking to see if it all surfaces are inside the initial cube... ")
+            for x in [self.W_100, self.W_110, self.W_111]:
+                if c*x != 0: # Since if 0 we are just ignoring that surface
+                    for y in range(3):
+                        if c*x >= self.radius[y]*self.lattice_constant:
+                            print(f"!!! Atomtic_wulff: Warning!! Surface with energy : {x} is outside face {y} of inital cube")
+                            return False
+            # print(f"atomtic_wulff: All surfaces are inside initial cube... ")
+            return True
+
+        def delete_atoms():
+            global to_del            
+            to_del.sort()
+            for x in range(len(to_del)-1, -1, -1):
+                del self.finalcell[to_del[x]]
+            to_del = []
+
+        feasibility = test_feasibility()
+        if feasibility:
+            # (100)
+            if self.W_100 != 0:
+                print(f"Atomtic_wulff: Figuring out (100) surface")
+                for atom in range(0,len(self.finalcell)):
+                    for coordinate in range(3):
+                        if abs(self.finalcell[atom][coordinate]) > self.W_100:
+                            to_del.append(atom)
+                            # print("things are happening")
+                            break # prevents multiple entries
+                delete_atoms()
+            # (110)
+            if self.W_110 != 0:
+                # print(f"Cell length: {len(self.finalcell)}")
+                print(f"Atomtic_wulff: Figuring out (110) surface")
+                for atom in range(0,len(self.finalcell)):
+                    if (abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])) > self.W_110:
+                        # print(f"Added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
+                        to_del.append(atom)
+                    # else: print(f"Not added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
+                delete_atoms()
+            # (111)
+            if self.W_111 != 0:
+                # print(f"Cell length: {len(self.finalcell)}")
+                print(f"Atomtic_wulff: Figuring out (111) surface")
+                for atom in range(0,len(self.finalcell)):
+                    if (abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1]) + abs(self.finalcell[atom][2])) > self.W_111:
+                        # print(f"Added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
+                        to_del.append(atom)
+                    # else: print(f"Not added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
+                delete_atoms()
+                
 
 
 if __name__ == "__main__": 
