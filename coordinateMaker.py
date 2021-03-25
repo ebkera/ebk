@@ -9,7 +9,7 @@ Can output file with nearest neighbours and next nearest neighbours for use in a
 import os
 import sys
 import subprocess
-import time
+import time, math
 import matplotlib
 
 matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
@@ -179,18 +179,21 @@ class CoordinateMaker():
         # We always iterate upto radius + 1 so that we don't miss any atoms that might have radii that are at the edge
         # We start the row with 0 since we want to start at zero
         # Then for the rest we have to start at 1 since we don't want the row we just did to be counted or the xy square we just did to be counted
+        print("Starting building x")
         for step in range(0, self.radius[0] + 1):
             for coordinate in self.conventional_cell:
                 new_vector_x = [coordinate[0] + float(step), coordinate[1], coordinate[2], coordinate[3]]
                 self.super_cell.append(new_vector_x)
         # Then we replicated those rows in the y direction
         full_x_row = self.super_cell.copy()  # Saving the row of the super cell
+        print(f"Starting Building y. # of atoms now : {len(self.super_cell)}")
         for step in range(1, self.radius[1] + 1):
             for coordinate in full_x_row:
                 new_vector_y = [coordinate[0], coordinate[1] + float(step), coordinate[2], coordinate[3]]
                 self.super_cell.append(new_vector_y)
         # Then we replicate this base into stacks in the z direction
         full_xy_square = self.super_cell.copy()  # Saving the xy base in the first quadrant of the super cell
+        print(f"Starting Building z. # of atoms now : {len(self.super_cell)}")
         for step in range(1, self.radius[2] + 1):
             for coordinate in full_xy_square:
                 new_vector_z = [coordinate[0], coordinate[1], coordinate[2] + float(step), coordinate[3]]
@@ -199,22 +202,25 @@ class CoordinateMaker():
         if self.replicate == True:
             # Then we replicate this into the (-,+,+) octant
             full_ppp_cube = self.super_cell.copy()  # Saving the +++ cube
+            print(f"Starting Replicating to -x. # of atoms now : {len(self.super_cell)}")
             for coordinate in full_ppp_cube:
                 new_vector = [coordinate[0] - float(self.radius[0] + 1), coordinate[1], coordinate[2], coordinate[3]]
                 self.super_cell.append(new_vector)
             # Then we replicate this into the (Z>0) volume
             full_0pp_cube = self.super_cell.copy()  # Saving the +++ cube
+            print(f"Starting Replicating to -y. # of atoms now : {len(self.super_cell)}")
             for coordinate in full_0pp_cube:
                 new_vector = [coordinate[0], coordinate[1] - float(self.radius[1] + 1), coordinate[2], coordinate[3]]
                 self.super_cell.append(new_vector)
             # Then we replicate this into the full volume
             full_zgt0_cube = self.super_cell.copy()  # Saving the +++ cube
+            print(f"Starting Replicating to -z. # of atoms now : {len(self.super_cell)}")
             for coordinate in full_zgt0_cube:
                 new_vector = [coordinate[0], coordinate[1], coordinate[2] - float(self.radius[2] + 1), coordinate[3]]
                 self.super_cell.append(new_vector)  # Then we replicated those rows in the y direction
         self.finalcell = self.super_cell
 
-        print("Done making inital box")
+        print(f"Done making inital box; # of atoms now {len(self.finalcell)}")
 
     def T2SL(self, monolayers):
         """Expected that the input be a non replicated slab. All coordinates are postive values"""
@@ -311,35 +317,38 @@ class CoordinateMaker():
                             break
 
         # Now that we have removed surface atoms we need to find the new surface atoms so that we can passivate them as well
-        # Here we are just recognizing the sites that are not passivatied and have dangling bonds after trimming
-            surface_counter = 0   
-            for atom in self.finalcell:
-                nearest_neigbours = 0
-                for atom2 in self.finalcell:
-                    vec = abs(atom[0] - atom2[0]) ** 2 + abs(atom[1] - atom2[1]) ** 2 + abs(atom[2] - atom2[2]) ** 2
-                    if vec == 0.1875:
-                        nearest_neigbours += 1
-
-                if nearest_neigbours == 1 or nearest_neigbours == 2 or nearest_neigbours == 3:
-                    surface_counter += 1
-                    if atom[3] == self.anion_symbol:
-                        atom[3] = f"S_{self.anion_symbol}"
-                    elif atom[3] == self.cation_symbol:
-                        atom[3] = f"S_{self.cation_symbol}"
-
-        # Count the number of anions and cations
-            self.anion_count = 0
-            self.cation_count = 0
-            for x in self.finalcell:
-                if x[3] == self.anion_symbol or x[3] == f"S_{self.anion_symbol}":
-                    self.anion_count += 1
-                elif x[3] == self.cation_symbol or x[3] == f"S_{self.cation_symbol}":
-                    self.cation_count += 1
-
-
+        surface_counter = self.identify_surface_atoms()
         self.no_of_surface_atoms = surface_counter
         self.no_of_atoms_after_trimming = len(self.finalcell)
         print(f"trim_to_dot: Number of atoms after trimming: {self.no_of_atoms_after_trimming}")
+
+    def identify_surface_atoms(self):
+        # Here we are just recognizing the sites that are not passivatied and have dangling bonds after trimming
+        surface_counter = 0   
+        for atom in self.finalcell:
+            nearest_neigbours = 0
+            for atom2 in self.finalcell:
+                vec = abs(atom[0] - atom2[0]) ** 2 + abs(atom[1] - atom2[1]) ** 2 + abs(atom[2] - atom2[2]) ** 2
+                if vec == 0.1875:
+                    nearest_neigbours += 1
+
+            if nearest_neigbours == 1 or nearest_neigbours == 2 or nearest_neigbours == 3:
+                surface_counter += 1
+                if atom[3] == self.anion_symbol:
+                    atom[3] = f"S_{self.anion_symbol}"
+                elif atom[3] == self.cation_symbol:
+                    atom[3] = f"S_{self.cation_symbol}"
+
+        # Count the number of anions and cations
+        self.anion_count = 0
+        self.cation_count = 0
+        for x in self.finalcell:
+            if x[3] == self.anion_symbol or x[3] == f"S_{self.anion_symbol}":
+                self.anion_count += 1
+            elif x[3] == self.cation_symbol or x[3] == f"S_{self.cation_symbol}":
+                self.cation_count += 1
+        self.no_of_surface_atoms = surface_counter
+        return surface_counter
 
     def write_to_log(self, fname = "coordinates"):
         """Printing the final into an out file that contains the coordinates"""
@@ -367,7 +376,7 @@ class CoordinateMaker():
             file_my.write("Cutoff parameter set to       &: " + str(self.cut_off) + " conventional unit cells\\\\\n")
             file_my.write("Anion/Cation Ratio            &: " + str(self.anion_count/self.cation_count) + "\\\\\n")
         except:
-            file_my.write("% The initial box was never trimmed!\n")
+            file_my.write("% The initial box was never trimmed (Ignore if Wulff construction)!\n")
         file_my.write("Anion Count                   &: " + str(self.anion_count) + "\\\\\n")
         file_my.write("Cation Count                  &: " + str(self.cation_count) + "\\\\\n")
         try:
@@ -383,10 +392,10 @@ class CoordinateMaker():
             file_my.write("Dot diameter                  &: " + str(self.cut_off*2*self.lattice_constant)+ " (\\AA) (" + str(self.cut_off*2)+ " conventional unit cells)\\\\\n")
             file_my.write("Dot diameter with passivation &: $\\approx$ " + str(self.cut_off*2*self.lattice_constant+self.passivation_bondlength)+ " (\\AA)\\\\\n")
         except:
-            file_my.write("% The initial box was not trimmed! - No defined cutoff - No diameter or radius!\n")
+            file_my.write("% The initial box was not trimmed! - No defined cutoff - No diameter or radius (Ignore if Wulff construction)!\n")
         file_my.write("Total atoms                   &: " + str(len(self.finalcell)) + "\n")
         file_my.write("\\end{tabular}\n")
-        file_my.write("\\caption{QD with " + str(len(self.finalcell)) + " total number of atoms and " + str(self.no_of_atoms_after_trimming) + "NP atoms} \\label{tab:QD" + str(len(self.finalcell)) + "}\n")
+        file_my.write("\\caption{QD with " + str(len(self.finalcell)) + " total atoms and " + str(self.no_of_atoms_after_trimming) + " NP atoms} \\label{tab:QD" + str(len(self.finalcell)) + "}\n")
         file_my.write("\\end{table}\n")
         file_my.close()
         print("write_to_log: Successfully written to the log file")
@@ -689,19 +698,20 @@ class CoordinateMaker():
             # (100)
             if self.W_100 != 0:
                 print(f"Atomtic_wulff: Figuring out (100) surface")
+                surface_constant_100 = c*self.W_100/self.lattice_constant
                 for atom in range(0,len(self.finalcell)):
                     for coordinate in range(3):
-                        if abs(self.finalcell[atom][coordinate]) > self.W_100:
+                        if abs(self.finalcell[atom][coordinate]) > surface_constant_100:
                             to_del.append(atom)
                             # print("things are happening")
                             break # prevents multiple entries
                 delete_atoms()
             # (110)
             if self.W_110 != 0:
-                # print(f"Cell length: {len(self.finalcell)}")
                 print(f"Atomtic_wulff: Figuring out (110) surface")
+                surface_constant_110 = c*2*(1/math.sqrt(2))*self.W_110/self.lattice_constant
                 for atom in range(0,len(self.finalcell)):
-                    if (abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])) > self.W_110:
+                    if (abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])) > surface_constant_110 or (abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][2])) > surface_constant_110 or (abs(self.finalcell[atom][1]) + abs(self.finalcell[atom][2])) > surface_constant_110:
                         # print(f"Added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
                         to_del.append(atom)
                     # else: print(f"Not added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
@@ -710,12 +720,15 @@ class CoordinateMaker():
             if self.W_111 != 0:
                 # print(f"Cell length: {len(self.finalcell)}")
                 print(f"Atomtic_wulff: Figuring out (111) surface")
+                surface_constant_111 = c*2*(1/math.sqrt(3))*self.W_111/self.lattice_constant
                 for atom in range(0,len(self.finalcell)):
-                    if (abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1]) + abs(self.finalcell[atom][2])) > self.W_111:
+                    if (abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1]) + abs(self.finalcell[atom][2])) > surface_constant_111:
                         # print(f"Added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
                         to_del.append(atom)
                     # else: print(f"Not added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
                 delete_atoms()
+
+        self.no_of_atoms_after_trimming = len(self.finalcell)
                 
 
 
