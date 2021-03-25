@@ -56,7 +56,13 @@ class Diamond111(MakeSlab):
         super().__init__()
 
 class Diamond210(MakeSlab):
-    """Creates Slabs in with the 111 direction now lying along the z axis"""
+    """Creates Slabs in with the 210 direction now lying along the z axis"""
     def __init__(self, a0, nlayers, *args, **kwargs):
         self.atoms = Diamond(symbol="Sn", latticeconstant=a0, directions=[[1,-2,0], [0,0,-1], [2,1,0]], size=(1,1,nlayers), pbc=(1,1,0), miller=[None, None, [2,1,0]])
         super().__init__()
+        
+class Diamond211(MakeSlab):
+    """Creates Slabs in with the 211 direction now lying along the z axis"""
+    def __init__(self, a0, nlayers, *args, **kwargs):
+        self.atoms = Diamond(symbol="Sn", latticeconstant=a0, directions=[[1,-2,0], [0,0,-1], [2,1,0]], size=(1,1,nlayers), pbc=(1,1,0), miller=[None, None, [2,1,1]])
+        super().__init__() 
