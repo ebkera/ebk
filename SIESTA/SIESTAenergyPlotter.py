@@ -43,8 +43,8 @@ class PlotEnergy():
         self.y_to_plot = []
         self.x_to_plot = []
         self.labels = []
-        self.same_band_colour = kwargs.get("same_band_colour", True)
-        self.band_colour = ["b", "g", "r", "c", "m", "y", "k"]
+        self.same_band_colour = kwargs.get("same_band_colour", True) # Not implemented just use color = "black" if want to set to same band color (as a kwarg)
+        self.band_colour = ["b", "g", "r", "c", "m", "y", "k"]  #Not implemented yet. 
         self.new_fig = False
         self.k_locations = None
         self.k_symbols = None

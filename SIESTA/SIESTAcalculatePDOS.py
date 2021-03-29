@@ -1,11 +1,13 @@
+"""
+Reads both .DOS and .PDOS files. Can calculate band gaps. use the Read_PDOS class and load() functions to load() functions
+"""
+
 import os
 import matplotlib
-# matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 import sys
 import subprocess
 import pathlib
 from pathlib import Path
-
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
@@ -50,6 +52,8 @@ class Read_PDOS():
 
     def load(self, file_name, Ef, label, **kwargs):
         """
+        This method will load the file and also calculate band gap when loaded. 
+        Don't have to do the processing if using load (this method)
         **kwargs: ( matpotlib kwargs for lines and markers and the sort)
         """
         self.file_names.append(file_name)
@@ -90,7 +94,7 @@ class Read_PDOS():
         self.fermi_levels.append(float(Ef))
         self.kwargs.append(kwargs)
 
-        #finding teh band gap
+        #finding the band gap
         diffs = [abs(x) for x in tempx]
         Ef_index = diffs.index(min(diffs))
         # print(tempx[Ef_index])
