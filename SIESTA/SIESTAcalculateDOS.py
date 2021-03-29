@@ -1,5 +1,6 @@
 """
 This Files needs the eig2dos file to work
+Better and modern implementation can be found in SIESTAcalculatePDOS.py. Encouraged to use that file.
 """
 import os
 import matplotlib
