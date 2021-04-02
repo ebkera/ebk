@@ -71,7 +71,9 @@ class SiestaReadOut():
             if "siesta: Atomic coordinates (Bohr) and species" in line: trigger_read_in_atoms = True
             
         # Here we are getting the Work functions
-        self.WF = self.Vac_mean - self.Ef
+        try: 
+            self.WF = self.Vac_mean - self.Ef
+        except: print("SiestaReadOut: No vacuum values. Possible reasons: bulk system")
         # print(self.N_atoms, self.N_orbitals, self.N_projectors)
         # print(self.Species)
 
