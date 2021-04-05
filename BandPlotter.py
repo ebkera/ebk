@@ -38,6 +38,8 @@ class BandPlotter():
         self.new_fig = False
         self.x_margins = 0
         self.saveas_extension = "pdf"
+        self.extra_horizontal_lines = []  # [ycoord,label]
+        self.extra_vertical_lines = []
 
     def plot(self):
         """
@@ -72,11 +74,17 @@ class BandPlotter():
             else:
                 plt.plot(self.x, self.y_to_plot[band])
 
+        if len(self.extra_horizontal_lines) !=0:
+            for line in self.extra_horizontal_lines:
+                # print(line)
+                plt.axhline(y=line[0], label = f"{line[1]}")
+
         plt.xticks(self.k_locations, self.k_symbols)
         plt.xlabel("K path")
         plt.ylabel("E-E$_f$ (eV)")
         plt.title(f"{self.title}")
         plt.margins(x=self.x_margins)
+        # plt.legend(loc= "upper right")
         plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
         plt.show()
 
