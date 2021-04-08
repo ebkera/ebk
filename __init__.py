@@ -270,7 +270,6 @@ def add_xyz_files(file1, file2, file_name_to_write=f"combined.xyz"):
     for x in range(2,len(data_file2)):
         line = data_file2[x].split()
         file.write(f"B{line[0]}\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
-
     file.close()    
 
 def subtract_xyz_files(file1, file2, file_name_to_write=f"combined.xyz"):
@@ -296,7 +295,7 @@ def subtract_xyz_files(file1, file2, file_name_to_write=f"combined.xyz"):
     f1_lines = []
     f2_lines = []
     
-    # Here we convert the lines into a list and also makes the numberical values into floats so we can compare 
+    # Here we convert the lines into a list and also makes the numerical values into floats so we can compare 
     for x in range(2,len(data_file1)):
         line = data_file1[x].split()
         f1_lines.append([f"A{line[0]}", float(line[1]), float(line[2]), float(line[3])])
@@ -342,4 +341,4 @@ def subtract_xyz_files(file1, file2, file_name_to_write=f"combined.xyz"):
     for x in range(0,len(final_f2_lines)):
         line = final_f2_lines[x]
         file.write(f"{line[0]}\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
-    file.close()    
+    file.close() 
