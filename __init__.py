@@ -237,3 +237,109 @@ This is dummy text.
 
     with open("main.tex", "w+") as tex_file:
         tex_file.write(tex_file_text)
+        
+def add_xyz_files(file1, file2, file_name_to_write=f"combined.xyz"):
+    """
+    Adds two .xyz files.
+    Input: two .xyz files without the extension
+    Output: Single .xyz file with all the atoms in the same file.
+            See code for naming scheme for similar atoms.
+    """
+
+    # Saving input files to variables
+    file = open(f"{file1}.xyz", 'r')
+    data_file1 = [line for line in file]
+    file.close()
+    file = open(f"{file2}.xyz", 'r')
+    data_file2 = [line for line in file]
+    file.close()
+
+    # The number of atoms here.
+    N_file1 = int(data_file1[0])
+    N_file2 = int(data_file2[0])
+    N_total = N_file1 + N_file2
+
+    file = open(f"{file_name_to_write}", 'w+')
+    file.write(f"{N_total}\n")
+    file.write("This is a combined file for comparison of two structures - Eranjan\n")
+
+    for x in range(2,len(data_file1)):
+        line = data_file1[x].split()
+        file.write(f"A{line[0]}\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
+
+    for x in range(2,len(data_file2)):
+        line = data_file2[x].split()
+        file.write(f"B{line[0]}\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
+
+    file.close()    
+
+def subtract_xyz_files(file1, file2, file_name_to_write=f"combined.xyz"):
+    """
+    Subtracts two .xyz files.
+    Input: two .xyz files without the extension
+    Output: Single .xyz file with all the atoms in the same file.
+            See code for naming scheme for similar atoms.
+    """
+
+    # Saving file contents to variables
+    file = open(f"{file1}.xyz", 'r')
+    data_file1 = [line for line in file]
+    file.close()
+    file = open(f"{file2}.xyz", 'r')
+    data_file2 = [line for line in file]
+    file.close()
+
+    # The number of atoms here.
+    N_file1 = int(data_file1[0])
+    N_file2 = int(data_file2[0])
+
+    f1_lines = []
+    f2_lines = []
+    
+    # Here we convert the lines into a list and also makes the numberical values into floats so we can compare 
+    for x in range(2,len(data_file1)):
+        line = data_file1[x].split()
+        f1_lines.append([f"A{line[0]}", float(line[1]), float(line[2]), float(line[3])])
+
+    for x in range(2,len(data_file2)):
+        line = data_file2[x].split()
+        f2_lines.append([f"B{line[0]}", float(line[1]), float(line[2]), float(line[3])])
+
+    final_f1_lines = []
+    final_f2_lines = []
+
+    for line in f1_lines:
+        save = True
+        for l in f2_lines:
+            if abs(line[1] - l[1]) <= 0.001 and abs(line[2] - l[2]) <= 0.001 and abs(line[3] - l[3]) <= 0.001:
+                save = False
+                # print(line, l)
+                break
+        if save:
+            final_f1_lines.append(line)
+        
+    for line in f2_lines:
+        save = True
+        for l in f1_lines:
+            if abs(line[1] - l[1]) <= 0.001 and abs(line[2] - l[2]) <= 0.001 and abs(line[3] - l[3]) <= 0.001:
+                save = False
+                # print(line, l)
+                break
+        if save:
+            final_f2_lines.append(line)
+
+    N_total = len(final_f1_lines) + len(final_f2_lines)
+
+    file = open(f"{file_name_to_write}", 'w+')
+    file.write(f"{N_total}\n")
+    file.write("This is a combined (subtracted) file for comparison of two structures - Eranjan\n")
+
+    for x in range(0,len(final_f1_lines)):
+        line = final_f1_lines[x]
+        # print(line)
+        file.write(f"{line[0]}\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
+
+    for x in range(0,len(final_f2_lines)):
+        line = final_f2_lines[x]
+        file.write(f"{line[0]}\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
+    file.close()    
