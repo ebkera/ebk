@@ -10,6 +10,7 @@ More diverse funtionality has been added since initial planned scope was set.
 # import os
 import sys
 import scipy.constants
+import math
 
 # from matplotlib import pyplot as plt
 import matplotlib
@@ -342,3 +343,39 @@ def subtract_xyz_files(file1, file2, file_name_to_write=f"combined.xyz"):
         line = final_f2_lines[x]
         file.write(f"{line[0]}\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
     file.close() 
+
+class progress_bar():
+    """To be used as a progress bar"""    
+    def __init__(self, tasks):
+        self.resolution = 100
+        self.tasks = tasks
+        self.d = tasks/self.resolution
+        # print(self.d)
+
+    def get_progress(self, completed):
+        current_bucket = 0
+        # We usually expect inputs to be indeces list or otherwise but the number of tasks to be the length of the list so we increment by 1
+        completed+=1
+        # if (completed % self.d) == 0:
+
+        prog = math.ceil(completed/self.d)
+        if prog == current_bucket: return
+        else:current_bucket = prog
+        # print(prog)
+        to_prog = self.resolution-prog
+
+        p=" |"
+        for x in range(0,prog-1):
+            p+="="
+        p+=">"
+        for x in range(to_prog):
+            p+=" "
+        p+="|"
+        
+        p = f"{p} ({completed}/{self.tasks})"
+
+        if (completed/self.d) == 100 or completed >= self.tasks:
+            print(f"{p}")
+        else:
+            print(f"{p}", end="\r")
+
