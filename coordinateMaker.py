@@ -11,6 +11,7 @@ import sys
 import subprocess
 import time, math
 import matplotlib
+from ebk import progress_bar
 
 matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 import matplotlib.pyplot as plt
@@ -337,9 +338,11 @@ class CoordinateMaker():
         print(f"identify_surface_atoms: Started")
         surface_counter = 0
         length = len(self.finalcell)
+        surface_progress = progress_bar(length)
         for i, atom in enumerate(self.finalcell):
-            if i % 100 == 0:
-                print(f"identify_surface_atoms: Checking: {i}/{length}    ", end = "\r")
+            # if i % 100 == 0:
+            #     print(f"identify_surface_atoms: Checking: {i}/{length}    ", end = "\r")
+            surface_progress.get_progress(i)
             nearest_neigbours = 0
             for atom2 in self.finalcell:
                 # vec = abs(atom[0] - atom2[0]) ** 2 + abs(atom[1] - atom2[1]) ** 2 + abs(atom[2] - atom2[2]) ** 2
@@ -439,7 +442,10 @@ class CoordinateMaker():
         positive_set = [[0.25,0.25,0.25],[-0.25,-0.25,0.25],[-0.25,0.25,-0.25],[0.25,-0.25,-0.25]]
         negative_set = [[-0.25,-0.25,-0.25],[0.25,0.25,-0.25],[0.25,-0.25,0.25],[-0.25,0.25,0.25]]
         new_H_atoms = []
-        for atom in self.finalcell:
+        hydrogenate_progress = progress_bar(len(self.finalcell))
+        print(f"hydrogenate: Checking and passivating")
+        for i, atom in enumerate(self.finalcell):
+            hydrogenate_progress.get_progress(i)
             displacement_vectors = []  # This will store the displacement vectors between current atoms connected to "atom" which is the site where we want to hydrogenate
             # This will store all the new Hydrogen atoms that will be introduced and we can add all of them at once at the end
             # Taking only the surface atoms of the quantum dot
@@ -715,9 +721,11 @@ class CoordinateMaker():
             global to_del            
             to_del.sort()
             len_del = len(to_del)
+            del_progress = progress_bar(len_del)
             for x in range(len(to_del)-1, -1, -1):
-                if x % 10000 == 0:
-                    print(f"atomistic_wulff: Deleting: {x} remaining                        ", end = "\r")
+                del_progress.get_progress(len_del - x -1)  # the negative 1 is becasue get progress usually adds 1 to the counter expecting a list index
+                # if x % 10000 == 0:
+                #     print(f"atomistic_wulff: Deleting: {x} remaining                        ", end = "\r")
                 # print(f"|", end='')
                 del self.finalcell[to_del[x]]
             to_del = []
