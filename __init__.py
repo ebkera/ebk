@@ -346,10 +346,11 @@ def subtract_xyz_files(file1, file2, file_name_to_write=f"combined.xyz"):
 
 class progress_bar():
     """To be used as a progress bar"""    
-    def __init__(self, tasks):
+    def __init__(self, tasks, descriptor = ""):
         self.resolution = 100
         self.tasks = tasks
         self.d = tasks/self.resolution
+        self.descriptor = descriptor
         # print(self.d)
 
     def get_progress(self, completed):
@@ -364,15 +365,16 @@ class progress_bar():
         # print(prog)
         to_prog = self.resolution-prog
 
-        p=" |"
+        p=f" {self.descriptor}|"
         for x in range(0,prog-1):
             p+="="
         p+=">"
+        # p+=f"{prog}%"
         for x in range(to_prog):
             p+=" "
         p+="|"
         
-        p = f"{p} ({completed}/{self.tasks})"
+        p = f"{p}{prog}% ({completed}/{self.tasks})"
 
         if (completed/self.d) == 100 or completed >= self.tasks:
             print(f"{p}")
