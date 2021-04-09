@@ -262,47 +262,57 @@ class CoordinateMaker():
         """This method trims the initial cube into a ball"""
         self.finalcell = []  # This is since we have put self.finalcell = self.super_cell if not trimmed
         self.cut_off = cut_off
+
         # Removing atoms if position is over the radius
         surface_counter = 0
         print(f"trim_to_dot: Number of atoms before trimming: {len(self.super_cell)}")
-        for atom in self.super_cell:
+        length = len(self.super_cell)
+        for i, atom in enumerate(self.super_cell):
+            if i % 10000 == 0:
+                print(f"trim_to_dot: Checking: {i}/{length}    ", end = "\r")
             displacement2 = atom[0] ** 2 + atom[1] ** 2 + atom[2] ** 2
             if displacement2 < (self.cut_off) ** 2:  # This is where any atom that is inside the cutoff is saved
                 self.finalcell.append(atom)
+        print(f"trim_to_dot: Checking: {i+1}/{length} Done   ")
 
         # Here we are just recognizing the sites that are not passivatied and have dangling bonds after trimming
-        for atom in self.finalcell:
-            nearest_neigbours = 0
-            for atom2 in self.finalcell:
-                vec = abs(atom[0] - atom2[0]) ** 2 + abs(atom[1] - atom2[1]) ** 2 + abs(atom[2] - atom2[2]) ** 2
-                if vec == 0.1875:
-                    nearest_neigbours += 1
+        # length = len(self.finalcell)
+        # for i, atom in enumerate(self.finalcell):
+        #     nearest_neigbours = 0
+        #     if i % 10000 == 0:
+        #         print(f"identify_surface_atoms: Looking for surface atoms: {i}/{length}    ", end = "\r")
+        #     for atom2 in self.finalcell:
+        #         vec = abs(atom[0] - atom2[0]) ** 2 + abs(atom[1] - atom2[1]) ** 2 + abs(atom[2] - atom2[2]) ** 2
+        #         if vec == 0.1875:
+        #             nearest_neigbours += 1
 
-            if nearest_neigbours == 1 or nearest_neigbours == 2 or nearest_neigbours == 3:
-                surface_counter += 1
-                if atom[3] == self.anion_symbol:
-                    atom[3] = f"S_{self.anion_symbol}"
-                elif atom[3] == self.cation_symbol:
-                    atom[3] = f"S_{self.cation_symbol}"
+        #     if nearest_neigbours == 1 or nearest_neigbours == 2 or nearest_neigbours == 3:
+        #         surface_counter += 1
+        #         if atom[3] == self.anion_symbol:
+        #             atom[3] = f"S_{self.anion_symbol}"
+        #         elif atom[3] == self.cation_symbol:
+        #             atom[3] = f"S_{self.cation_symbol}"
 
-        # Count the number of anions and cations
-        self.anion_count = 0
-        self.cation_count = 0
-        for x in self.finalcell:
-            if x[3] == self.anion_symbol or x[3] == f"S_{self.anion_symbol}":
-                self.anion_count += 1
-            elif x[3] == self.cation_symbol or x[3] == f"S_{self.cation_symbol}":
-                self.cation_count += 1
+        # # Count the number of anions and cations
+        # self.anion_count = 0
+        # self.cation_count = 0
+        # for x in self.finalcell:
+        #     if x[3] == self.anion_symbol or x[3] == f"S_{self.anion_symbol}":
+        #         self.anion_count += 1
+        #     elif x[3] == self.cation_symbol or x[3] == f"S_{self.cation_symbol}":
+        #         self.cation_count += 1
+
 
         # Here we do the evenization of the number of cations and the number of anions
         if evenize:
+            surface_atom_count = self.identify_surface_atoms()  # we need to identify sites first to see which are the anion and cations
             self.evenize = True
             ac_difference = self.anion_count - self.cation_count
             print(f"trim_to_dot: The anion cation difference: {ac_difference}")
             i = 0
             if ac_difference > 0:
                 while i < ac_difference:
-                    for x in self.finalcell:
+                    for i, x in enumerate(self.finalcell):
                         if x[3] == f"S_{self.anion_symbol}":
                             self.finalcell.remove(x)
                             i+=1
@@ -310,7 +320,7 @@ class CoordinateMaker():
 
             elif ac_difference < 0:
                 while i < abs(ac_difference):
-                    for x in self.finalcell:
+                    for i, x in enumerate(self.finalcell):
                         if x[3] == f"S_{self.cation_symbol}":
                             self.finalcell.remove(x)
                             i+=1
@@ -324,15 +334,26 @@ class CoordinateMaker():
 
     def identify_surface_atoms(self):
         # Here we are just recognizing the sites that are not passivatied and have dangling bonds after trimming
-        surface_counter = 0   
-        for atom in self.finalcell:
+        print(f"identify_surface_atoms: Started")
+        surface_counter = 0
+        length = len(self.finalcell)
+        for i, atom in enumerate(self.finalcell):
+            if i % 100 == 0:
+                print(f"identify_surface_atoms: Checking: {i}/{length}    ", end = "\r")
             nearest_neigbours = 0
             for atom2 in self.finalcell:
-                vec = abs(atom[0] - atom2[0]) ** 2 + abs(atom[1] - atom2[1]) ** 2 + abs(atom[2] - atom2[2]) ** 2
-                if vec == 0.1875:
-                    nearest_neigbours += 1
+                # vec = abs(atom[0] - atom2[0]) ** 2 + abs(atom[1] - atom2[1]) ** 2 + abs(atom[2] - atom2[2]) ** 2
+                # if vec == 0.1875:
+                #     nearest_neigbours += 1
+                # The following method is much faster than the above
+                if abs(atom[0] - atom2[0]) == 0.25:
+                    if abs(atom[1] - atom2[1]) == 0.25:
+                        if abs(atom[2] - atom2[2]) == 0.25:
+                            nearest_neigbours +=1
+                if nearest_neigbours == 4:
+                    break
 
-            if nearest_neigbours == 1 or nearest_neigbours == 2 or nearest_neigbours == 3:
+            if nearest_neigbours != 4:
                 surface_counter += 1
                 if atom[3] == self.anion_symbol:
                     atom[3] = f"S_{self.anion_symbol}"
@@ -348,6 +369,7 @@ class CoordinateMaker():
             elif x[3] == self.cation_symbol or x[3] == f"S_{self.cation_symbol}":
                 self.cation_count += 1
         self.no_of_surface_atoms = surface_counter
+        print(f"identify_surface_atoms: Done: Checked: {i+1} atoms           ")  # White space to prevent ghosting
         return surface_counter
 
     def write_to_log(self, fname = "coordinates"):
@@ -504,6 +526,7 @@ class CoordinateMaker():
             file_fdf.write("AtomicCoordinatesFormat  Fractional\n")
         file_fdf.write("%block AtomicCoordinatesAndAtomicSpecies\n")
         for i in self.finalcell:
+            
             if self.coordinate_format == "Ang":
                 file_fdf.write(
                     str(i[0] * self.lattice_constant) + "  " + str(i[1] * self.lattice_constant) + "  " + str(
@@ -631,7 +654,9 @@ class CoordinateMaker():
         # Printing the final into an out file that contains the coordinates
         file_nn = open(f"{fname}.nn", "w+")
         try:
-            for atom1 in self.finalcell:
+            for atom,atom1 in enumerate(self.finalcell):
+                if atom % 100000 == 0:
+                    print(f"write_to_nn: Writing: {atom}/{length}", end = "\r")
                 file_nn.write(
                     str(atom1[0]) + "  " + str(atom1[1]) + "  " + str(atom1[2]) + "  " + str(atom1[4]) + "\n")
                 for atom2 in self.finalcell:
@@ -676,58 +701,72 @@ class CoordinateMaker():
 
         def test_feasibility():
             " This function will test to see if the initial box made is larger than the surfaces that we will be cutting out."
-            print(f"Atomtic_wulff: Checking to see if it all surfaces are inside the initial cube... ")
+            print(f"atomistic_wulff: Checking to see if it all surfaces are inside the initial cube... ")
             for x in [self.W_100, self.W_110, self.W_111]:
                 if c*x != 0: # Since if 0 we are just ignoring that surface
                     for y in range(3):
                         if c*x >= self.radius[y]*self.lattice_constant:
-                            print(f"!!! Atomtic_wulff: Warning!! Surface with energy : {x} is outside face {y} of inital cube")
+                            print(f"!!! atomistic_wulff: Warning!! Surface with energy : {x} is outside face {y} of inital cube")
                             return False
-            # print(f"atomtic_wulff: All surfaces are inside initial cube... ")
+            # print(f"atomistic_wulff: All surfaces are inside initial cube... ")
             return True
 
         def delete_atoms():
             global to_del            
             to_del.sort()
+            len_del = len(to_del)
             for x in range(len(to_del)-1, -1, -1):
+                if x % 10000 == 0:
+                    print(f"atomistic_wulff: Deleting: {x} remaining                        ", end = "\r")
+                # print(f"|", end='')
                 del self.finalcell[to_del[x]]
             to_del = []
+            print(f"atomistic_wulff: Deleted: {len_del}                                    ")  # White space to remove any ghosting
 
         feasibility = test_feasibility()
         if feasibility:
-            # (100)
             if self.W_100 != 0:
-                print(f"Atomtic_wulff: Figuring out (100) surface")
+                print(f"atomistic_wulff: Figuring out (100) surface")
                 surface_constant_100 = c*self.W_100/self.lattice_constant
+                length = len(self.finalcell)
                 for atom in range(0,len(self.finalcell)):
+                    if atom % 100000 == 0:
+                        print(f"atomistic_wulff: Checking: {atom}/{length}    ", end = "\r")
+                        # print(f"|", end='')
                     for coordinate in range(3):
                         if abs(self.finalcell[atom][coordinate]) > surface_constant_100:
                             to_del.append(atom)
                             # print("things are happening")
                             break # prevents multiple entries
+                print(f"atomistic_wulff: Checked and planning to delete: {len(to_del)}/{length}")
                 delete_atoms()
             # (110)
             if self.W_110 != 0:
-                print(f"Atomtic_wulff: Figuring out (110) surface")
+                print(f"atomistic_wulff: Figuring out (110) surface")
                 surface_constant_110 = c*2*(1/math.sqrt(2))*self.W_110/self.lattice_constant
+                length = len(self.finalcell)
                 for atom in range(0,len(self.finalcell)):
+                    if atom % 100000 == 0:
+                        print(f"atomistic_wulff: Checking: {atom}/{length}    ", end = "\r")
                     if (abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])) > surface_constant_110 or (abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][2])) > surface_constant_110 or (abs(self.finalcell[atom][1]) + abs(self.finalcell[atom][2])) > surface_constant_110:
                         # print(f"Added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
                         to_del.append(atom)
-                    # else: print(f"Not added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
+                print(f"atomistic_wulff: Checked and planning to delete: {len(to_del)}/{length}")
                 delete_atoms()
             # (111)
             if self.W_111 != 0:
                 # print(f"Cell length: {len(self.finalcell)}")
-                print(f"Atomtic_wulff: Figuring out (111) surface")
+                print(f"atomistic_wulff: Figuring out (111) surface")
                 surface_constant_111 = c*2*(1/math.sqrt(3))*self.W_111/self.lattice_constant
+                length = len(self.finalcell)
                 for atom in range(0,len(self.finalcell)):
+                    if atom % 100000 == 0:
+                        print(f"atomistic_wulff: Checking: {atom}/{length}    ", end = "\r")
                     if (abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1]) + abs(self.finalcell[atom][2])) > surface_constant_111:
                         # print(f"Added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
                         to_del.append(atom)
-                    # else: print(f"Not added to delete: {self.finalcell[atom]}: {abs(self.finalcell[atom][0]) + abs(self.finalcell[atom][1])}")
+                print(f"atomistic_wulff: Checked and planning to delete: {len(to_del)}/{length}")
                 delete_atoms()
-
         self.no_of_atoms_after_trimming = len(self.finalcell)
                 
 
