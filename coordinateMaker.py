@@ -150,6 +150,8 @@ class CoordinateMaker():
         self.cation_count = 0  # Keeping track of the anion and cations in the dot
         self.evenize = False  # Keeping track of whether the dot was evenized to have equal number of anions and cations
         self.finalcell = []  # This is the final dot. All passivation and evenizing will be included
+        self.no_of_passivation_atoms = 0  # IF this is not zero then this run will be considered an atomistic wulff construction
+        self.wulff_cutoff = 0
 
         #This is for Wulff constructions. Set these attributes to the surface energies (\gamma)
         self.W_100 = 0
@@ -378,22 +380,22 @@ class CoordinateMaker():
     def write_to_log(self, fname = "coordinates"):
         """Printing the final into an out file that contains the coordinates"""
         file_my = open(f"{fname}.log", "w+")
-        for i in self.finalcell:
-            for j in i:
-                try:
-                    file_my.write(str(j) + "  ")
-                except:
-                    file_my.write(j + "  ")
-            file_my.write("\n")
+        # for i in self.finalcell:
+        #     for j in i:
+        #         try:
+        #             file_my.write(str(j) + "  ")
+        #         except:
+        #             file_my.write(j + "  ")
+        #     file_my.write("\n")
 
         # Printing out general information
         # Creating a letex table
-        file_my.write("\n\n##--Log of run in Latex format--(Copy and paste this into .tex file)--\n\n")
+        file_my.write("\n\n##--Log of run in Latex format--(Copy and paste into .tex file)--\n\n")
         file_my.write("\\begin{table}[h]\n")
         file_my.write("\\centering\n")
         file_my.write("\\begin{tabular}{ll}\n")
         file_my.write("Atom count for initial box    &: " + str(len(self.super_cell)) + " \\\\\n")
-        file_my.write(f"Initial box length            &: {str(self.radius[0]*2.0*self.lattice_constant)} x {str(self.radius[1]*2.0*self.lattice_constant)} x {str(self.radius[2]*2.0*self.lattice_constant)} (\\AA) ({str(self.radius[0]*2.0)} x {str(self.radius[1]*2.0)} x {str(self.radius[2]*2.0)} conventional unit cells)\\\\\n")
+        file_my.write(f"Initial box length           &: {str(self.radius[0]*2.0*self.lattice_constant)} x {str(self.radius[1]*2.0*self.lattice_constant)} x {str(self.radius[2]*2.0*self.lattice_constant)} (\\AA) ({str(self.radius[0]*2.0)} x {str(self.radius[1]*2.0)} x {str(self.radius[2]*2.0)} conventional unit cells)\\\\\n")
         file_my.write("Coordinate Format             &: " + str(self.coordinate_format)+" \\\\\n")
         file_my.write("lattice constant              &: " + str(self.lattice_constant)+" \\\\\n")  # This helps to set 
         try:
@@ -409,7 +411,7 @@ class CoordinateMaker():
         except:
             file_my.write("% The initial box was never trimmed! - No Surface atoms!\n")
         try:
-            file_my.write("Passivation atom count        &: " + str(self.no_of_atoms_for_passivation) + "\\\\\n")
+            file_my.write("Passivation atom count        &: " + str(self.no_of_passivation_atoms) + "\\\\\n")
             file_my.write("Passivation bond length       &: " + str(self.passivation_bondlength) + " (\\AA)\\\\\n")
         except:
             file_my.write("% The initial box was never pasivated! - No Passivation atoms!\n")
@@ -418,7 +420,14 @@ class CoordinateMaker():
             file_my.write("Dot diameter with passivation &: $\\approx$ " + str(self.cut_off*2*self.lattice_constant+self.passivation_bondlength)+ " (\\AA)\\\\\n")
         except:
             file_my.write("% The initial box was not trimmed! - No defined cutoff - No diameter or radius (Ignore if Wulff construction)!\n")
-        file_my.write("Total atoms                   &: " + str(len(self.finalcell)) + "\n")
+        file_my.write("Total atoms                   &: " + str(len(self.finalcell)) + "\\\\\n")
+        if self.wulff_cutoff != 0:
+            file_my.write(f"% --This is a Wulff construction-------------------------------\n")
+            file_my.write(f"% Wulff parameters\n")
+            file_my.write(f"Wulff: $\gamma_{{100}}$ &: {self.W_100}\\\\\n")
+            file_my.write(f"Wulff: $\gamma_{{110}}$ &: {self.W_110}\\\\\n")
+            file_my.write(f"Wulff: $\gamma_{{111}}$ &: {self.W_111}\\\\\n")
+            file_my.write(f"Wulff: c &: {self.wulff_cutoff} ({self.wulff_cutoff*self.lattice_constant}  (\\AA))\\\\\n")
         file_my.write("\\end{tabular}\n")
         file_my.write("\\caption{QD with " + str(len(self.finalcell)) + " total atoms and " + str(self.no_of_atoms_after_trimming) + " NP atoms} \\label{tab:QD" + str(len(self.finalcell)) + "}\n")
         file_my.write("\\end{table}\n")
@@ -471,7 +480,7 @@ class CoordinateMaker():
                 for x in to_edit:
                     new_atom = [atom[0]+x[0]*multi_factor,atom[1]+x[1]*multi_factor,atom[2]+x[2]*multi_factor,"H"]
                     new_H_atoms.append(new_atom)
-        self.no_of_atoms_for_passivation = len(new_H_atoms)
+        self.no_of_passivation_atoms += len(new_H_atoms)
         for x in new_H_atoms:
             self.finalcell.append(x)
         print("hydrogenate: Successfully passivated with hydrogen")
@@ -519,7 +528,7 @@ class CoordinateMaker():
                 for x in to_edit:
                     new_atom = [atom[0]+x[0]*multi_factor,atom[1]+x[1]*multi_factor,atom[2]+x[2]*multi_factor,"H"]
                     new_O_atoms.append(new_atom)
-        self.no_of_atoms_for_passivation = len(new_O_atoms)
+        self.no_of_passivation_atoms += len(new_O_atoms)
         for x in new_O_atoms:
             self.finalcell.append(x)
 
@@ -704,6 +713,7 @@ class CoordinateMaker():
         """
         global to_del
         to_del = []
+        self.wulff_cutoff = c
 
         def test_feasibility():
             " This function will test to see if the initial box made is larger than the surfaces that we will be cutting out."
@@ -721,7 +731,7 @@ class CoordinateMaker():
             global to_del            
             to_del.sort()
             len_del = len(to_del)
-            del_progress = progress_bar(len_del)
+            del_progress = progress_bar(len_del, "Deleting")
             for x in range(len(to_del)-1, -1, -1):
                 del_progress.get_progress(len_del - x -1)  # the negative 1 is becasue get progress usually adds 1 to the counter expecting a list index
                 # if x % 10000 == 0:
