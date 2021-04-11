@@ -53,6 +53,7 @@ def get_machine_paths():
     3) Path to the run files (run)
     This function returns a dict with the relevant paths
     """
+    # print(os.uname()[1])  # for testing
     try:
         if os.uname()[1] == "ERA-PC":
             print("get_machine_paths: loading path for ERA-PC")
@@ -64,6 +65,11 @@ def get_machine_paths():
             pps = f"/home/era/OneDrive_UIC/CQD Research/Run_files/PseudopotentialDatabase"
             xyz = f"/home/era/OneDrive_UIC/CQD Research/Run_files/XYZdatabase"
             run = f"/home/era/OneDrive_UIC/CQD Research/Run_files_git/Run_files"
+        if os.uname()[1] == "ffl4":
+            print("get_machine_paths: loading path for ffl4: probably Pop! OS")
+            pps = f"/home/ebk/OneDrive_UIC/CQD Research/Run_files/PseudopotentialDatabase"
+            xyz = f"/home/ebk/OneDrive_UIC/CQD Research/Run_files/XYZdatabase"
+            run = f"/home/ebk/OneDrive_UIC/CQD Research/Run_files_git/Run_files"
     except:
             print(f"Defaulting to SivaLabs variables")
             pps = f"/mnt/c/Users/erathnayake/OneDrive - University of Illinois at Chicago/CQD Research/Run_files/PseudopotentialDatabase"
@@ -366,6 +372,7 @@ class progress_bar():
         to_prog = self.resolution-prog
 
         p=f" {self.descriptor}|"
+        # p=f" |"
         for x in range(0,prog-1):
             p+="="
         p+=">"
@@ -379,5 +386,5 @@ class progress_bar():
         if (completed/self.d) == 100 or completed >= self.tasks:
             print(f"{p}")
         else:
-            print(f"{p}", end="\r")
+            print(f"{p} ", end="\r")
 
