@@ -46,7 +46,7 @@ class Generatefdf:
         self.SCF_Mixer_Weight      = kwargs.get("SCF_Mixer_Weight", 0.01)
         self.SCF_Mixer_History     = kwargs.get("SCF_Mixer_History", 8)
         self.SCF_Mixer_Method      = kwargs.get("SCF_Mixer_Method", "Pulay")  # Options Pulay|Broyden|Linear only broyden provides steps in history
-        self.SCF_Mixer_Kick        = kwargs.get("SCF_Mixer_Kick", 0)
+        self.SCF_Mixer_Kick        = kwargs.get("SCF_Mixer_Kick", 40)
         self.SCF_Mixer_Kick_Weight = kwargs.get("SCF_Mixer_Kick_Weight", self.SCF_Mixer_Weight)
         self.MD                    = kwargs.get("MD", False)
         self.MD_TypeOfRun          = kwargs.get("MD_TypeOfRun", "CG")
@@ -109,7 +109,7 @@ class Generatefdf:
             fdf_file.write(f"%block ChemicalSpeciesLabel\n")
             for i,v in enumerate(self.Species):
                 fdf_file.write(f"{i+1}\t{atomic_numbers[v]}\t{v}\n")
-            fdf_file.write(f"%endblock ChemicalSpeciesLabel\n")
+            fdf_file.write(f"%endblock ChemicalSpeciesLabel\n\n")
 
             if self.system_type == "bulk":
                 if self.LatticeVectors == "fcc":
@@ -136,12 +136,13 @@ class Generatefdf:
                 # fdf_file.write(f"%block AtomicCoordinatesAndAtomicSpecies < {self.coordinates_file_name}\n\n")
 
             if self.MPGrid or self.system_type == "bulk":
-                fdf_file.write(f"# Monkhorst-Pack Grid\n")
-                fdf_file.write(f"%block kgrid.MonkhorstPack. \n")
-                fdf_file.write(f"{self.MPGrid[0]}  0  0  0.5\n")
-                fdf_file.write(f"0  {self.MPGrid[1]}  0  0.5\n")
-                fdf_file.write(f"0  0  {self.MPGrid[2]}  0.5\n")
-                fdf_file.write(f"%endblock kgrid.MonkhorstPack. \n\n")
+                if self.MPGrid != [0,0,0]:
+                    fdf_file.write(f"# Monkhorst-Pack Grid\n")
+                    fdf_file.write(f"%block kgrid.MonkhorstPack. \n")
+                    fdf_file.write(f"{self.MPGrid[0]}  0  0  0.5\n")
+                    fdf_file.write(f"0  {self.MPGrid[1]}  0  0.5\n")
+                    fdf_file.write(f"0  0  {self.MPGrid[2]}  0.5\n")
+                    fdf_file.write(f"%endblock kgrid.MonkhorstPack. \n\n")
 
             if self.PDOS:
                 if self.PDOS_MPGrid != 0:
