@@ -13,7 +13,7 @@ import time, math
 import matplotlib
 from ebk import progress_bar
 
-matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
+# matplotlib.use('Agg')  # no UI backend required if working in the wsl without a UI
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import numpy as np
