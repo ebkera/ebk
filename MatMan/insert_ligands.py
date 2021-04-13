@@ -29,6 +29,8 @@ class Insert_ligand():
             self.atoms.rotate(-90, 'y')
         if direction == [1,1,0]:
             self.atoms.rotate(45, 'z')
+        # if direction == [0,1,0]: # Under construction
+        #     self.atoms.rotate(90, 'z')
 
     def align_atoms_along_axis(self, atom1, atom2, pivot = [0,0,0], axis = [0,0,1]):
         """
