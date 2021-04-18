@@ -94,7 +94,6 @@ class VASPReadOut():
             self.hsp.append(self.k_dist[0])
 
             for x in range(1,len(self.hss)):
-                # print(self.k_point_density*x-1)
                 self.hsp.append(self.k_dist[self.k_point_density*x-1])
 
         self.Eg = self.lowest_conduction[1] - self.highest_valance[1]
