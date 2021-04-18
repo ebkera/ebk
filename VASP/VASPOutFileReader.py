@@ -71,8 +71,6 @@ class VASPReadOut():
             hss_old = "empty"
             for line in KPOINTS:
                 line_s = line.split()
-                print(line_s)
-
                 if len(line_s) == 1:
                     try:
                         self.k_point_density = int(line_s[0])
@@ -99,24 +97,7 @@ class VASPReadOut():
                 # print(self.k_point_density*x-1)
                 self.hsp.append(self.k_dist[self.k_point_density*x-1])
 
-
-        # print(len(self.bands[1]))
-        # print(len(self.kpoints))
-
-
-        
-        # print(len(self.k_dist))
-        # self.hsp = [self.k_dist[0], self.k_dist[99], self.k_dist[199], self.k_dist[299], self.k_dist[399]]
-        # self.hss = ["Y", "Q", "Z", "$\Gamma$", "Y"]
-
-        # x = BandPlotter(self.k_dist, self.bands, self.hsp, hss)
-        # x.same_band_colour = True
-
         self.Eg = self.lowest_conduction[1] - self.highest_valance[1]
-        # # print(self.lowest_conduction[1], self.highest_valance[1])
-
-        # x.extra_horizontal_lines = [[self.lowest_conduction[1], f"Conduction band edge"]]
-        # x.extra_horizontal_lines.append([self.highest_valance[1], f"Valance band edge"])
 
     def get_band_gap(self):
         return self.Eg
