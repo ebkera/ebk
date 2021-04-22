@@ -15,6 +15,7 @@ class VASPReadOut():
         self.hsp = []
         self.hss = []
         self.Eg = "notset"
+        self.draw_band_edge_lines = False
         
         with open(f"{self.out_folder}/OUTCAR", "r+") as OUTCAR:
             for line in OUTCAR:
@@ -118,6 +119,11 @@ class VASPReadOut():
         x.ylim_high = 3
         x.ylim_low = -15
         x.saveas_extension = "png"
+
+        if self.draw_band_edge_lines:
+            x.extra_horizontal_lines = [[self.lowest_conduction[1], f"Conduction band edge"]]
+            x.extra_horizontal_lines.append([self.highest_valance[1], f"Valance band edge"])
+
 
         return x
 
