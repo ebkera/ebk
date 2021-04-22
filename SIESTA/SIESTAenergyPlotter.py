@@ -174,6 +174,7 @@ class PlotEnergy():
         Plots all energy levels
         """
         fig, ax1 = plt.subplots(figsize=(4*(len(self.Energies)*self.line_widths*2+0.5), 10))
+        # fig, ax1 = plt.subplots()
         # plt.rcParams["figure.figsize"] = (100,4)
         # plt.figure()
         # Setting y ranges
@@ -206,6 +207,7 @@ class PlotEnergy():
         plt.legend(by_label.values(), by_label.keys(), loc = 'upper right')
         if hasattr(self, "x_ticks_rotation"): plt.xticks(rotation=self.x_ticks_rotation, ha='right')
         ax1.set_title(f"{self.title}")
+        plt.tight_layout()
         plt.savefig(f"{self.file_name}.pdf")
         plt.show()
 
