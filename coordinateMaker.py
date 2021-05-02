@@ -225,6 +225,13 @@ class CoordinateMaker():
 
         print(f"Done making inital box; # of atoms now {len(self.finalcell)}")
 
+    def load(self, atoms_object):
+        """
+        This part should be able to load from other places
+        """
+        for atom in atoms_object:
+            print(atom)
+
     def T2SL(self, monolayers):
         """Expected that the input be a non replicated slab. All coordinates are postive values"""
         self.monolayers = monolayers
