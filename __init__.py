@@ -351,6 +351,42 @@ def subtract_xyz_files(file1, file2, file_name_to_write=f"combined.xyz"):
         file.write(f"{line[0]}\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
     file.close() 
 
+def make_ghost(file_list, atoms_list, output_file_name="out.xyz"):
+    """
+    Inputs:
+        file_list: (list) a list of files were atoms in atoms_list will be made into ghost atoms by renaming the species. Without extension.
+        atoms_list: (list of lists) : a list with length equal to file_list, where each element is a list of atoms to ghost. Can also be keywords like "all"
+    This will change chemical symbols all atoms in the atoms_list.
+    """
+    file_contents_list = []
+    for file in file_list:
+        file_ = open(f"{file}.xyz", 'r')
+        file_contents_list.append([line for line in file_])
+        file_.close()
+
+    # print(file_contents_list)
+    total_number_of_atoms = 0
+    for file_contents in file_contents_list:
+        total_number_of_atoms += int(file_contents[0])
+
+    file = open(f"{output_file_name}", 'w+')
+    file.write(f"{total_number_of_atoms}\n")
+    file.write("This file has been modified to contain ghost atoms labeled ChemSym_g- Eranjan\n")
+    for i,file_contents in enumerate(file_contents_list):
+
+        # for x in range(0,len(file_contents_list)):
+        for j,line in enumerate(file_contents):
+            # print(line)
+            if j <= 1: 
+                print("continuing")
+                continue
+            line = line.split()
+            # print(atoms_list[i][j])
+            if atoms_list[i] == "all" or "all" in atoms_list[i] or (j-2) in atoms_list[i]:
+                file.write(f"{line[0]}_g\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
+            else:
+                file.write(f"{line[0]}\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
+
 class progress_bar():
     """To be used as a progress bar"""    
     def __init__(self, tasks, descriptor = ""):
