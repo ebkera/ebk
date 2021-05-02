@@ -14,6 +14,14 @@ atomic_numbers.update({"O": 8})
 atomic_numbers.update({"F": 9})
 atomic_numbers.update({"S": 16})
 atomic_numbers.update({"Sn": 50})
+# Ghost atoms:
+atomic_numbers.update({"H_g": -1})
+atomic_numbers.update({"C_g": -6})
+atomic_numbers.update({"N_g": -7})
+atomic_numbers.update({"O_g": -8})
+atomic_numbers.update({"F_g": -9})
+atomic_numbers.update({"S_g": -16})
+atomic_numbers.update({"Sn_g": -50})
 
 class Generatefdf:
     def __init__(self, *args, **kwargs):
