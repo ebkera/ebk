@@ -384,16 +384,17 @@ class CoordinateMaker():
         print(f"identify_surface_atoms: Done: Checked: {i+1} atoms           ")  # White space to prevent ghosting
         return surface_counter
 
-    def write_to_log(self, fname = "coordinates"):
+    def write_to_log(self, fname = "coordinates", include_coordinates=False):
         """Printing the final into an out file that contains the coordinates"""
         file_my = open(f"{fname}.log", "w+")
-        # for i in self.finalcell:
-        #     for j in i:
-        #         try:
-        #             file_my.write(str(j) + "  ")
-        #         except:
-        #             file_my.write(j + "  ")
-        #     file_my.write("\n")
+        if include_coordinates:
+            for i in self.finalcell:
+                for j in i:
+                    try:
+                        file_my.write(str(j) + "  ")
+                    except:
+                        file_my.write(j + "  ")
+                file_my.write("\n")
 
         # Printing out general information
         # Creating a letex table
