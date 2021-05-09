@@ -50,6 +50,9 @@ class Read_PDOS():
                 if "fermi_energy" in line:
                     self.fermi_levels.append(float(line.split("<")[-2].split(">")[-1]))
 
+    def get_band_gaps(self):
+        return self.Egs
+
     def load(self, file_name, Ef, label, **kwargs):
         """
         This method will load the file and also calculate band gap when loaded. 
