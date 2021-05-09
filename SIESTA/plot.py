@@ -30,14 +30,17 @@ class Band():
         self.band_number_min = 0
         self.band_number_max = 0
         self.set_y_range = False
+        self.set_x_range = False
         self.ylim_low = -5
         self.ylim_high = 5
+        self.xlim_low = -5
+        self.xlim_high = 5
         self.E_min = 0
         self.E_max = 0
         self.E_f = 0
         self.kpath_k = []
         self.kpath_symbol = []
-        self.execute_gnuplot()
+        # self.execute_gnuplot()
         self.open_file()
 
     def use_gnuband(self, command = "f"):
@@ -120,6 +123,7 @@ class Band():
         still_two = True  # Check to see if there are only two things in the line
         for i in range(length_bands_file_rows-1, 0, -1):
             temperary = bands_file_rows[i].split()
+            # print(temperary)
             if len(temperary) == 2:
                 self.kpath_k.append(float(temperary[0].strip()))
                 self.kpath_symbol.append(str(temperary[1].strip("'")))
@@ -169,17 +173,24 @@ class Band():
                     E_to_return.append(y[0])
             # E_to_return.append(E_to_return_temp)
 
+        if self.set_x_range == True:
+                plt.xlim([self.xlim_low, self.xlim_high])
         if self.set_y_range == True:
                 plt.ylim([self.ylim_low, self.ylim_high])
-        plt.title(f"{self.plt_title} (E$_f$ = " + str(self.E_f) +"eV)")
+
+        print(self.xlim_high, self.xlim_low)
+        # plt.title(f"{self.plt_title} (E$_f$ = " + str(self.E_f) +"eV)") # Old line where we used to have the fermi energy printed
+        plt.title(f"{self.plt_title}")
         # plt.plot([self.band_data_x[1][0], self.band_data_x[1][len(self.band_data_x[1]) - 1]], [self.E_f, self.E_f],
         #          '--k', label="E$_f$")  # Plotting the E_f
-        plt.xlabel('k ($\\frac{\\pi}{a}$)')
+        # plt.xlabel('k ($\\frac{\\pi}{a}$)')
         plt.ylabel('Energy in eV (E - E$_f$)')
         # plt.legend(loc='upper left')
         # plt.yticks(np.linspace(-23,150,11) , np.linspace(-23,150,11))
         # plt.text(0.8, 0.8, r'E$_f$ = ',fontsize=20)
         plt.xticks(self.kpath_k, self.kpath_symbol)
+        plt.tight_layout()
+        plt.margins(x=0)
 
 
         # trying to write to file
