@@ -35,7 +35,7 @@ class MakeSlab():
     def center_to_cell(self):
         self.atoms.center()
 
-    def passivate_zinc_blende_slab(self, bond_length, passivation_direction = ["x", "y", "z"]):
+    def passivate_zinc_blende_slab(self, bond_length, passivation_direction = ["x", "y", "z"], slab_miller_index = "100"):
         """This method will add hydrogen atoms to surface atoms of the dot that has any dangling bonds"""
         self.identify_surface_atoms()
         self.passivation_bondlength = bond_length
@@ -135,28 +135,30 @@ class MakeSlab():
             # print(type_of_neighbours)
             # atom
 
+
+            # stop from accidentally passivating 
+
             for x in current_missing_neighbours:
+
                 # Now we prevent from making towards the wrong direction 
                 continue_flag = False
-                # print(atom, extreme_coordinates, passivation_atoms_to_add_pos[x])
-                for direc in passivation_direction:
-                    if   direc.lower() == "x":
-                        if abs(atom[0] - extreme_coordinates[0][0]) < 0.00001 and passivation_atoms_to_add_pos[x][0] < 0: pass
-                        elif abs(atom[0] - extreme_coordinates[0][1]) < 0.00001 and passivation_atoms_to_add_pos[x][0] > 0: pass
-                        else: continue_flag = True
-                    elif direc.lower() == "y":
-                        if abs(atom[1] - extreme_coordinates[1][0]) < 0.00001 and passivation_atoms_to_add_pos[x][1] < 0: pass
-                        elif abs(atom[1] - extreme_coordinates[1][1]) < 0.00001 and passivation_atoms_to_add_pos[x][1] > 0: pass
-                        else: continue_flag = True
-                    elif direc.lower() == "z":
-                        if abs(atom[2] - extreme_coordinates[2][0]) < 0.00001 and passivation_atoms_to_add_pos[x][2] < 0: pass
-                        elif abs(atom[2] - extreme_coordinates[2][1]) < 0.00001 and passivation_atoms_to_add_pos[x][2] > 0: pass
-                        else: continue_flag = True
-                    else:
-                        continue_flag = True
-
-                # print(continue_flag)
-
+                if not slab_miller_index == "111":
+                    # print(atom, extreme_coordinates, passivation_atoms_to_add_pos[x])
+                    for direc in passivation_direction:
+                        if   direc.lower() == "x":
+                            if abs(atom[0] - extreme_coordinates[0][0]) < 0.00001 and passivation_atoms_to_add_pos[x][0] < 0: pass
+                            elif abs(atom[0] - extreme_coordinates[0][1]) < 0.00001 and passivation_atoms_to_add_pos[x][0] > 0: pass
+                            else: continue_flag = True
+                        elif direc.lower() == "y":
+                            if abs(atom[1] - extreme_coordinates[1][0]) < 0.00001 and passivation_atoms_to_add_pos[x][1] < 0: pass
+                            elif abs(atom[1] - extreme_coordinates[1][1]) < 0.00001 and passivation_atoms_to_add_pos[x][1] > 0: pass
+                            else: continue_flag = True
+                        elif direc.lower() == "z":
+                            if abs(atom[2] - extreme_coordinates[2][0]) < 0.00001 and passivation_atoms_to_add_pos[x][2] < 0: pass
+                            elif abs(atom[2] - extreme_coordinates[2][1]) < 0.00001 and passivation_atoms_to_add_pos[x][2] > 0: pass
+                            else: continue_flag = True
+                        else:
+                            continue_flag = True
                 if continue_flag: continue
 
                 positions[0] = passivation_atoms_to_add_pos[x][0]*bond_length*(np.cos(np.pi/4))**2/0.25 + atom[0]
