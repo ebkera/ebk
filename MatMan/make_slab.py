@@ -34,8 +34,161 @@ class MakeSlab():
 
     def center_to_cell(self):
         self.atoms.center()
+        
+    # def passivate_zinc_blende_slab(self, bond_length, passivation_direction = ["x", "y", "z"], slab_miller_index = "100"):
+    #     """This is an alternative new way for below method. rmember to properly do doc strings if retained and working and belw mehod is going to be deleted"""
+    #     self.identify_surface_atoms()
+    #     self.passivation_bondlength = bond_length
+ 
+    def passivate_zinc_blende_slab(self, bond_length:'in Ang', passivation_direction: list = ["x", "y", "z"], slab_miller_index: str= "100")->'void':
+        """This method will add hydrogen atoms to surface atoms of the dot that has any dangling bonds"""
+        self.identify_surface_atoms()
+        self.passivation_bondlength = bond_length
+        multi_factor = bond_length/(self.lattice_constant*0.4330127018922)  # Since the coordinates are in lattice constants where 0.4330127018922 is the length of a bond 
+        print(f"Surface_atom_list = {self.surface_atoms_list}")
 
-    def passivate_zinc_blende_slab(self, bond_length, passivation_direction = ["x", "y", "z"], slab_miller_index = "100"):
+        # These are the sites of the nearest neighbours
+        positive_set_pos = [[0.25,0.25,0.25],[-0.25,-0.25,0.25],[-0.25,0.25,-0.25],[0.25,-0.25,-0.25]]
+        negative_set_pos = [[-0.25,-0.25,-0.25],[0.25,0.25,-0.25],[0.25,-0.25,0.25],[-0.25,0.25,0.25]]
+        positive_set = [["+","+", "+"],["-","-", "+"],["-","+","-"],["+","-","-"]]
+        negative_set = [["-", "-", "-"],["+", "+", "-"],["+", "-", "+"],["-", "+", "+"]]
+        new_H_atoms = []
+
+        hydrogenate_progress = progress_bar(len(self.surface_atoms_list))
+        print(f"hydrogenate: Checking and passivating")
+        extreme_coordinates = [[100000,0], [100000,0], [100000,0]]  # list of 3 lists (x,y,z): inner list is of len 2 with - and + extremums
+
+        for i, v in enumerate(self.surface_atoms_list):
+            # Here we find the extreme atoms. This will help determine what directions get passivated
+            atom = self.atoms[v].position
+            for direction in [0,1,2]:
+                if atom[direction]<extreme_coordinates[direction][0]: extreme_coordinates[direction][0] = atom[direction]
+                if atom[direction]>extreme_coordinates[direction][1]: extreme_coordinates[direction][1] = atom[direction]
+
+        copy_of_atoms = self.atoms.copy()
+        for i, v in enumerate(self.surface_atoms_list):
+            # print(self.surface_atoms_list)
+            hydrogenate_progress.get_progress(i)
+            displacement_vectors = []  # This will store the displacement vectors between current atoms connected to "atom" which is the site where we want to hydrogenate
+            displacement_vector_directions = []  # This will store the displacement vectors between current atoms connected to "atom" which is the site where we want to hydrogenate
+            # This will store all the new Hydrogen atoms that will be introduced and we can add all of them at once at the end
+            # Finding the current neighbours for the site and also the displacement vectors for each site
+            atom = copy_of_atoms[v].position
+
+            # Cheking for passivation directions
+            continue_flag = False
+            for direc in passivation_direction:
+                if   direc.lower() == "x":
+                    if atom[0] in extreme_coordinates[0]: pass
+                    else: continue_flag = True
+                elif direc.lower() == "y":
+                    if atom[1] in extreme_coordinates[1]: pass
+                    else: continue_flag = True
+                elif direc.lower() == "z":
+                    if atom[2] in extreme_coordinates[2]: pass
+                    else: continue_flag = True
+                else:
+                    continue_flag = True
+            # This will ensure that only the required directions are passivated
+            if continue_flag: continue
+            print(f"looking at atom: {v}")
+
+            for atom_i in copy_of_atoms:
+                # Finding Nearest neighbours
+                atom2 = atom_i.position
+                print(atom, atom2)
+                displacement_vector_x = atom2[0] - atom[0]
+                displacement_vector_y = atom2[1] - atom[1]
+                displacement_vector_z = atom2[2] - atom[2]
+                displacement_vector_direction = [displacement_vector_x, displacement_vector_y, displacement_vector_z]
+                displacement_vector_mag2 = abs(displacement_vector_x) ** 2 + abs(displacement_vector_y) ** 2 + abs(displacement_vector_z) ** 2
+                if abs(displacement_vector_mag2 - 0.1875 * self.a0**2) <= 0.00000000001:
+                    if float(displacement_vector_x) < 0: displacement_vector_x = "-"
+                    else: displacement_vector_x = "+"
+                    if float(displacement_vector_y) < 0: displacement_vector_y = "-"
+                    else: displacement_vector_y = "+"
+                    if float(displacement_vector_z) < 0: displacement_vector_z = "-"
+                    else: displacement_vector_z = "+"
+                    displacement_vector = [displacement_vector_x, displacement_vector_y, displacement_vector_z]
+                    displacement_vector_directions.append(displacement_vector_direction)
+                    displacement_vectors.append(displacement_vector)
+            current_missing_neighbours = []
+            current_neighbours = []
+            type_of_neighbours = ""
+            # print(f"displacement vectors {displacement_vectors}")
+            for i, v in enumerate(positive_set):
+                type_of_neighbours = "positive"
+                if v not in displacement_vectors:
+                    current_missing_neighbours.append(i)
+                else: current_neighbours.append(i)
+            if len(current_missing_neighbours) == 4: # if the count here is 4 then obviously we have to use the negative set
+                current_missing_neighbours = []
+                current_neighbours = []
+                type_of_neighbours = "negative"
+                for i, v in enumerate(negative_set):
+                    if v not in displacement_vectors:
+                        current_missing_neighbours.append(i)
+                    else: current_neighbours.append(i)
+            if type_of_neighbours == "positive": passivation_atoms_to_add_pos = positive_set_pos
+            else: passivation_atoms_to_add_pos = negative_set_pos
+            positions=[0,0,0]
+
+            if slab_miller_index == "100":
+                for x in current_missing_neighbours:
+                    # Now we prevent from making towards the wrong direction 
+                    continue_flag = False
+                    # print(atom, extreme_coordinates, passivation_atoms_to_add_pos[x])
+                    for direc in passivation_direction:
+                        if   direc.lower() == "x":
+                            if abs(atom[0] - extreme_coordinates[0][0]) < 0.00001 and passivation_atoms_to_add_pos[x][0] < 0: pass
+                            elif abs(atom[0] - extreme_coordinates[0][1]) < 0.00001 and passivation_atoms_to_add_pos[x][0] > 0: pass
+                            else: continue_flag = True
+                        elif direc.lower() == "y":
+                            if abs(atom[1] - extreme_coordinates[1][0]) < 0.00001 and passivation_atoms_to_add_pos[x][1] < 0: pass
+                            elif abs(atom[1] - extreme_coordinates[1][1]) < 0.00001 and passivation_atoms_to_add_pos[x][1] > 0: pass
+                            else: continue_flag = True
+                        elif direc.lower() == "z":
+                            if abs(atom[2] - extreme_coordinates[2][0]) < 0.00001 and passivation_atoms_to_add_pos[x][2] < 0: pass
+                            elif abs(atom[2] - extreme_coordinates[2][1]) < 0.00001 and passivation_atoms_to_add_pos[x][2] > 0: pass
+                            else: continue_flag = True
+                        else:
+                            continue_flag = True
+                    if continue_flag: continue
+
+            # Menna methana thamai adjusting to make the coordinates actually in the correct orienatation since the slab might not be oriented properly
+                    positions[0] = passivation_atoms_to_add_pos[x][0]*bond_length*(np.cos(np.pi/4))**2/0.25 + atom[0]
+                    positions[1] = passivation_atoms_to_add_pos[x][1]*bond_length*(np.cos(np.pi/4))**2/0.25 + atom[1]
+                    positions[2] = passivation_atoms_to_add_pos[x][2]*bond_length*(np.cos(np.pi/4))**2/0.25 + atom[2]
+                    new_H_atoms.append(Atom('H', position=positions))
+                # # self.no_of_passivation_atoms += len(new_H_atoms)
+                # for x in new_H_atoms:
+                    self.atoms.append(Atom('H', position=positions))
+        # self.atoms.append(atom_to_append)
+
+            if slab_miller_index == "111":
+                print(current_neighbours)
+                print(type_of_neighbours)
+                # self.atoms.edit()
+                # self.atoms.rotate()
+                displacement_vector_direction = displacement_vector_directions[0]
+                print(f"displacement_vector_directions lengths: {len(displacement_vector_directions)}")
+                self.atoms.rotate(displacement_vector_direction, positive_set_pos[0], center = atom)
+                print(displacement_vector_direction)
+                # self.atoms.rotate(displacement_vector_direction, positive_set_pos[0], center = atom)
+                for x_111, v_111 in enumerate(positive_set_pos):
+                    if x_111 == 0: continue
+                    positions[0] = v_111[0]*bond_length*(np.cos(np.pi/4))**2/0.25 + atom[0]
+                    positions[1] = v_111[1]*bond_length*(np.cos(np.pi/4))**2/0.25 + atom[1]
+                    positions[2] = v_111[2]*bond_length*(np.cos(np.pi/4))**2/0.25 + atom[2]
+                    new_H_atoms.append(Atom('H', position=positions))
+                    self.atoms.append(Atom('H', position=positions))
+                # self.atoms.edit()
+                self.atoms.rotate(positive_set_pos[0], displacement_vector_direction, center = atom)
+                # self.atoms.edit()
+
+        print("hydrogenate: Successfully passivated with hydrogen")
+
+    def passivate_zinc_blende_slab_original(self, bond_length, passivation_direction = ["x", "y", "z"], slab_miller_index = "100"):
         """This method will add hydrogen atoms to surface atoms of the dot that has any dangling bonds"""
         self.identify_surface_atoms()
         self.passivation_bondlength = bond_length
@@ -131,12 +284,6 @@ class MakeSlab():
             if type_of_neighbours == "positive": passivation_atoms_to_add_pos = positive_set_pos
             else: passivation_atoms_to_add_pos = negative_set_pos
             positions=[0,0,0]
-            # print(current_missing_neighbours, passivation_atoms_to_add_pos)
-            # print(type_of_neighbours)
-            # atom
-
-
-            # stop from accidentally passivating 
 
             for x in current_missing_neighbours:
 
