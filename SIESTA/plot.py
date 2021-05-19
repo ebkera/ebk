@@ -40,6 +40,7 @@ class Band():
         self.E_f = 0
         self.kpath_k = []
         self.kpath_symbol = []
+        self.fig_extension = "pdf"
         # self.execute_gnuplot()
         self.open_file()
 
@@ -198,11 +199,13 @@ class Band():
         counter = 0  # This keeps track of the No. of attempts to save the figure
         try:
             plt.savefig(self.name + "_BandDiagramPlots.pdf")
+            plt.savefig(f"{self.name}_BandDiagramPlots.{self.fig_extension}")
             print("*** Saved figure with default file name")
         except:
             while write_test is False and counter < 5:
                 try:
-                    plt.savefig(self.name + "_BandDiagramPlots" + str(counter) + ".pdf")
+                    # plt.savefig(self.name + "_BandDiagramPlots" + str(counter) + ".pdf")
+                    plt.savefig(f"{self.name}_BandDiagramPlots{str(counter)}.{self.fig_extension}")
                     print("!** Could not save figure with default file name. "
                           "Probably file is open and permissions are denied")
                     print("*** Saved figure as numbered version of default name")
