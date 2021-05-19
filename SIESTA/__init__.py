@@ -149,6 +149,16 @@ def siesta_convergence_checker(file_name, title_addon="",show_linear_Kicks=False
 
     if show_parameters:
         plt.figure()
+        if show_linear_Kicks:
+            if len(Liner_kick_at) != 0:
+                plt.axvline(Liner_kick_at[0], color='r', linestyle='-', linewidth=.5, label="Linear Kicks")
+                for x in range(1,len(Liner_kick_at)):
+                    plt.axvline(Liner_kick_at[x], color='r', linestyle='-', linewidth=.5, )
+        if show_struct_opt_moves:
+            if len(Struct_opt_moves) != 0:
+                plt.axvline(Struct_opt_moves[0], color='m', linestyle='-', linewidth=.5, label="Opt. move")
+                for x in range(1,len(Struct_opt_moves)):
+                    plt.axvline(Struct_opt_moves[x], color='m', linewidth=.5, linestyle='-')                
         plt.plot(iteration_number, dDmax, label=("dDmax"))
         plt.plot(iteration_number, Ef, label=("E$_f$"))
         plt.plot(iteration_number, dHmax, label=("dHmax"))
