@@ -34,18 +34,13 @@ class MakeSlab():
 
     def center_to_cell(self):
         self.atoms.center()
-        
-    # def passivate_zinc_blende_slab(self, bond_length, passivation_direction = ["x", "y", "z"], slab_miller_index = "100"):
-    #     """This is an alternative new way for below method. rmember to properly do doc strings if retained and working and belw mehod is going to be deleted"""
-    #     self.identify_surface_atoms()
-    #     self.passivation_bondlength = bond_length
- 
+         
     def passivate_zinc_blende_slab(self, bond_length:'in Ang', passivation_direction: list = ["x", "y", "z"], slab_miller_index: str= "100")->'void':
         """This method will add hydrogen atoms to surface atoms of the dot that has any dangling bonds"""
         self.identify_surface_atoms()
         self.passivation_bondlength = bond_length
         multi_factor = bond_length/(self.lattice_constant*0.4330127018922)  # Since the coordinates are in lattice constants where 0.4330127018922 is the length of a bond 
-        print(f"Surface_atom_list = {self.surface_atoms_list}")
+        # print(f"Surface_atom_list = {self.surface_atoms_list}")
 
         # These are the sites of the nearest neighbours
         positive_set_pos = [[0.25,0.25,0.25],[-0.25,-0.25,0.25],[-0.25,0.25,-0.25],[0.25,-0.25,-0.25]]
@@ -55,7 +50,7 @@ class MakeSlab():
         new_H_atoms = []
 
         hydrogenate_progress = progress_bar(len(self.surface_atoms_list))
-        print(f"hydrogenate: Checking and passivating")
+        # print(f"hydrogenate: Checking and passivating")
         extreme_coordinates = [[100000,0], [100000,0], [100000,0]]  # list of 3 lists (x,y,z): inner list is of len 2 with - and + extremums
 
         for i, v in enumerate(self.surface_atoms_list):
@@ -91,12 +86,12 @@ class MakeSlab():
                     continue_flag = True
             # This will ensure that only the required directions are passivated
             if continue_flag: continue
-            print(f"looking at atom: {v}")
+            # print(f"looking at atom: {v}")
 
             for atom_i in copy_of_atoms:
                 # Finding Nearest neighbours
                 atom2 = atom_i.position
-                print(atom, atom2)
+                # print(atom, atom2)
                 displacement_vector_x = atom2[0] - atom[0]
                 displacement_vector_y = atom2[1] - atom[1]
                 displacement_vector_z = atom2[2] - atom[2]
@@ -166,14 +161,14 @@ class MakeSlab():
         # self.atoms.append(atom_to_append)
 
             if slab_miller_index == "111":
-                print(current_neighbours)
-                print(type_of_neighbours)
+                # print(current_neighbours)
+                # print(type_of_neighbours)
                 # self.atoms.edit()
                 # self.atoms.rotate()
                 displacement_vector_direction = displacement_vector_directions[0]
-                print(f"displacement_vector_directions lengths: {len(displacement_vector_directions)}")
+                # print(f"displacement_vector_directions lengths: {len(displacement_vector_directions)}")
                 self.atoms.rotate(displacement_vector_direction, positive_set_pos[0], center = atom)
-                print(displacement_vector_direction)
+                # print(displacement_vector_direction)
                 # self.atoms.rotate(displacement_vector_direction, positive_set_pos[0], center = atom)
                 for x_111, v_111 in enumerate(positive_set_pos):
                     if x_111 == 0: continue
