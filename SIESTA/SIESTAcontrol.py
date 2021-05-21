@@ -154,7 +154,7 @@ class Generatefdf:
 
             if self.PDOS:
                 if self.PDOS_MPGrid != 0:
-                    fdf_file.write(f"# Monkhorst-Pack Grid\n")
+                    fdf_file.write(f"# Monkhorst-Pack Grid - PDOS mesh\n")
                     fdf_file.write(f"%block PDOS.kgrid.MonkhorstPack. \n")
                     fdf_file.write(f"{self.PDOS_MPGrid[0]}  0  0  0.5\n")
                     fdf_file.write(f"0  {self.PDOS_MPGrid[1]}  0  0.5\n")
