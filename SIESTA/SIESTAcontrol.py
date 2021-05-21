@@ -47,7 +47,7 @@ class Generatefdf:
         self.MPGrid                = kwargs.get("MPGrid", [10,10,10])
         self.PDOS                  = kwargs.get("PDOS", True)
         self.LDOS                  = kwargs.get("LDOS", False)
-        self.PDOS_MPGrid           = kwargs.get("PDOS_MPGrid", 15)
+        self.PDOS_MPGrid           = kwargs.get("PDOS_MPGrid", [31, 31, 31])
         self.PAO_EnergyShift       = kwargs.get("PAO_EnergyShift", 0.001)
         self.PAO_SplitNorm         = kwargs.get("PAO_SplitNorm", 0.001)
         self.SCF_Mix               = kwargs.get("SCF_Mix", "Hamiltonian")
@@ -156,9 +156,9 @@ class Generatefdf:
                 if self.PDOS_MPGrid != 0:
                     fdf_file.write(f"# Monkhorst-Pack Grid\n")
                     fdf_file.write(f"%block PDOS.kgrid.MonkhorstPack. \n")
-                    fdf_file.write(f"{self.PDOS_MPGrid}  0  0  0.5\n")
-                    fdf_file.write(f"0  {self.PDOS_MPGrid}  0  0.5\n")
-                    fdf_file.write(f"0  0  {self.PDOS_MPGrid}  0.5\n")
+                    fdf_file.write(f"{self.PDOS_MPGrid[0]}  0  0  0.5\n")
+                    fdf_file.write(f"0  {self.PDOS_MPGrid[1]}  0  0.5\n")
+                    fdf_file.write(f"0  0  {self.PDOS_MPGrid[2]}  0.5\n")
                     fdf_file.write(f"%endblock PDOS.kgrid.MonkhorstPack.\n\n")
 
                 fdf_file.write(f"%block ProjectedDensityOfStates\n")
@@ -249,24 +249,43 @@ class Generatefdf:
                 fdf_file.write(f"40  1.0000   1.0000  1.0000  L\n")
                 fdf_file.write(f"40  0.0000   0.0000  0.0000  \Gamma\n")
                 fdf_file.write(f"40  0.0000   2.0000  0.0000  X\n")
-                fdf_file.write(f"%endblock BandLines\n")
+                fdf_file.write(f"%endblock BandLines\n\n")
 
-            fdf_file.write(f"\n# Generic settings\n")
+            fdf_file.write(f"# Electronic optimization settings\n")
+            if self.Spin: 
+                fdf_file.write(f"Spin                        {self.Spin}\n")
+                if self.Spin == "SpinOrbit" or self.Spin == "spin-orbit":
+                    fdf_file.write(f"Spin.OrbitStrength          {self.SO_strength}\n")
+            if self.ElectronicTemperature: 
+                fdf_file.write(f"ElectronicTemperature       {self.ElectronicTemperature} eV\n")
+
+            fdf_file.write(f"\n# Mixing\n")
+            fdf_file.write(f"SCF.Mix                     {self.SCF_Mix}\t\t\t\t\t # default: Hamiltonian others: Hamiltonian|density|charge\n")
+            fdf_file.write(f"SCF.Mixer.Method            {self.SCF_Mixer_Method}\t\t\t\t\t\t # default: Pulay others: Pulay|Broyden|Linear\n")
+            fdf_file.write(f"SCF.Mixer.Weight            {self.SCF_Mixer_Weight}\t\t\t\t\t\t # default: 0.25\n")
+            fdf_file.write(f"SCF.Mixer.History           {self.SCF_Mixer_History}    \t\t\t\t\t\t # default: 2\n")
+            fdf_file.write(f"SCF.Mixer.Kick              {self.SCF_Mixer_Kick}    \t\t\t\t\t\t # default: 0 : number of steps before linear kick to get out of local minima\n")
+            fdf_file.write(f"SCF.Mixer.Kick.Weight       {self.SCF_Mixer_Kick_Weight}    \t\t\t\t\t\t # default: =SCF.Mixer.Weight\n")
+
+            if self.MD == True:
+                fdf_file.write(f"\n# Relaxation and Molecular Dynamics Settings\n")
+                fdf_file.write(f"MD.TypeOfRun                {self.MD_TypeOfRun}\t\t\t\t\t\t # default: CG\n")
+                if self.MD_TypeOfRun == "Broyden":
+                    fdf_file.write(f"MD.Broyden.History.Steps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t\t # default: 5\n")
+                fdf_file.write(f"MD.Steps                    {self.MD_Steps}    \t\t\t\t\t\t # default: 0\n")
+
+            fdf_file.write(f"\n# Convergence settings\n")
             fdf_file.write(f"SCF.MustConverge            false\n")
             fdf_file.write(f"SaveTotalPotential          true\n")
             fdf_file.write(f"SaveElectrostaticPotential\ttrue\n")
             if self.UseStructFile == True:
                 fdf_file.write(f"UseStructFile              true\n")
-            if self.Spin: 
-                fdf_file.write(f"Spin                        {self.Spin}\n")
-                if self.Spin == "SpinOrbit" or self.Spin == "spin-orbit":
-                    fdf_file.write(f"Spin.OrbitStrength          {self.SO_strength}\n")
             if self.NetCharge != None:
                 fdf_file.write(f"NetCharge                   {self.NetCharge}\n")
-            if self.ElectronicTemperature: 
-                fdf_file.write(f"ElectronicTemperature       {self.ElectronicTemperature} eV\n")
             if self.MaxSCFIterations: 
                 fdf_file.write(f"MaxSCFIterations            {self.MaxSCFIterations}\n")
+
+            fdf_file.write(f"\n# IO settings\n")
             if self.Write_Denchar:
                 fdf_file.write("WriteDenchar                true\n")
             if self.WriteWaveFunctions:
@@ -276,20 +295,6 @@ class Generatefdf:
                 fdf_file.write("0.0 0.0 0.0 from 30 to 70\n")
                 fdf_file.write("%endblock WaveFuncKPoints\n")
 
-            fdf_file.write(f"\n# Mixing\n")
-            fdf_file.write(f"SCF.Mix                     {self.SCF_Mix}\t\t\t\t\t\t # default: Hamiltonian others: Hamiltonian|density|charge\n")
-            fdf_file.write(f"SCF.Mixer.Method            {self.SCF_Mixer_Method}\t\t\t\t\t\t # default: Pulay others: Pulay|Broyden|Linear\n")
-            fdf_file.write(f"SCF.Mixer.Weight            {self.SCF_Mixer_Weight}\t\t\t\t\t\t # default: 0.25\n")
-            fdf_file.write(f"SCF.Mixer.History           {self.SCF_Mixer_History}    \t\t\t\t\t\t # default: 2\n")
-            fdf_file.write(f"SCF.Mixer.Kick              {self.SCF_Mixer_Kick}    \t\t\t\t\t\t # default: 0 : number of steps before linear kick to get out of local minima\n")
-            fdf_file.write(f"SCF.Mixer.Kick.Weight       {self.SCF_Mixer_Kick_Weight}    \t\t\t\t\t\t # default: =SCF.Mixer.Weight\n")
-
-            if self.MD == True:
-                fdf_file.write(f"\n# Relaxation and Molecular Dynamics\n")
-                fdf_file.write(f"MD.TypeOfRun                {self.MD_TypeOfRun}\t\t\t\t\t\t # default: CG\n")
-                if self.MD_TypeOfRun == "Broyden":
-                    fdf_file.write(f"MD.Broyden.History.Steps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t\t # default: 5\n")
-                fdf_file.write(f"MD.Steps                    {self.MD_Steps}    \t\t\t\t\t\t # default: 0\n")
 
                 # fdf_file.write(f"MD.MaxForceTol         0.04\n")
                 # fdf_file.write(f"MD.VariableCell        T\n")  # Is false by default.
