@@ -71,6 +71,8 @@ class Generatefdf:
         # Here we have all inputs for Denchar specifically
         self.Write_Denchar         = kwargs.get("Write.Denchar", False)  # This will be in the siesta fdf
         self.WriteWaveFunctions    = kwargs.get("WriteWaveFunctions", False)  # This will be in the siesta fdf
+        self.WriteMDHistory        = kwargs.get("WriteMDHistory", True)  # This will be in the siesta fdf
+        self.WriteCoorStep         = kwargs.get("WriteCoorStep", False)  # This will be in the siesta fdf
         self.Denchar_TypeOfRun     = kwargs.get("Denchar.TypeOfRun", "3D")
         self.Denchar_PlotCharge    = kwargs.get("Denchar.PlotCharge ", False)
         self.Denchar_PlotWaveFunctions = kwargs.get("Denchar.PlotWaveFunctions", True)
@@ -276,8 +278,6 @@ class Generatefdf:
 
             fdf_file.write(f"\n# Convergence settings\n")
             fdf_file.write(f"SCF.MustConverge            false\n")
-            fdf_file.write(f"SaveTotalPotential          true\n")
-            fdf_file.write(f"SaveElectrostaticPotential\ttrue\n")
             if self.UseStructFile == True:
                 fdf_file.write(f"UseStructFile              true\n")
             if self.NetCharge != None:
@@ -286,6 +286,8 @@ class Generatefdf:
                 fdf_file.write(f"MaxSCFIterations            {self.MaxSCFIterations}\n")
 
             fdf_file.write(f"\n# IO settings\n")
+            fdf_file.write(f"SaveTotalPotential          true\n")
+            fdf_file.write(f"SaveElectrostaticPotential\ttrue\n")
             if self.Write_Denchar:
                 fdf_file.write("WriteDenchar                true\n")
             if self.WriteWaveFunctions:
@@ -294,8 +296,11 @@ class Generatefdf:
                 fdf_file.write("%block WaveFuncKPoints\n")
                 fdf_file.write("0.0 0.0 0.0 from 30 to 70\n")
                 fdf_file.write("%endblock WaveFuncKPoints\n")
-
-
+            if self.WriteCoorStep:
+                fdf_file.write("WriteCoorStep               true\n")
+            if self.WriteMDHistory:
+                fdf_file.write("WriteMDHistory              true\n")
+                        
                 # fdf_file.write(f"MD.MaxForceTol         0.04\n")
                 # fdf_file.write(f"MD.VariableCell        T\n")  # Is false by default.
                 # fdf_file.write(f"MD.ConstantVolume      F\n")  # Is false by default.
@@ -352,7 +357,6 @@ class Generatefdf:
 # Output options
 
 #WriteCoorInitial     
-#WriteCoorStep       
 #WriteForces         
 #WriteKpoints            .false.
 #WriteEigenvalues        .false.
