@@ -191,3 +191,36 @@ def read_struct_file(file_name):
     atoms = read(file_name, format="struct_out")
     print(f"read_struct_file: STRUCT_OUT file imported: {atoms}")
     return atoms
+
+def get_geometrical_steps(file_name):
+    """
+    This function breaks up *.ANI (.ANI files are in xyz format) files into multiple .xyz files with subscripts.
+    """
+    from ase.io import read, write
+    filename_parts = file_name.split(".")
+    # Check to see if it is a .ANI file, not completed
+    del filename_parts[-1]
+    filename_pre = ".".join(filename_parts)
+    from ase.io import read
+    file_number = 0
+    with open(file_name, "r+") as file:
+        for line in file:
+            len_of_line = len(line.split())
+            if len_of_line == 1:
+                try:
+                    file_to_write.close()
+                    atoms = read(f"{filename_pre}.{file_number}.xyz")
+                    write(f"{filename_pre}.z{file_number}.png", atoms)
+                    atoms.rotate([0,0,1], [1,0,0])
+                    write(f"{filename_pre}.x{file_number}.png", atoms)
+                except:
+                    pass
+                file_number+=1
+                # atoms = read(f"{filename_pre}.{file_number}.xyz")
+                # write(f"{filename_pre}.{file_number}.png")
+                file_to_write = open(f"{filename_pre}.{file_number}.xyz", "w+")
+            file_to_write.write(line)
+
+
+    
+
