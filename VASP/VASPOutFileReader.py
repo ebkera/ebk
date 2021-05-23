@@ -16,9 +16,20 @@ class VASPReadOut():
         self.hss = []
         self.Eg = "notset"
         self.draw_band_edge_lines = False
+        self.spin_orbit = None
         
         with open(f"{self.out_folder}/OUTCAR", "r+") as OUTCAR:
             for line in OUTCAR:
+                # Getting paramters:
+                if "LSORBIT" in line:
+                    k = line.split()
+                    if k[2] == "T":
+                        self.spin_orbit = True
+                    elif k[2] == "F":
+                        self.spin_orbit = False
+                    else:
+                        print(f"Spin-Orbit settings not detected")
+
                 # print(line)  # Left here for debugging 
                 if 'k-point' in line and 'plane waves' in line:
                     k = line.split()
@@ -53,7 +64,16 @@ class VASPReadOut():
                         self.bands[band_label].append(E)
                     except:
                         self.bands.append([E])
-                    if Occ > 1.9:  # This is because there might be partial occupancies
+                    
+                    if self.spin_orbit:
+                        Occ_threshold = 0.9
+                    elif self.spin_orbit == False:
+                        Occ_threshold = 1.9
+                    else: 
+                        # For cases where SO is not detected
+                        Occ_threshold = 1.9
+
+                    if Occ > Occ_threshold:  # This is because there might be partial occupancies
                         if E >= self.highest_valance[1]: 
                             self.highest_valance[1] =  E
                     else: # This is because there might be partial occupancies
@@ -72,6 +92,7 @@ class VASPReadOut():
             hss_old = "empty"
             for line in KPOINTS:
                 line_s = line.split()
+
                 if len(line_s) == 1:
                     try:
                         self.k_point_density = int(line_s[0])
