@@ -192,9 +192,11 @@ def read_struct_file(file_name):
     print(f"read_struct_file: STRUCT_OUT file imported: {atoms}")
     return atoms
 
-def get_geometrical_steps(file_name):
+def get_geometrical_steps(file_name, write_png = True):
     """
     This function breaks up *.ANI (.ANI files are in xyz format) files into multiple .xyz files with subscripts.
+    file_name: (str) should be the file name of the .ANI file (or path)
+    write_png: (bool) should be True if every step is to be written to a png file.
     """
     from ase.io import read, write
     filename_parts = file_name.split(".")
@@ -209,10 +211,13 @@ def get_geometrical_steps(file_name):
             if len_of_line == 1:
                 try:
                     file_to_write.close()
-                    atoms = read(f"{filename_pre}.{file_number}.xyz")
-                    write(f"{filename_pre}.z{file_number}.png", atoms)
-                    atoms.rotate([0,0,1], [1,0,0])
-                    write(f"{filename_pre}.x{file_number}.png", atoms)
+                    if write_png:
+                        atoms = read(f"{filename_pre}.{file_number}.xyz")
+                        write(f"{filename_pre}.z{file_number}.png", atoms)
+                        atoms.rotate([1,0,0], [0,0,1])
+                        write(f"{filename_pre}.x{file_number}.png", atoms)
+                        atoms.rotate([0,1,0], [0,0,1])
+                        write(f"{filename_pre}.y{file_number}.png", atoms)
                 except:
                     pass
                 file_number+=1
@@ -220,6 +225,14 @@ def get_geometrical_steps(file_name):
                 # write(f"{filename_pre}.{file_number}.png")
                 file_to_write = open(f"{filename_pre}.{file_number}.xyz", "w+")
             file_to_write.write(line)
+        file_to_write.close()
+        if write_png:
+            atoms = read(f"{filename_pre}.{file_number}.xyz")
+            write(f"{filename_pre}.z{file_number}.png", atoms)
+            atoms.rotate([1,0,0], [0,0,1])
+            write(f"{filename_pre}.x{file_number}.png", atoms)
+            atoms.rotate([0,1,0], [0,0,1])
+            write(f"{filename_pre}.y{file_number}.png", atoms)
 
 
     
