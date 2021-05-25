@@ -73,6 +73,7 @@ class Generatefdf:
         self.WriteWaveFunctions    = kwargs.get("WriteWaveFunctions", False)  # This will be in the siesta fdf
         self.WriteMDHistory        = kwargs.get("WriteMDHistory", True)  # This will be in the siesta fdf
         self.WriteCoorStep         = kwargs.get("WriteCoorStep", False)  # This will be in the siesta fdf
+        self.WriteForces           = kwargs.get("WriteForces", True)
         self.Denchar_TypeOfRun     = kwargs.get("Denchar.TypeOfRun", "3D")
         self.Denchar_PlotCharge    = kwargs.get("Denchar.PlotCharge ", False)
         self.Denchar_PlotWaveFunctions = kwargs.get("Denchar.PlotWaveFunctions", True)
@@ -300,6 +301,8 @@ class Generatefdf:
                 fdf_file.write("WriteCoorStep               true\n")
             if self.WriteMDHistory:
                 fdf_file.write("WriteMDHistory              true\n")
+            if self.WriteForces:
+                fdf_file.write("WriteForces                 true\n")
                         
                 # fdf_file.write(f"MD.MaxForceTol         0.04\n")
                 # fdf_file.write(f"MD.VariableCell        T\n")  # Is false by default.
