@@ -36,7 +36,7 @@ class MakeSlab():
     def center_to_cell(self):
         self.atoms.center()
          
-    def passivate_zinc_blende_slab(self, bond_length:'in Ang', passivation_direction: list = ["x", "y", "z"], slab_miller_index: str= "100")->'void':
+    def passivate_zinc_blende_slab(self, bond_length:'in Ang', passivation_direction: list = ["x", "y", "z"], slab_miller_index: str= "100", slab_termination: str="A")->'void':
         """This method will add hydrogen atoms to surface atoms of the dot that has any dangling bonds"""
         self.identify_surface_atoms()
         self.passivation_bondlength = bond_length
@@ -50,10 +50,7 @@ class MakeSlab():
         negative_set = [["-", "-", "-"],["+", "+", "-"],["+", "-", "+"],["-", "+", "+"]]
         new_H_atoms = []
 
-        hydrogenate_progress = progress_bar(len(self.surface_atoms_list))
-        # print(f"hydrogenate: Checking and passivating")
         extreme_coordinates = [[100000,0], [100000,0], [100000,0]]  # list of 3 lists (x,y,z): inner list is of len 2 with - and + extremums
-
         for i, v in enumerate(self.surface_atoms_list):
             # Here we find the extreme atoms. This will help determine what directions get passivated
             atom = self.atoms[v].position
@@ -62,6 +59,7 @@ class MakeSlab():
                 if atom[direction]>extreme_coordinates[direction][1]: extreme_coordinates[direction][1] = atom[direction]
 
         copy_of_atoms = self.atoms.copy()
+        hydrogenate_progress = progress_bar(len(self.surface_atoms_list))
         for i, v in enumerate(self.surface_atoms_list):
             # print(self.surface_atoms_list)
             hydrogenate_progress.get_progress(i)
@@ -161,7 +159,7 @@ class MakeSlab():
                     self.atoms.append(Atom('H', position=positions))
         # self.atoms.append(atom_to_append)
 
-            if slab_miller_index == "111":
+            if slab_miller_index == "111" and slab_termination == "A":
                 # print(current_neighbours)
                 # print(type_of_neighbours)
                 # self.atoms.edit()
@@ -181,6 +179,21 @@ class MakeSlab():
                 # self.atoms.edit()
                 self.atoms.rotate(positive_set_pos[0], displacement_vector_direction, center = atom)
                 # self.atoms.edit()
+
+            if slab_miller_index == "111" and slab_termination == "B":
+                displacement_vector_direction = displacement_vector_directions[0]
+                len_of_atoms = len(self.atoms)
+                print(len_of_atoms)
+                if atom[2] in extreme_coordinates[2]:
+                    if atom[2] == extreme_coordinates[2][0]:
+                        positions = [atom[0], atom[1], atom[2]-bond_length]
+                        new_H_atoms.append(Atom('H', position=positions))
+                        self.atoms.append(Atom('H', position=positions))
+                    elif atom[2] == extreme_coordinates[2][1]:
+                        positions = [atom[0], atom[1], atom[2]+bond_length]
+                        new_H_atoms.append(Atom('H', position=positions))
+                        self.atoms.append(Atom('H', position=positions))
+
 
         print("hydrogenate: Successfully passivated with hydrogen")
 
