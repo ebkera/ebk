@@ -7,7 +7,8 @@ Uses ASE to make slabs:
 # import ase.build.cut as cut
 from ase.lattice.compounds import Zincblende  # For future use especially if required for HgTe
 from ase.lattice.cubic import Diamond
-import ase
+# from ase.build import diamond100, diamond111
+import ase.build
 import ebk.MatMan
 from ebk.coordinateMaker import CoordinateMaker as i_s_a
 from ebk import progress_bar
@@ -358,6 +359,12 @@ class Diamond100(MakeSlab):
         self.atoms = Diamond(symbol="Sn", latticeconstant=a0, directions=[[1,0,0], [0,1,0], [0,0,1]], size=(1,1,nlayers), pbc=(1,1,0), miller=[None, None, [0, 0, 1]])
         super().__init__(**{"a0":a0})
 
+class Diamond100_diamond(MakeSlab):
+    """Making use of the diamond100 from ase"""
+    def __init__(self, a0, nlayers, *args, **kwargs):
+        self.atoms = ase.build.diamond100("Sn", (1,1,nlayers), a=a0, vacuum=kwargs.get(f"vacuum"), orthogonal=True, periodic=False)
+        super().__init__(**{"a0":a0})
+
 class Diamond110(MakeSlab):
     """Still under construction"""
     def __init__(self, a0, nlayers, *args, **kwargs):
@@ -369,6 +376,12 @@ class Diamond111(MakeSlab):
     """Creates Slabs in with the 111 direction now lying along the z axis"""
     def __init__(self, a0, nlayers, *args, **kwargs):
         self.atoms = Diamond(symbol="Sn", latticeconstant=a0, directions=[[1,-1,0], [1,1,-2], [1,1,1]], size=(1,1,nlayers), pbc=(1,1,0), miller=[None, None, [1,1,1]])
+        super().__init__(**{"a0":a0})
+
+class Diamond111_diamond(MakeSlab):
+    """Making Use of the Diamond111 from ase"""
+    def __init__(self, a0, nlayers, *args, **kwargs):
+        self.atoms = ase.build.diamond111("Sn", (1,1,nlayers), a=a0, vacuum=kwargs.get(f"vacuum"), orthogonal=True, periodic=False)
         super().__init__(**{"a0":a0})
 
 class Diamond210(MakeSlab):
