@@ -183,7 +183,7 @@ class MakeSlab():
             if slab_miller_index == "111" and slab_termination == "B":
                 displacement_vector_direction = displacement_vector_directions[0]
                 len_of_atoms = len(self.atoms)
-                print(len_of_atoms)
+                # print(len_of_atoms)
                 if atom[2] in extreme_coordinates[2]:
                     if atom[2] == extreme_coordinates[2][0]:
                         positions = [atom[0], atom[1], atom[2]-bond_length]
