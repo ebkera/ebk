@@ -56,6 +56,9 @@ class Generatefdf:
         self.SCF_Mixer_Method      = kwargs.get("SCF_Mixer_Method", "Pulay")  # Options Pulay|Broyden|Linear only broyden provides steps in history
         self.SCF_Mixer_Kick        = kwargs.get("SCF_Mixer_Kick", 40)
         self.SCF_Mixer_Kick_Weight = kwargs.get("SCF_Mixer_Kick_Weight", self.SCF_Mixer_Weight)
+        self.SCF_Mixer_Restart     = kwargs.get("SCF_Mixer_Restart", 0)
+        self.SCF_Mixer_Restart_Save = kwargs.get("SCF_Mixer_Restart_Save", 2)
+        self.SCF_Mixer_Linear_After = kwargs.get("SCF_Mixer_Linear_After", -1)  #default is -1
         self.MD                    = kwargs.get("MD", False)
         self.MD_TypeOfRun          = kwargs.get("MD_TypeOfRun", "CG")
         self.MD_Broyden_History_Steps = kwargs.get("MD_Broyden_History_Steps", 5) # Default value is 5 but set so that we remember this option
@@ -180,10 +183,10 @@ class Generatefdf:
             # This used to be set to work only if above condition but sice we have defined the block for all we need does not hurn to have it for all other atoms
             # This way we can have H to not be forced to some value we set and have it free
                 fdf_file.write(f"# Basis set optimization\n")
-                fdf_file.write(f"PAO.BasisSize         DZP\n")
-                fdf_file.write(f"PAO.EnergyShift       {self.PAO_EnergyShift} Ry\t\t\t\t\t\t #Range of first zeta (A standard for orbital-confining cutoff radii)\n")
-                fdf_file.write(f"PAO.BasisType         SPLIT    \t\t\t\t\t\t #Split Valance\n")
-                fdf_file.write(f"PAO.SplitNorm         {self.PAO_SplitNorm}    \t\t\t\t\t\t #Range of second-zeta\n\n")
+                fdf_file.write(f"PAO.BasisSize               DZP\n")
+                fdf_file.write(f"PAO.EnergyShift             {self.PAO_EnergyShift} Ry\t\t\t\t\t# Range of first zeta (A standard for orbital-confining cutoff radii)\n")
+                fdf_file.write(f"PAO.BasisType               SPLIT    \t\t\t\t\t# Split Valance\n")
+                fdf_file.write(f"PAO.SplitNorm               {self.PAO_SplitNorm}    \t\t\t\t\t\t# Range of second-zeta\n\n")
             if self.PAO_define == "block":
                 fdf_file.write(f"%block PAO.Basis                 # Define Basis set\n")
                 # if self.XC_Functional == "LDA":
@@ -269,6 +272,10 @@ class Generatefdf:
             fdf_file.write(f"SCF.Mixer.History           {self.SCF_Mixer_History}    \t\t\t\t\t\t # default: 2\n")
             fdf_file.write(f"SCF.Mixer.Kick              {self.SCF_Mixer_Kick}    \t\t\t\t\t\t # default: 0 : number of steps before linear kick to get out of local minima\n")
             fdf_file.write(f"SCF.Mixer.Kick.Weight       {self.SCF_Mixer_Kick_Weight}    \t\t\t\t\t\t # default: =SCF.Mixer.Weight\n")
+            if self.SCF_Mixer_Restart != 0: # Removing the default case
+                fdf_file.write(f"SCF.Mixer.Restart           {self.SCF_Mixer_Restart}    \t\t\t\t\t\t # default: =0\n")
+                fdf_file.write(f"SCF.Mixer.Restart.Save      {self.SCF_Mixer_Restart_Save}    \t\t\t\t\t\t # default: =1 \n")
+                fdf_file.write(f"SCF.Mixer.Linear.After      {self.SCF_Mixer_Linear_After}    \t\t\t\t\t\t # default: =-1  If≥ 0 will perform linear mixing after converged.\n")
 
             if self.MD == True:
                 fdf_file.write(f"\n# Relaxation and Molecular Dynamics Settings\n")
