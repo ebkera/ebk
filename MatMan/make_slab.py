@@ -5,6 +5,8 @@ Uses ASE to make slabs:
 """
 
 # import ase.build.cut as cut
+# from os import write
+# from ase.io import write
 from ase.lattice.compounds import Zincblende  # For future use especially if required for HgTe
 from ase.lattice.cubic import Diamond
 # from ase.build import diamond100, diamond111
@@ -15,6 +17,8 @@ from ebk import progress_bar
 from ase import Atom
 import numpy as np
 # from ebk.MatMan.insert_ligands 
+
+
 
 class MakeSlab():
     def __init__(self, *args, **kwargs):
@@ -35,7 +39,8 @@ class MakeSlab():
 
     def center_to_cell(self):
         self.atoms.center()
-         
+
+            
     def passivate_zinc_blende_slab(self, bond_length:'in Ang', passivation_direction: list = ["x", "y", "z"], slab_miller_index: str= "100", slab_termination: str="A")->'void':
         """This method will add hydrogen atoms to surface atoms of the dot that has any dangling bonds"""
         self.identify_surface_atoms()
@@ -355,6 +360,64 @@ class MakeSlab():
         # print(self.surface_atoms_list)
         return surface_counter
 
+    def sandwhich_slab_with_other_structure_by_splitting(self, bread):
+        """
+        Bread: atoms type object that will be split down the middle to make the sandwich
+        """
+        # Identify extreme atoms
+        bread_extreme_coordinates = _find_extreme_coordinates(bread)
+        slab_extreme_coordinates = _find_extreme_coordinates(self.atoms)
+        print(bread_extreme_coordinates)
+        print(slab_extreme_coordinates)
+        
+        # self.atoms.edit()
+        # bread.edit()
+
+        centre_line_bread = []
+        centre_line_slab  = []
+        offset = []
+        for i in range(0,3):
+            # print(i)
+            centre_line_bread.append((bread_extreme_coordinates[i][0] + bread_extreme_coordinates[i][1])/2)
+            centre_line_slab.append((slab_extreme_coordinates[i][0] + slab_extreme_coordinates[i][1])/2)
+            offset.append(centre_line_slab[i] - centre_line_bread[i])
+
+        split_z = slab_extreme_coordinates[2][1]-centre_line_slab[2]
+        for atom in bread:
+            if atom.position[2] > centre_line_bread[2]:
+                atom.position[2] += split_z
+            elif atom.position[2] < centre_line_bread[2]:
+                atom.position[2] -= split_z
+            else:
+                print(f"Warning!! make_slab.sandwhich_slab_with_other_structure_by_splitting: Atoms in the centre line, cannot split in the Z direction")
+
+        # bread.edit()
+        bread_after_splitting = bread.copy()
+        
+        for atom in bread:
+            # print(atom)
+            for i in range(0,3):
+                atom.position[i] = atom.position[i] + offset[i]
+
+        for atom in bread:
+            self.atoms.append(atom)
+
+        # self.atoms.edit()
+        slab_extreme_coordinates_final = _find_extreme_coordinates(self.atoms)
+        # bread_extreme_coordinates_final = _find_extreme_coordinates(bread)
+        height_slab_new = slab_extreme_coordinates_final[2][1]- slab_extreme_coordinates_final[2][0]
+        height_slab_old = slab_extreme_coordinates[2][1]- slab_extreme_coordinates[2][0]
+        height_bread = height_slab_new - height_slab_old
+        self.add_vacuum(height_bread)
+
+        # # print(height)
+        # self.atoms.cell[2][0] = height
+        # print(self.atoms.cell[2][0])
+        # print(type(self.atoms.cell[2][0]))
+
+        return bread_after_splitting
+        
+
 class Diamond_bulk():
     def __init__(self, a0, nlayers, *args, **kwargs):
         self.atoms = Diamond(symbol="Sn", latticeconstant=a0, pbc=(1,1,1))
@@ -408,3 +471,14 @@ class Diamond211(MakeSlab):
     def __init__(self, a0, nlayers, *args, **kwargs):
         self.atoms = Diamond(symbol="Sn", latticeconstant=a0, directions=[[1,-2,0], [0,0,-1], [2,1,0]], size=(1,1,nlayers), pbc=(1,1,0), miller=[None, None, [2,1,1]])
         super().__init__(**{"a0":a0})
+
+def _find_extreme_coordinates(atoms: 'atomsobject') -> list:
+    """This function outputs extreme corrdinates of a atoms like object"""
+    extreme_coordinates = [[100000,0], [100000,0], [100000,0]]  # list of 3 lists (x,y,z): inner list is of len 2 with - and + extremums
+    for i, v in enumerate(atoms):
+        atom = v.position
+        for direction in [0,1,2]:
+            # for sign in [0,1]: # where 0 and 1 are for - and +
+            if atom[direction]<extreme_coordinates[direction][0]: extreme_coordinates[direction][0] = atom[direction]
+            if atom[direction]>extreme_coordinates[direction][1]: extreme_coordinates[direction][1] = atom[direction]
+    return extreme_coordinates
