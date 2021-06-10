@@ -81,25 +81,25 @@ def populate_BANDS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF"):
     shutil.copy(f"DEFAULTS/POTCAR", f"{folder_name}/POTCAR")
     try:
         shutil.copy(f"DEFAULTS/INCAR_BANDS_TEMPLATE", f"{folder_name}/INCAR")
-        print(f"INCAR for SCF run loaded from template file in DEFAULTS")
+        print(f"INCAR for BANDS run loaded from template file in DEFAULTS")
     except:
-        print(f"No template for INCAR for BANDS using original template from code")
+        print(f"No template for INCAR for BANDS (INCAR_BANDS_TEMPLATE) using original template from code")
         file = open(f"{folder_name}/INCAR", "w+")
         contents = get_bands_INCAR()
         file.write(contents)
         file.close()
     try:
         shutil.copy(f"DEFAULTS/KPOINTS_BANDS_TEMPLATE", f"{folder_name}/KPOINTS")
-        print(f"KPOINTS for SCF run loaded from template file in DEFAULTS")
+        print(f"KPOINTS for BANDS run loaded from template file in DEFAULTS")
     except:
-        print(f"No template for KPOINTS for BANDS using original template from code")
+        print(f"No template for KPOINTS for BANDS (KPOINTS_BANDS_TEMPLATE) using original template from code")
         file = open(f"{folder_name}/KPOINTS", "w+")
         contents = get_bands_KPOINTS()
         file.write(contents)
         file.close()
     try:
         shutil.copy(f"{RELAX_DIR}/CONTCAR", f"{folder_name}/POSCAR")
-        print(f"CONTCAR file found in relaxation run.. Using it for POSCAR in SCF")
+        print(f"CONTCAR file found in relaxation run.. Using it for POSCAR in BANDS")
     except:
         print(f"No CONTCAR file found in relaxation run.. Looking for DEFAULTS/POSCAR_relaxed.. if you already have relaxed structure rename as such..")
         shutil.copy(f"DEFAULTS/POSCAR_relaxed", f"{folder_name}/POSCAR")
