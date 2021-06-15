@@ -17,6 +17,7 @@ class VASPReadOut():
         self.Eg = "notset"
         self.draw_band_edge_lines = False
         self.spin_orbit = None
+        self.Ef = 0
         
         with open(f"{self.out_folder}/OUTCAR", "r+") as OUTCAR:
             for line in OUTCAR:
@@ -40,7 +41,9 @@ class VASPReadOut():
                 if 'E-fermi' in line:
                     k = line.split()
                     E_fermi = float(k[2])
+                    self.Ef = E_fermi
                     # E_fermi = 0
+                    # print(E_fermi)
 
                 if " k-point     1 " in line:
                     # print(line)
@@ -59,6 +62,7 @@ class VASPReadOut():
                     f=line.split()
                     band_label = int(f[0])-1
                     E = float(f[1])-E_fermi
+                    # E = float(f[1])  # if we want to not shift by Ef
                     Occ = float(f[2])
                     try:
                         self.bands[band_label].append(E)
@@ -122,6 +126,9 @@ class VASPReadOut():
 
     def get_band_gap(self):
         return self.Eg
+
+    def get_fermi_energy(self):
+        return self.Ef
 
     def get_band_structure(self, title = "Band Diagram", file_name = None):
         """
