@@ -40,6 +40,10 @@ class BandPlotter():
         self.saveas_extension = "pdf"
         self.extra_horizontal_lines = []  # [ycoord,label]
         self.extra_vertical_lines = []
+        self.plot_arrow = [0,0,0,0]
+        self.include_xlabel = True
+        self.include_ylabel = True
+        self.include_title = True
 
     def plot(self):
         """
@@ -80,10 +84,25 @@ class BandPlotter():
                 plt.axhline(y=line[0], label = f"{line[1]}")
 
         plt.xticks(self.k_locations, self.k_symbols)
-        plt.xlabel("K path")
-        plt.ylabel("E-E$_f$ (eV)")
-        plt.title(f"{self.title}")
+        if self.include_xlabel: plt.xlabel("K path")
+        if self.include_ylabel: plt.ylabel("E-E$_f$ (eV)")
+        if self.include_title: plt.title(f"{self.title}")
+        if self.plot_arrow != [0,0,0,0]:
+            # kwargs = {}
+            # kwargs.update({"width":0.00})
+            # kwargs.update({"linestyle":"--"})
+            # kwargs.update({"length_includes_head":True})
+            # kwargs.update({"head_width":0.0001})
+            # kwargs.update({"head_length":6})
+            # plt.arrow(self.plot_arrow[0],self.plot_arrow[1],self.plot_arrow[2],self.plot_arrow[3], **kwargs)
+            plt.annotate("", xy=(self.plot_arrow[2], self.plot_arrow[3]), xytext=(self.plot_arrow[0], self.plot_arrow[1]), arrowprops=dict(arrowstyle="->"))
+        # plt.arrow(2,2,2,2)
+        # width1 = 5
+        # height1 = 5
+        # width_height_1 = (width1, height1)
+        # plt.figure(figsize=width_height_1)
         plt.margins(x=self.x_margins)
+        # plt.tight_layout()
         # plt.legend(loc= "upper right")
         plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
         plt.show()
