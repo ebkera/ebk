@@ -1,4 +1,6 @@
 """
+THis is legacy code.
+Now use passivate method in make_slabs.py
 Here all the passivation involved things can be found
 """
 from ase.build import cut
