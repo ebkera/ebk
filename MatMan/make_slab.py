@@ -18,12 +18,13 @@ from ase import Atom
 import numpy as np
 # from ebk.MatMan.insert_ligands 
 
-
-
 class MakeSlab():
     def __init__(self, *args, **kwargs):
         # print(kwargs)
         self.lattice_constant = self.a0 = kwargs["a0"]
+
+    def __len__(self):
+        return len(self.atoms)
 
     def load(self, atoms_object, *args, **kwargs):
         """Loads external structures from atoms like objects"""
@@ -40,6 +41,9 @@ class MakeSlab():
 
     def center_to_cell(self):
         self.atoms.center()
+
+    def edit(self):
+        self.atoms.edit()
 
     def set_cell(self, **kwargs):
         cell = ebk.MatMan.find_cell(self.atoms, self.a0, **kwargs)
