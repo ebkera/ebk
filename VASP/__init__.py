@@ -241,7 +241,7 @@ def get_scf_INCAR():
   SIGMA  = 0.01\n\
   # ENMAX  = 400       # cutoff should be set manually  (This seems to be an obsolete flag...)\n\
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
-  # LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
+  LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
   \n\
   # van der Waals\n\
   # IVDW    = 1         # IVDW=1|10 DFT-D2 method of Grimme (available as of VASP.5.2.11)\n\
@@ -330,7 +330,7 @@ def get_bands_INCAR():
   SIGMA  = 0.01\n\
   # ENMAX  = 400       # cutoff should be set manually  (This seems to be an obsolete flag...)\n\
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
-  # LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
+  LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
   \n\
   # van der Waals\n\
   IVDW    = 1         # IVDW=1|10 DFT-D2 method of Grimme (available as of VASP.5.2.11)\n\
