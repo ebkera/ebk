@@ -26,6 +26,9 @@ class MakeSlab():
     def __len__(self):
         return len(self.atoms)
 
+    def copy(self):
+        return self.atoms.copy()
+        
     def load(self, atoms_object, *args, **kwargs):
         """Loads external structures from atoms like objects"""
         self.atoms = atoms_object
@@ -34,9 +37,9 @@ class MakeSlab():
         """ Adds the amount of vacuum in angstroms"""
         ase.build.add_vacuum(self.atoms, vacuum)
 
-    def make_inversion_symmetric(self):
+    def make_inversion_symmetric(self, duplicate_z = "+"):
         # self.center_to_cell()
-        ebk.MatMan.make_inversion_symmetric(self.atoms)
+        ebk.MatMan.make_inversion_symmetric(self.atoms, duplicate_z=duplicate_z)
         self.center_to_cell()
 
     def center_to_cell(self):
@@ -609,16 +612,15 @@ class MakeSlab():
 
         return bread_after_splitting
 
-    def attach_slab_to_bread(self, bread):
+    def sandwich_slab_with_bread(self, bread, bread_x_offset = 0, bread_y_offset=0):
         """
         Bread: atoms type object that will be split down the middle to make the sandwich
         """
         # Identify extreme atoms
         bread_extreme_coordinates = _find_extreme_coordinates(bread)
         slab_extreme_coordinates = _find_extreme_coordinates(self.atoms)
-        print(bread_extreme_coordinates)
-        print(slab_extreme_coordinates)
-        
+        # print(bread_extreme_coordinates)
+        # print(slab_extreme_coordinates)
         # self.atoms.edit()
         # bread.edit()
 
@@ -631,41 +633,55 @@ class MakeSlab():
             centre_line_slab.append((slab_extreme_coordinates[i][0] + slab_extreme_coordinates[i][1])/2)
             offset.append(centre_line_slab[i] - centre_line_bread[i])
 
+        # Here we are splitting the bread and then shifting by half the size of the slab.
         split_z = slab_extreme_coordinates[2][1]-centre_line_slab[2]
         print("splitz", split_z)
         for atom in bread:
             if atom.position[2] > centre_line_bread[2]:
-                atom.position[2] += split_z
+                atom.position[2] += split_z + self.a0/8
             elif atom.position[2] < centre_line_bread[2]:
-                atom.position[2] -= split_z
+                atom.position[2] -= split_z + self.a0/8
             else:
                 print(f"Warning!! make_slab.sandwhich_slab_with_other_structure_by_splitting: Atoms in the centre line, cannot split in the Z direction")
 
         # bread.edit()
         bread_after_splitting = bread.copy()
-        
+
+        # Adjusting the xy for the two bread halves
         for atom in bread:
-            # print(atom)
+            if atom.position[2] > centre_line_bread[2]:
+                pass
+                # atom.position[0] += -(bread_extreme_coordinates[0][0] - slab_extreme_coordinates[0][0])
+                # atom.position[1] += (bread_extreme_coordinates[1][0] - slab_extreme_coordinates[1][0] + bread_x_offset)
+            elif atom.position[2] < centre_line_bread[2]:
+                pass
+                # atom.position[0] += -(bread_extreme_coordinates[0][1] - slab_extreme_coordinates[0][1])
+                # atom.position[1] += -(slab_extreme_coordinates[1][1] - bread_extreme_coordinates[1][1] + bread_x_offset)
+            else:
+                print(f"Warning!! make_slab.sandwhich_slab_with_other_structure_by_splitting:")
+
+        for atom in bread:
+            # Moving the center of the bread to coincide with centre of pattie
             for i in range(0,3):
                 atom.position[i] = atom.position[i] + offset[i]
 
         for atom in bread:
             self.atoms.append(atom)
 
-        # self.atoms.edit()
-        slab_extreme_coordinates_final = _find_extreme_coordinates(self.atoms)
-        # bread_extreme_coordinates_final = _find_extreme_coordinates(bread)
-        height_slab_new = slab_extreme_coordinates_final[2][1]- slab_extreme_coordinates_final[2][0]
-        height_slab_old = slab_extreme_coordinates[2][1]- slab_extreme_coordinates[2][0]
-        height_bread = height_slab_new - height_slab_old
-        self.add_vacuum(height_bread)
+        # # self.atoms.edit()
+        # slab_extreme_coordinates_final = _find_extreme_coordinates(self.atoms)
+        # # bread_extreme_coordinates_final = _find_extreme_coordinates(bread)
+        # height_slab_new = slab_extreme_coordinates_final[2][1]- slab_extreme_coordinates_final[2][0]
+        # height_slab_old = slab_extreme_coordinates[2][1]- slab_extreme_coordinates[2][0]
+        # height_bread = height_slab_new - height_slab_old
+        # self.add_vacuum(height_bread)
 
         # # print(height)
         # self.atoms.cell[2][0] = height
         # print(self.atoms.cell[2][0])
         # print(type(self.atoms.cell[2][0]))
 
-        return bread_after_splitting
+        return self
         
 
 class Diamond_bulk():
@@ -723,7 +739,8 @@ class Diamond211(MakeSlab):
         super().__init__(**{"a0":a0})
 
 def _find_extreme_coordinates(atoms: 'atomsobject') -> list:
-    """This function outputs extreme corrdinates of a atoms like object"""
+    """depricated: Use same function in MatMan.__innit__
+    This function outputs extreme corrdinates of a atoms like object"""
     extreme_coordinates = [[100000,0], [100000,0], [100000,0]]  # list of 3 lists (x,y,z): inner list is of len 2 with - and + extremums
     for i, v in enumerate(atoms):
         atom = v.position
