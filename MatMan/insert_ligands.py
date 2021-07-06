@@ -2,6 +2,7 @@ from ase.io import read, write
 from ase.atom import Atom
 from ebk import get_machine_paths
 import numpy as np
+from ebk.MatMan import find_extreme_coordinates, make_common_centre
 
 xyz_path = get_machine_paths()["xyz"]
 EDT12_path = f"{xyz_path}/1,2-ethaneDithiol_relaxed.xyz"
@@ -197,7 +198,10 @@ class Insert_ligand():
                 atom.position[i] = -atom.position[i]
 
     def find_cell(self, a0, **kwargs):
-        """x, y, z will add extra vacuum"""
+        """
+        Use this instead of the one in make_slabs since this is the one that is working correctly.
+        x, y, z will add extra vacuum
+        """
         x = kwargs.get("x", 0)  # Any vaccuum that you want to insert
         y = kwargs.get("y", 0)
         z = kwargs.get("z", 0)
@@ -341,6 +345,23 @@ class Insert_ligand():
                 if x < self.sb: self.sb = self.sb - 1
                 elif x == self.sb: self.sb = "Has been deleted"
                 del self.atoms[x]
+
+    def update_to_relaxed_coordinates(self, relaxed_atoms):
+        """
+        Expected relaxed atoms to the an atoms type object that has the relaxed coordinates and is expected to be sandwichied by self.
+        """
+        # Lets make everything have a common centre
+        self.atoms.center()
+        relaxed_atoms.center()
+        relaxed_atoms = make_common_centre(self.atoms, relaxed_atoms)
+        extreme_ligand= find_extreme_coordinates(self.atoms)
+        extreme_relaxed = find_extreme_coordinates(relaxed_atoms)
+        for i in range(len(self.atoms)-1, -1, -1):
+            if (self.atoms[i].position[2] < extreme_relaxed[2][1]) and (self.atoms[i].position[2] > extreme_relaxed[2][0]):
+                del self.atoms[i]
+        for i,v in enumerate(relaxed_atoms):
+            self.atoms.append(v)
+      
 
 class BDT14(Insert_ligand):
     def __init__(self, *args, **kwargs):
