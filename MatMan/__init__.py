@@ -3,22 +3,71 @@ MatMan stands for Material Manager.
 It uses the ASE library to manage some of the material that we will use
 """
 
-def make_inversion_symmetric(atoms, x_offset = 0, y_offset = 0):
+def make_inversion_symmetric(atoms, x_offset = 0, y_offset = 0, duplicate_z = "-"):
     """
     This will make the cell inversion symmetric. 
     Funtionality till now includes only inversion symmetry along the z axis.
         What this means is that all Z>0 atoms will be rewritten so that we have inversion symmetry which again means that
         the surface of interest should be oriented in the z axis
     """
-    # print(atoms.cell)
-    z_axis_length = atoms.cell[2][2]
-    # atoms.cell[2][2] = 2*z_axis_length
-    # atoms.cell[1][1] += x_offset
-    # atoms.cell[2][2] += y_offset
+    # # print(atoms.cell)
+    # z_axis_length = atoms.cell[2][2]
+    # # atoms.cell[2][2] = 2*z_axis_length
+    # # atoms.cell[1][1] += x_offset
+    # # atoms.cell[2][2] += y_offset
 
-    # Lets move all atoms downwards by the amount of z axis length of the cell
+    # # Lets move all atoms downwards by the amount of z axis length of the cell
+    # for i,v in enumerate(atoms):
+    #     v.position[2] -= z_axis_length
+
+    zg0 = []  # Atoms that are at z>0
+    ze0 = []  # Atoms that are at z=0
+    zl0 = []  # Atoms that are at z<0
+
     for i,v in enumerate(atoms):
-        v.position[2] -= z_axis_length
+        if v.position[2] > 0: zg0.append(i)
+        elif v.position[2] == 0: ze0.append(i)
+        elif v.position[2] < 0: zl0.append(i)
+
+    # print(f"zg0: {zg0}")
+    # print(f"ze0: {ze0}")
+    # print(f"zl0: {zl0}")
+    # print(len(self.atoms))
+
+    if duplicate_z == "+":
+        atoms_to_invert = zg0
+        atoms_to_delete = zl0
+    else:
+        atoms_to_invert = zl0
+        atoms_to_delete = zg0
+
+    for x in atoms_to_invert:
+        atoms.append(atoms[x])
+        last_atom = len(atoms)-1
+        for i in range(3):
+            atoms[last_atom].position[i] = -atoms[last_atom].position[i]
+
+    # This was when self had other reasons for keeping track of atoms
+    for x in range(len(atoms), -1, -1):
+        if x in atoms_to_delete:
+            del atoms[x]
+
+def make_inversion_symmetric_original_for_this_file(atoms, x_offset = 0, y_offset = 0):
+    """
+    This will make the cell inversion symmetric. 
+    Funtionality till now includes only inversion symmetry along the z axis.
+        What this means is that all Z>0 atoms will be rewritten so that we have inversion symmetry which again means that
+        the surface of interest should be oriented in the z axis
+    """
+    # # print(atoms.cell)
+    # z_axis_length = atoms.cell[2][2]
+    # # atoms.cell[2][2] = 2*z_axis_length
+    # # atoms.cell[1][1] += x_offset
+    # # atoms.cell[2][2] += y_offset
+
+    # # Lets move all atoms downwards by the amount of z axis length of the cell
+    # for i,v in enumerate(atoms):
+    #     v.position[2] -= z_axis_length
 
     zg0 = []  # Atoms that are at z>0
     ze0 = []  # Atoms that are at z=0
@@ -88,3 +137,35 @@ def find_cell(atoms, a0, **kwargs):
         atom.position = (atom.position[0] + translation_vec[0], atom.position[1] + translation_vec[1], atom.position[2] + translation_vec[2])
     atoms.set_cell(cell)
     return cell
+
+def find_extreme_coordinates(atoms: 'atomsobject') -> list:
+    """This function outputs extreme corrdinates of a atoms like object"""
+    extreme_coordinates = [[100000,0], [100000,0], [100000,0]]  # list of 3 lists (x,y,z): inner list is of len 2 with - and + extremums
+    for i, v in enumerate(atoms):
+        atom = v.position
+        for direction in [0,1,2]:
+            # for sign in [0,1]: # where 0 and 1 are for - and +
+            if atom[direction]<extreme_coordinates[direction][0]: extreme_coordinates[direction][0] = atom[direction]
+            if atom[direction]>extreme_coordinates[direction][1]: extreme_coordinates[direction][1] = atom[direction]
+    return extreme_coordinates
+
+def make_common_centre(atoms1: 'atomsobject', atoms2: 'atomsobject') -> list:
+    """atoms2 will be shifted so that centre is at atoms1"""
+    
+    atom1_extreme_coordinates = find_extreme_coordinates(atoms1)
+    atoms2_extreme_coordinates = find_extreme_coordinates(atoms2)
+
+    centre_line_atom1 = []
+    centre_line_atom2  = []
+    offset = []
+
+    for i in range(0,3):
+        centre_line_atom1.append((atom1_extreme_coordinates[i][0] + atom1_extreme_coordinates[i][1])/2)
+        centre_line_atom2.append((atoms2_extreme_coordinates[i][0] + atoms2_extreme_coordinates[i][1])/2)
+        offset.append(centre_line_atom1[i] - centre_line_atom2[i])
+
+    for i,v in enumerate(atoms2):
+        for j in range(0,3):
+            v.position[j] += offset[j]
+
+    return atoms2
