@@ -128,10 +128,12 @@ class Read_PDOS():
             #         plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
             # else:
             try:
-                plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}\t$E_g$ = {self.Egs[i]:5> 2.3f} eV", **self.kwargs[i])
+                # plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}\t$E_g$ = {self.Egs[i]:5> 2.3f} eV", **self.kwargs[i])
+                plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}", **self.kwargs[i])
             except:
                 # If there are mutiple species or nothing picked up.
-                plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}\t$E_g$ = {self.Egs[i]:> 2.3f} eV", **self.kwargs[i])
+                # plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}\t$E_g$ = {self.Egs[i]:> 2.3f} eV", **self.kwargs[i])
+                plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
 
         plt.xlabel('Energy in eV (E - E$_f$)')
         # plt.text(-3, 100, r'(b)', fontsize=12)
