@@ -138,7 +138,7 @@ def find_cell(atoms, a0, **kwargs):
     atoms.set_cell(cell)
     return cell
 
-def find_extreme_coordinates(atoms: 'atomsobject') -> list:
+def get_extreme_coordinates(atoms: 'atomsobject') -> list:
     """This function outputs extreme corrdinates of a atoms like object"""
     extreme_coordinates = [[100000,0], [100000,0], [100000,0]]  # list of 3 lists (x,y,z): inner list is of len 2 with - and + extremums
     for i, v in enumerate(atoms):
@@ -148,6 +148,11 @@ def find_extreme_coordinates(atoms: 'atomsobject') -> list:
             if atom[direction]<extreme_coordinates[direction][0]: extreme_coordinates[direction][0] = atom[direction]
             if atom[direction]>extreme_coordinates[direction][1]: extreme_coordinates[direction][1] = atom[direction]
     return extreme_coordinates
+
+def get_center(atoms: 'atomsobject') -> list:
+    """This centre of the atoms (not the cell)"""
+    extreme_coordinates = get_extreme_coordinates(atoms)
+    return([extreme_coordinates[0][1]-extreme_coordinates[0][0], extreme_coordinates[1][1]-extreme_coordinates[1][0], extreme_coordinates[2][1] - extreme_coordinates[2][0]])
 
 def make_common_centre(atoms1: 'atomsobject', atoms2: 'atomsobject') -> list:
     """atoms2 will be shifted so that centre is at atoms1"""
@@ -169,3 +174,26 @@ def make_common_centre(atoms1: 'atomsobject', atoms2: 'atomsobject') -> list:
             v.position[j] += offset[j]
 
     return atoms2
+
+def is_inversion_symmetric(atoms) -> bool:
+    """
+
+    THis is under construction and is not in wrorking condition
+
+
+    This function will check if the atoms type object is inversion symmetric.
+    The function checks to see if the atoms object is actually inversion symmetric wrt to the cell
+    """
+    extreme_coordinates = get_extreme_coordinates(atoms)
+    inverted_positions = []
+    center = get_center(atoms)
+    cell = atoms.get_cell()
+    print(cell[2][2])
+
+    for i,v in enumerate(atoms):
+        inverted_positions.append((-v.position[0], -v.position[1], -v.position[2]))
+        for j,w in enumerate(atoms):
+            if ((w.position[0] == inverted_positions[j][0]) and (w.position[1] == inverted_positions[1]) and (w.position[2] == inverted_positions[2])):
+                return False
+    return True
+
