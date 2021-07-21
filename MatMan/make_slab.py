@@ -29,9 +29,10 @@ class MakeSlab():
     def copy(self):
         return self.atoms.copy()
         
-    def load(self, atoms_object, *args, **kwargs):
-        """Loads external structures from atoms like objects"""
-        self.atoms = atoms_object
+    def load(self, atoms_object:str, *args, **kwargs):
+        """
+        Loads external structures from atoms like objects"""
+        self.atoms = atoms_object.copy()
 
     def add_vacuum(self, vacuum):
         """ Adds the amount of vacuum in angstroms"""
@@ -52,8 +53,6 @@ class MakeSlab():
         cell = ebk.MatMan.find_cell(self.atoms, self.a0, **kwargs)
         return cell
 
-
-            
     def passivate_zinc_blende_slab(self, bond_length:'in Ang', passivation_direction: list = ["x", "y", "z"], slab_miller_index: str= "100", slab_termination: str="A")->'void':
         """
         This method will add hydrogen atoms to surface atoms of the dot that has any dangling bonds
@@ -628,7 +627,7 @@ class MakeSlab():
         centre_line_slab  = []
         offset = []
         for i in range(0,3):
-            # print(i)
+            # Finding the center point and also offset between the two
             centre_line_bread.append((bread_extreme_coordinates[i][0] + bread_extreme_coordinates[i][1])/2)
             centre_line_slab.append((slab_extreme_coordinates[i][0] + slab_extreme_coordinates[i][1])/2)
             offset.append(centre_line_slab[i] - centre_line_bread[i])
