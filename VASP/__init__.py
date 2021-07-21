@@ -70,7 +70,7 @@ def populate_SCF(folder_name = False, RELAX_DIR="1_RELAX"):
         print(f"No CONTCAR file found in relaxation run.. Looking for DEFAULTS/POSCAR_relaxed.. if you already have relaxed structure rename as such..")
         shutil.copy(f"DEFAULTS/POSCAR_relaxed", f"{folder_name}/POSCAR")
 
-def populate_BANDS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF"):
+def populate_BANDS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **kwargs):
     if folder_name == False:
         folder_name = "4_BANDS"
     else:
@@ -85,7 +85,7 @@ def populate_BANDS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF"):
     except:
         print(f"No template for INCAR for BANDS (INCAR_BANDS_TEMPLATE) using original template from code")
         file = open(f"{folder_name}/INCAR", "w+")
-        contents = get_bands_INCAR()
+        contents = get_bands_INCAR(**kwargs)
         file.write(contents)
         file.close()
     try:
@@ -145,7 +145,7 @@ for f in "${{folder_list[@]}}"; do\n\
     cp ../{SCF_DIR}/CHGCAR CHGCAR\n\
     cp ../{SCF_DIR}/POSCAR POSCAR\n\
     cp ../{SCF_DIR}/POTCAR POTCAR\n\
-    mpirun -np 4 vasp_std_NON_SO | tee era.out\n\
+    mpirun -np 4 vasp_ncl | tee era.out\n\
     cd ..\n\
 done\n\
 echo "done"\n\
@@ -175,7 +175,7 @@ def get_relaxation_INCAR():
   # LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
   \n\
   # van der Waals\n\
-  # IVDW    = 1         # IVDW=1|10 DFT-D2 method of Grimme (available as of VASP.5.2.11)\n\
+  IVDW    = 1         # IVDW=1|10 DFT-D2 method of Grimme (available as of VASP.5.2.11)\n\
   # VDW_RADIUS=50.0     # cutoff radius (in Å {{\displaystyle \AA }} \AA ) for pair interactions\n\
   # VDW_S6  =0.75 	    # global scaling factor s 6 {{\displaystyle s_{{6}}}} s_{{6}} (available in VASP.5.3.4 and later)\n\
   # VDW_SR  =		    # 1.00 scaling factor s R {{\displaystyle s_{{R}}}} s_{{R}} (available in VASP.5.3.4 and later)\n\
@@ -192,7 +192,7 @@ def get_relaxation_INCAR():
   #  NBANDS = *\n\
   \n\
 # ionic relaxation\n\
-  ISIF   = 0         # 0: only atoms nostress | 1: Relaxing atoms stress trace only | 2: Relaxing atoms stress trace full | 4:cell shape, and cell volume\n\
+  ISIF   = 3         # 0: only atoms nostress | 1: Relaxing atoms stress trace only | 2: Relaxing atoms stress trace full | 3: Relaxing atoms stress trace full cell shape and volume| 4:cell shape, and cell volume\n\
   EDIFFG = -1E-02    # stopping-criterion for IOM (If negative: all forces smaller 1E-2)\n\
   NSW    = 200       # number of steps for IOM in other words 20 ionic steps\n\
   POTIM  = .5        # step for ionic-motion (for MD in fs)\n\
@@ -244,7 +244,7 @@ def get_scf_INCAR():
   LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
   \n\
   # van der Waals\n\
-  # IVDW    = 1         # IVDW=1|10 DFT-D2 method of Grimme (available as of VASP.5.2.11)\n\
+  IVDW    = 1         # IVDW=1|10 DFT-D2 method of Grimme (available as of VASP.5.2.11)\n\
   # VDW_RADIUS=50.0     # cutoff radius (in Å {{\displaystyle \AA }} \AA ) for pair interactions\n\
   # VDW_S6  =0.75 	    # global scaling factor s 6 {{\displaystyle s_{{6}}}} s_{{6}} (available in VASP.5.3.4 and later)\n\
   # VDW_SR  =		    # 1.00 scaling factor s R {{\displaystyle s_{{R}}}} s_{{R}} (available in VASP.5.3.4 and later)\n\
@@ -309,7 +309,8 @@ Reciprocal\n\
  "
     return content
         
-def get_bands_INCAR():
+def get_bands_INCAR(**kwargs):
+    EFIELD = kwargs.get("EFIELD", 0.00)
     content = f"SYSTEM = SCF_for_\n\n\
 # start parameters for this Run (automatic defaults are finem, hence not often required)\n\
   ISTART = 1         # job   : 0-new  1- orbitals from WAVECAR\n\
@@ -317,7 +318,7 @@ def get_bands_INCAR():
   PREC   = Accurate  # standard precision (OtherOptions: Accurate)\n\
 \n\
 # IF adding E feild turn these on\n\
-  EFIELD = 0.00      # units V/A  \n\
+  EFIELD = {EFIELD}      # units V/A  \n\
   LDIPOL = .TRUE.    # to avoid interactions between the periodically repeated images\n\
   IDIPOL = 3         # To set E direction and apply dipole corrections\n\
 \n\
