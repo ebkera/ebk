@@ -175,7 +175,7 @@ def struct2xyz(file_name):
     Inputs: filename (string): The file name to save the file. Should the given without the extension.
     """
     from ase.io import read, write
-    atoms = read(file_name)
+    atoms = read(file_name, format="struct_out")
     print(f"struct2xyz: STRUCT_OUT file imported: {atoms}")
     file_name = file_name.split(".")
     del file_name[-1]
@@ -189,7 +189,7 @@ def struct2vasp(file_name):
     Inputs: filename (string): The file name to save the file. Should the given without the extension.
     """
     from ase.io import read, write
-    atoms = read(file_name)
+    atoms = read(file_name, format="struct_out")
     print(f"struct2vasp: STRUCT_OUT file imported: {atoms}")
     file_name = file_name.split(".")
     del file_name[-1]
