@@ -200,7 +200,7 @@ def get_relaxation_INCAR():
   IBRION = 1         # -1:no update. | 0:molecular dynamics.| 1:ionic relaxation (RMM-DIIS) (usually faster) | 2:ionic relaxation (conjugate gradient algorithm) | 3 | 5 | 6 | 7 | 8 | 44  \n\
   \n\
 # performance optimization\n\
-  NCORE   = 2         # one orbital handled by 4 cores recommened: 4-(number of cores)\n\
+  NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
   #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
   #  KPAR   = 2        # make 4 groups, each group working on one set of k-points "
 	
@@ -254,7 +254,7 @@ def get_scf_INCAR():
   # LVDW_EWALD=.FALSE.  # decides whether lattice summation in E d i s p\n\
 \n\
 # DOS calculations\n\
-  LORBIT = 11        # 11 for bith total and projected\n\
+  LORBIT = 11        # 11 for both total and projected\n\
   NEDOS  = 1000      # numbr of points for DOS\n\
 #  EMIN   = -5\n\
 #  EMAX   = 5\n\
@@ -269,7 +269,7 @@ def get_scf_INCAR():
   IBRION = -1         # IBRION = -1:no update. | 0:molecular dynamics.| 1:ionic relaxation (RMM-DIIS) (usually faster) | 2:ionic relaxation (conjugate gradient algorithm) | 3 | 5 | 6 | 7 | 8 | 44  \n\
 \n\
 # performance optimization\n\
-  NCORE   = 2         # one orbital handled by 4 cores recommened: 4-(number of cores)\n\
+  NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
 #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
 #  KPAR   = 2        # make 4 groups, each group working on one set of k-points "
 	
@@ -344,7 +344,7 @@ def get_bands_INCAR(**kwargs):
   # LVDW_EWALD=.FALSE.  # decides whether lattice summation in E d i s p\n\
 \n\
 # DOS calculations\n\
-  LORBIT = 11        # 11 for bith total and projected\n\
+  LORBIT = 11        # 11 for both total and projected\n\
   NEDOS  = 1000      # numbr of points for DOS\n\
 #  EMIN   = -5\n\
 #  EMAX   = 5\n\
@@ -359,7 +359,7 @@ def get_bands_INCAR(**kwargs):
   IBRION = -1         # IBRION = -1:no update. | 0:molecular dynamics.| 1:ionic relaxation (RMM-DIIS) (usually faster) | 2:ionic relaxation (conjugate gradient algorithm) | 3 | 5 | 6 | 7 | 8 | 44  \n\
 \n\
 # performance optimization\n\
-  NCORE   = 2         # one orbital handled by 4 cores recommened: 4-(number of cores)\n\
+  NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
 #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
 #  KPAR   = 2        # make 4 groups, each group working on one set of k-points\n\
  "
