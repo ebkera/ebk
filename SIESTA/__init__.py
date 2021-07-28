@@ -128,6 +128,7 @@ def siesta_convergence_checker(file_name, title_addon="",show_linear_Kicks=False
     file.close()
 
     if show_Harris: plt.plot(iteration_number, Eharris, 'c', label=("Harris"))
+    plt.rcParams["figure.figsize"] = (120,12)
     plt.plot(iteration_number, FreeEng, 'g', label=("Free Energy"))
     plt.plot(iteration_number, E_KS, "b",label=("Kohn-Sham"))
     plt.title(f"SCF Convergence: {title_addon}")
