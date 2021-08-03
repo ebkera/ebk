@@ -2,7 +2,7 @@ from ase.io import read, write
 from ase.atom import Atom
 from ebk import get_machine_paths
 import numpy as np
-from ebk.MatMan import find_extreme_coordinates, make_common_centre
+from ebk.MatMan import get_extreme_coordinates, make_common_centre
 
 xyz_path = get_machine_paths()["xyz"]
 EDT12_path = f"{xyz_path}/1,2-ethaneDithiol_relaxed.xyz"
@@ -349,13 +349,17 @@ class Insert_ligand():
     def update_to_relaxed_coordinates(self, relaxed_atoms):
         """
         Expected relaxed atoms to the an atoms type object that has the relaxed coordinates and is expected to be sandwichied by self.
+        The relaxed structure is expected to be the smaller of the two
+        Also both structures are expected to have the same symmetry
+        The slab will be centerd to the relaxed structure and then the correspondign atoms will be deleted from the slab
+            Here the corresponding atoms are selected as the slab atoms in the relaxed structure volume when both are centered with a common centre
         """
         # Lets make everything have a common centre
         self.atoms.center()
         relaxed_atoms.center()
         relaxed_atoms = make_common_centre(self.atoms, relaxed_atoms)
-        extreme_ligand= find_extreme_coordinates(self.atoms)
-        extreme_relaxed = find_extreme_coordinates(relaxed_atoms)
+        extreme_ligand= get_extreme_coordinates(self.atoms)
+        extreme_relaxed = get_extreme_coordinates(relaxed_atoms)
         for i in range(len(self.atoms)-1, -1, -1):
             if (self.atoms[i].position[2] < extreme_relaxed[2][1]) and (self.atoms[i].position[2] > extreme_relaxed[2][0]):
                 del self.atoms[i]
