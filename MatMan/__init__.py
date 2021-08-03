@@ -157,8 +157,8 @@ def get_center(atoms: 'atomsobject') -> list:
 def make_common_centre(atoms1: 'atomsobject', atoms2: 'atomsobject') -> list:
     """atoms2 will be shifted so that centre is at atoms1"""
     
-    atom1_extreme_coordinates = find_extreme_coordinates(atoms1)
-    atoms2_extreme_coordinates = find_extreme_coordinates(atoms2)
+    atom1_extreme_coordinates = get_extreme_coordinates(atoms1)
+    atoms2_extreme_coordinates = get_extreme_coordinates(atoms2)
 
     centre_line_atom1 = []
     centre_line_atom2  = []
