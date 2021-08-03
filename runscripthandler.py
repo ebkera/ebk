@@ -353,9 +353,15 @@ class RunScriptHandler():
         if len(self.files_to_copy) == 0 and len(self.files_to_move) == 0: return
         else:
             for file_name in self.files_to_move:
-                shutil.move(file_name, f'./{self.base_folder}/{run_name}/{file_name}')
+                try:
+                    shutil.move(file_name, f'./{self.base_folder}/{run_name}/{file_name}')
+                except:
+                    print(f"could not move file (might not be present/created): {file_name}")
             for file_name in self.files_to_copy:
-                shutil.copy(file_name, f'./{self.base_folder}/{run_name}/{file_name}')
+                try:
+                    shutil.copy(file_name, f'./{self.base_folder}/{run_name}/{file_name}')
+                except:
+                    print(f"could not coply file (might not be present/created): {file_name}")
 
     def get_number_of_calculations(self):
         return (len(self.KE_cut)*len(self.a0)*len(self.k)*len(self.R))
