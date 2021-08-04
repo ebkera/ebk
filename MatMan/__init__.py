@@ -6,17 +6,58 @@ It uses the ASE library to manage some of the material that we will use
 def make_inversion_symmetric(atoms, x_offset = 0, y_offset = 0, duplicate_z = "-"):
     """
     This will make the cell inversion symmetric. 
+    inputs:
+        duplicate z = (- or +) THis will make make either the negative or positive part of the cell as the original before inversion
     Funtionality till now includes only inversion symmetry along the z axis.
         What this means is that all Z>0 atoms will be rewritten so that we have inversion symmetry which again means that
         the surface of interest should be oriented in the z axis
     """
-    # # print(atoms.cell)
-    # z_axis_length = atoms.cell[2][2]
-    # # atoms.cell[2][2] = 2*z_axis_length
-    # # atoms.cell[1][1] += x_offset
-    # # atoms.cell[2][2] += y_offset
+    zg0 = []  # Atoms that are at z>0
+    ze0 = []  # Atoms that are at z=0
+    zl0 = []  # Atoms that are at z<0
 
-    # # Lets move all atoms downwards by the amount of z axis length of the cell
+    for i,v in enumerate(atoms):
+        if v.position[2] > 0: zg0.append(i)
+        elif v.position[2] == 0: ze0.append(i)
+        elif v.position[2] < 0: zl0.append(i)
+
+    if duplicate_z == "+":
+        atoms_to_invert = zg0
+        atoms_to_delete = zl0
+    else:
+        atoms_to_invert = zl0
+        atoms_to_delete = zg0
+
+    for x in atoms_to_invert:
+        atoms.append(atoms[x])
+        last_atom = len(atoms)-1
+        for i in range(3):
+            atoms[last_atom].position[i] = -atoms[last_atom].position[i]
+
+    # This was when self had other reasons for keeping track of atoms
+    for x in range(len(atoms), -1, -1):
+        if x in atoms_to_delete:
+            del atoms[x]
+
+def make_inversion_symmetric_2(atoms, x_offset = 0, y_offset = 0, duplicate_z = "-"):
+    """
+    This is legacy code
+    Here everyting works for but now then the duplicate z is set to -ve
+    This will make the cell inversion symmetric. 
+    inputs:
+        duplicate z = (- or +) THis will make make either the negative or positive part of the cell as the original before inversion
+    Funtionality till now includes only inversion symmetry along the z axis.
+        What this means is that all Z>0 atoms will be rewritten so that we have inversion symmetry which again means that
+        the surface of interest should be oriented in the z axis
+
+    """
+    # print(atoms.cell)
+    # z_axis_length = atoms.cell[2][2]
+    # atoms.cell[3][2] = 2*z_axis_length
+    # atoms.cell[2][1] += x_offset
+    # atoms.cell[3][2] += y_offset
+
+    # Lets move all atoms downwards by the amount of z axis length of the cell
     # for i,v in enumerate(atoms):
     #     v.position[2] -= z_axis_length
 
