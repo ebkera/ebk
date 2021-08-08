@@ -63,6 +63,7 @@ class Generatefdf:
         self.MD_TypeOfRun          = kwargs.get("MD_TypeOfRun", "CG")
         self.MD_Broyden_History_Steps = kwargs.get("MD_Broyden_History_Steps", 5) # Default value is 5 but set so that we remember this option
         self.MD_Steps              =kwargs.get("MD_Steps", 300)
+        self.MD_MaxForceTol        =kwargs.get("MD_MaxForceTol", 0.04)  # in eV/Ang
         self.Spin                  = kwargs.get("Spin", False)  # can be spin-orbit
         self.SO_strength           = kwargs.get("SO_strength", 1)
         self.include_H_in_block    = kwargs.get("include_H_in_block", False)
@@ -186,7 +187,7 @@ class Generatefdf:
                 fdf_file.write(f"PAO.BasisSize               DZP\n")
                 fdf_file.write(f"PAO.EnergyShift             {self.PAO_EnergyShift} Ry\t\t\t\t\t# Range of first zeta (A standard for orbital-confining cutoff radii)\n")
                 fdf_file.write(f"PAO.BasisType               SPLIT    \t\t\t\t\t# Split Valance\n")
-                fdf_file.write(f"PAO.SplitNorm               {self.PAO_SplitNorm}    \t\t\t\t\t\t# Range of second-zeta\n\n")
+                fdf_file.write(f"PAO.SplitNorm               {self.PAO_SplitNorm}    \t\t\t\t\t# Range of second-zeta\n\n")
             if self.PAO_define == "block":
                 fdf_file.write(f"%block PAO.Basis                 # Define Basis set\n")
                 # if self.XC_Functional == "LDA":
@@ -267,22 +268,23 @@ class Generatefdf:
 
             fdf_file.write(f"\n# Mixing\n")
             fdf_file.write(f"SCF.Mix                     {self.SCF_Mix}\t\t\t\t\t # default: Hamiltonian others: Hamiltonian|density|charge\n")
-            fdf_file.write(f"SCF.Mixer.Method            {self.SCF_Mixer_Method}\t\t\t\t\t\t # default: Pulay others: Pulay|Broyden|Linear\n")
-            fdf_file.write(f"SCF.Mixer.Weight            {self.SCF_Mixer_Weight}\t\t\t\t\t\t # default: 0.25\n")
-            fdf_file.write(f"SCF.Mixer.History           {self.SCF_Mixer_History}    \t\t\t\t\t\t # default: 2\n")
-            fdf_file.write(f"SCF.Mixer.Kick              {self.SCF_Mixer_Kick}    \t\t\t\t\t\t # default: 0 : number of steps before linear kick to get out of local minima\n")
-            fdf_file.write(f"SCF.Mixer.Kick.Weight       {self.SCF_Mixer_Kick_Weight}    \t\t\t\t\t\t # default: =SCF.Mixer.Weight\n")
+            fdf_file.write(f"SCF.Mixer.Method            {self.SCF_Mixer_Method}\t\t\t\t\t # default: Pulay others: Pulay|Broyden|Linear\n")
+            fdf_file.write(f"SCF.Mixer.Weight            {self.SCF_Mixer_Weight}\t\t\t\t\t # default: 0.25\n")
+            fdf_file.write(f"SCF.Mixer.History           {self.SCF_Mixer_History}    \t\t\t\t\t # default: 2\n")
+            fdf_file.write(f"SCF.Mixer.Kick              {self.SCF_Mixer_Kick}    \t\t\t\t\t # default: 0 : number of steps before linear kick to get out of local minima\n")
+            fdf_file.write(f"SCF.Mixer.Kick.Weight       {self.SCF_Mixer_Kick_Weight}    \t\t\t\t\t # default: =SCF.Mixer.Weight\n")
             if self.SCF_Mixer_Restart != 0: # Removing the default case
-                fdf_file.write(f"SCF.Mixer.Restart           {self.SCF_Mixer_Restart}    \t\t\t\t\t\t # default: =0\n")
-                fdf_file.write(f"SCF.Mixer.Restart.Save      {self.SCF_Mixer_Restart_Save}    \t\t\t\t\t\t # default: =1 \n")
-                fdf_file.write(f"SCF.Mixer.Linear.After      {self.SCF_Mixer_Linear_After}    \t\t\t\t\t\t # default: =-1  If≥ 0 will perform linear mixing after converged.\n")
+                fdf_file.write(f"SCF.Mixer.Restart           {self.SCF_Mixer_Restart}    \t\t\t\t\t # default: =0\n")
+                fdf_file.write(f"SCF.Mixer.Restart.Save      {self.SCF_Mixer_Restart_Save}    \t\t\t\t\t # default: =1 \n")
+                fdf_file.write(f"SCF.Mixer.Linear.After      {self.SCF_Mixer_Linear_After}    \t\t\t\t\t # default: =-1  If≥ 0 will perform linear mixing after converged.\n")
 
             if self.MD == True:
                 fdf_file.write(f"\n# Relaxation and Molecular Dynamics Settings\n")
                 fdf_file.write(f"MD.TypeOfRun                {self.MD_TypeOfRun}\t\t\t\t\t\t # default: CG\n")
                 if self.MD_TypeOfRun == "Broyden":
-                    fdf_file.write(f"MD.Broyden.History.Steps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t\t # default: 5\n")
-                fdf_file.write(f"MD.Steps                    {self.MD_Steps}    \t\t\t\t\t\t # default: 0\n")
+                    fdf_file.write(f"MD.Broyden.History.Steps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t # default: 5\n")
+                fdf_file.write(f"MD.Steps                    {self.MD_Steps}    \t\t\t\t\t # default: 0\n")
+                fdf_file.write(f"MD.MaxForceTol              {self.MD_MaxForceTol} eV/Ang\t\t\t\t\t # default: 0.04eV/Ang\n")
 
             fdf_file.write(f"\n# Convergence settings\n")
             fdf_file.write(f"SCF.MustConverge            false\n")
