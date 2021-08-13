@@ -79,7 +79,7 @@ class Generatefdf:
         self.WriteCoorStep         = kwargs.get("WriteCoorStep", False)  # This will be in the siesta fdf
         self.WriteForces           = kwargs.get("WriteForces", True)
         self.Denchar_TypeOfRun     = kwargs.get("Denchar.TypeOfRun", "3D")
-        self.Denchar_PlotCharge    = kwargs.get("Denchar.PlotCharge ", False)
+        self.Denchar_PlotCharge    = kwargs.get("Denchar.PlotCharge ", True)
         self.Denchar_PlotWaveFunctions = kwargs.get("Denchar.PlotWaveFunctions", True)
         self.Denchar_CoorUnits     = kwargs.get("Denchar.CoorUnits", "Ang")  # Can also be Bohr
         self.Denchar_DensityUnits  = kwargs.get("Denchar.DensityUnits ", "Ele/Ang**3")
@@ -104,7 +104,7 @@ class Generatefdf:
     def write(self, *args, **kwargs):
         with open(f"{self.SystemLabel}.fdf", "w+") as fdf_file:
             fdf_file.write(f"# -----------------------------------------------------------------------------\n")
-            fdf_file.write(f"# Started on:  {datetime.now()}\n")
+            fdf_file.write(f"# FDF file written on:  {datetime.now()}\n")
             fdf_file.write(f"# Description:  {self.description}\n")
             fdf_file.write(f"# Zincblende Sn I (alpha, grey)\n")
             fdf_file.write(f"# space group:  Fd3m\n")
@@ -285,9 +285,12 @@ class Generatefdf:
                     fdf_file.write(f"MD.Broyden.History.Steps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t # default: 5\n")
                 fdf_file.write(f"MD.Steps                    {self.MD_Steps}    \t\t\t\t\t # default: 0\n")
                 fdf_file.write(f"MD.MaxForceTol              {self.MD_MaxForceTol} eV/Ang\t\t\t\t\t # default: 0.04eV/Ang\n")
+                if self.WriteMDHistory:
+                    fdf_file.write("WriteMDHistory              true\n")
 
             fdf_file.write(f"\n# Convergence settings\n")
             fdf_file.write(f"SCF.MustConverge            false\n")
+            fdf_file.write(f"Write.DM                    true\n  # encouraged to have this flag true in case we have to restart or for post processing")
             if self.UseStructFile == True:
                 fdf_file.write(f"UseStructFile              true\n")
             if self.NetCharge != None:
@@ -297,21 +300,19 @@ class Generatefdf:
 
             fdf_file.write(f"\n# IO settings\n")
             fdf_file.write(f"SaveTotalPotential          true\n")
-            fdf_file.write(f"SaveElectrostaticPotential\ttrue\n")
+            fdf_file.write(f"SaveElectrostaticPotential  true\n")
+            if self.WriteForces:
+                fdf_file.write("WriteForces                 true\n")
             if self.Write_Denchar:
                 fdf_file.write("WriteDenchar                true\n")
+            if self.WriteCoorStep:
+                fdf_file.write("WriteCoorStep               true\n")
             if self.WriteWaveFunctions:
                 fdf_file.write("COOP.Write                  true\n")
                 fdf_file.write("WriteWaveFunctions          true\n")
                 fdf_file.write("%block WaveFuncKPoints\n")
-                fdf_file.write("0.0 0.0 0.0 from 30 to 70\n")
+                fdf_file.write("0.0 0.0 0.0 \t\t\t\t\t # If you want only specific EF per k point: 0.0 0.0 0.0 from 30 to 70\n")
                 fdf_file.write("%endblock WaveFuncKPoints\n")
-            if self.WriteCoorStep:
-                fdf_file.write("WriteCoorStep               true\n")
-            if self.WriteMDHistory:
-                fdf_file.write("WriteMDHistory              true\n")
-            if self.WriteForces:
-                fdf_file.write("WriteForces                 true\n")
                         
                 # fdf_file.write(f"MD.MaxForceTol         0.04\n")
                 # fdf_file.write(f"MD.VariableCell        T\n")  # Is false by default.
@@ -323,6 +324,7 @@ class Generatefdf:
                 # fdf_file.write(f"WriteMDXMol            T\n")
                 # fdf_file.write(f"MD.MaxCGDispl          0.02 Bohr\n")            
 
+    # fdf_file.write(f"\n# Denchar settings\n")
     def write_denchar(self, *args, **kwargs):
         with open(f"{self.SystemLabel}.Denchar.fdf", "w+") as fdf_file:
             fdf_file.write(f"# -----------------------------------------------------------------------------\n")
@@ -344,25 +346,25 @@ class Generatefdf:
             fdf_file.write(f"%endblock ChemicalSpeciesLabel\n")
             fdf_file.write(f"\n")
 
-            fdf_file.write(f"Denchar.TypeOfRun       {self.Denchar_TypeOfRun}\n")
+            fdf_file.write(f"Denchar.TypeOfRun           {self.Denchar_TypeOfRun}\n")
             if self.Denchar_PlotCharge:
-                fdf_file.write(f"Denchar.PlotCharge      true\n")
+                fdf_file.write(f"Denchar.PlotCharge          true\n")
             if self.Denchar_PlotWaveFunctions:
-                fdf_file.write(f"Denchar.PlotWaveFunctions  true\n")
+                fdf_file.write(f"Denchar.PlotWaveFunctions   true\n")
 
-            fdf_file.write(f"Denchar.CoorUnits       {self.Denchar_CoorUnits}\n")
-            fdf_file.write(f"Denchar.DensityUnits    {self.Denchar_DensityUnits}\n")
+            fdf_file.write(f"Denchar.CoorUnits           {self.Denchar_CoorUnits}\n")
+            fdf_file.write(f"Denchar.DensityUnits        {self.Denchar_DensityUnits}\n")
             fdf_file.write(f"\n")
             fdf_file.write(f"# Setting the mesh for Wavefunction/Charge density plot\n")
-            fdf_file.write(f"Denchar.NumberPointsX   {self.Denchar_NumberPointsX}\n")
-            fdf_file.write(f"Denchar.NumberPointsY   {self.Denchar_NumberPointsY}\n")
-            fdf_file.write(f"Denchar.NumberPointsZ   {self.Denchar_NumberPointsZ}\n")
-            fdf_file.write(f"Denchar.MinX            {self.Denchar_MinX}\n")
-            fdf_file.write(f"Denchar.MaxX            {self.Denchar_MaxY}\n")
-            fdf_file.write(f"Denchar.MinY            {self.Denchar_MinY}\n")
-            fdf_file.write(f"Denchar.MaxY            {self.Denchar_MaxY}\n")
-            fdf_file.write(f"Denchar.MinZ            {self.Denchar_MinZ}\n")
-            fdf_file.write(f"Denchar.MaxZ            {self.Denchar_MaxZ}\n")
+            fdf_file.write(f"Denchar.NumberPointsX       {self.Denchar_NumberPointsX}\n")
+            fdf_file.write(f"Denchar.NumberPointsY       {self.Denchar_NumberPointsY}\n")
+            fdf_file.write(f"Denchar.NumberPointsZ       {self.Denchar_NumberPointsZ}\n")
+            fdf_file.write(f"Denchar.MinX                {self.Denchar_MinX}\n")
+            fdf_file.write(f"Denchar.MaxX                {self.Denchar_MaxY}\n")
+            fdf_file.write(f"Denchar.MinY                {self.Denchar_MinY}\n")
+            fdf_file.write(f"Denchar.MaxY                {self.Denchar_MaxY}\n")
+            fdf_file.write(f"Denchar.MinZ                {self.Denchar_MinZ}\n")
+            fdf_file.write(f"Denchar.MaxZ                {self.Denchar_MaxZ}\n")
 
 
 # -----------------------------------------------------------------------------
