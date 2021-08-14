@@ -123,7 +123,7 @@ class Generatefdf:
             fdf_file.write(f"\n")
             fdf_file.write(f"%block ChemicalSpeciesLabel\n")
             for i,v in enumerate(self.Species):
-                fdf_file.write(f"{i+1:<4} {atomic_numbers[v]:<4} {v:<4}\n")
+                fdf_file.write(f"{i+1:<4}{atomic_numbers[v]:<4}{v:<4}\n")
             fdf_file.write(f"%endblock ChemicalSpeciesLabel\n\n")
 
             if self.system_type == "bulk":
@@ -338,35 +338,35 @@ class Generatefdf:
             fdf_file.write(f"#        Where -k : kpoint of interest, -w : wavefunction of interest\n")
             fdf_file.write(f"# -----------------------------------------------------------------------------\n")
             fdf_file.write(f"\n")
-            fdf_file.write(f"SystemName         {self.SystemName}\t\t\t\t# Descriptive name of the system\n")
-            fdf_file.write(f"SystemLabel        {self.SystemLabel}\t\t\t\t# Short name for naming files\n")
-            fdf_file.write(f"NumberOfSpecies    {len(self.Species)}\t\t\t\t# Number of species\n")
+            fdf_file.write(f"SystemName         {self.SystemName:<15}\t\t\t\t# Descriptive name of the system\n")
+            fdf_file.write(f"SystemLabel        {self.SystemLabel:<15}\t\t\t\t# Short name for naming files\n")
+            fdf_file.write(f"NumberOfSpecies    {len(self.Species):<15}\t\t\t\t# Number of species\n")
             fdf_file.write(f"\n")
             fdf_file.write(f"%block ChemicalSpeciesLabel\n")
             for i,v in enumerate(self.Species):
-                fdf_file.write(f"{i+1}\t{atomic_numbers[v]}\t{v}\n")
+                fdf_file.write(f"{i+1:<4}\t{atomic_numbers[v]:<4}\t{v:<4}\n")
             fdf_file.write(f"%endblock ChemicalSpeciesLabel\n")
             fdf_file.write(f"\n")
 
-            fdf_file.write(f"Denchar.TypeOfRun           {self.Denchar_TypeOfRun}\n")
+            fdf_file.write(f"Denchar.TypeOfRun           {self.Denchar_TypeOfRun:<15}\n")
             if self.Denchar_PlotCharge:
                 fdf_file.write(f"Denchar.PlotCharge          true\n")
             if self.Denchar_PlotWaveFunctions:
                 fdf_file.write(f"Denchar.PlotWaveFunctions   true\n")
 
-            fdf_file.write(f"Denchar.CoorUnits           {self.Denchar_CoorUnits}\n")
-            fdf_file.write(f"Denchar.DensityUnits        {self.Denchar_DensityUnits}\n")
+            fdf_file.write(f"Denchar.CoorUnits           {self.Denchar_CoorUnits:<15}\n")
+            fdf_file.write(f"Denchar.DensityUnits        {self.Denchar_DensityUnits:<15}\n")
             fdf_file.write(f"\n")
             fdf_file.write(f"# Setting the mesh for Wavefunction/Charge density plot\n")
-            fdf_file.write(f"Denchar.NumberPointsX       {self.Denchar_NumberPointsX}\n")
-            fdf_file.write(f"Denchar.NumberPointsY       {self.Denchar_NumberPointsY}\n")
-            fdf_file.write(f"Denchar.NumberPointsZ       {self.Denchar_NumberPointsZ}\n")
-            fdf_file.write(f"Denchar.MinX                {self.Denchar_MinX}\n")
-            fdf_file.write(f"Denchar.MaxX                {self.Denchar_MaxY}\n")
-            fdf_file.write(f"Denchar.MinY                {self.Denchar_MinY}\n")
-            fdf_file.write(f"Denchar.MaxY                {self.Denchar_MaxY}\n")
-            fdf_file.write(f"Denchar.MinZ                {self.Denchar_MinZ}\n")
-            fdf_file.write(f"Denchar.MaxZ                {self.Denchar_MaxZ}\n")
+            fdf_file.write(f"Denchar.NumberPointsX       {self.Denchar_NumberPointsX:<15}\n")
+            fdf_file.write(f"Denchar.NumberPointsY       {self.Denchar_NumberPointsY:<15}\n")
+            fdf_file.write(f"Denchar.NumberPointsZ       {self.Denchar_NumberPointsZ:<15}\n")
+            fdf_file.write(f"Denchar.MinX                {self.Denchar_MinX:<15}\n")
+            fdf_file.write(f"Denchar.MaxX                {self.Denchar_MaxY:<15}\n")
+            fdf_file.write(f"Denchar.MinY                {self.Denchar_MinY:<15}\n")
+            fdf_file.write(f"Denchar.MaxY                {self.Denchar_MaxY:<15}\n")
+            fdf_file.write(f"Denchar.MinZ                {self.Denchar_MinZ:<15}\n")
+            fdf_file.write(f"Denchar.MaxZ                {self.Denchar_MaxZ:<15}\n")
 
 
 # -----------------------------------------------------------------------------
