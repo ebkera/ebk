@@ -123,7 +123,7 @@ class Generatefdf:
             fdf_file.write(f"\n")
             fdf_file.write(f"%block ChemicalSpeciesLabel\n")
             for i,v in enumerate(self.Species):
-                fdf_file.write(f"{i+1}\t{atomic_numbers[v]}\t{v}\n")
+                fdf_file.write(f"{i+1:<4} {atomic_numbers[v]:<4} {v:<4}\n")
             fdf_file.write(f"%endblock ChemicalSpeciesLabel\n\n")
 
             if self.system_type == "bulk":
