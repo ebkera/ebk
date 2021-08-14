@@ -576,9 +576,13 @@ class RunScriptHandler():
                     file_torque.write(f"    cp {self.identifier}.fullBZ.WFSX {self.identifier}.WFSX\n")
                     file_torque.write(f"    cp {self.identifier}.selected.WFSX {self.identifier}.WFSX\n")  # Since only one of them will work we dont have to worry about overwriting
                     file_torque.write(f"    ln -s ~/SIESTA_compile/siesta-master/Util/Denchar/Src/denchar .\n")
-                    file_torque.write(f"    mpirun ./denchar < {self.identifier}.Denchar.fdf > {self.identifier}.Denchar.out\n")
+                    file_torque.write(f"    # mpirun ./denchar < {self.identifier}.Denchar.fdf > {self.identifier}.Denchar.out\n")
+                    file_torque.write(f"    # Usage: denchar -k 1 -w 108  < *Denchar.fdf | tee Sn100_1HBDT14.denchar.out\n")
                     file_torque.write(f'    date\n')
-                    file_torque.write(f'    echo "Completed denchar run"\n')
+                    # file_torque.write(f'    echo "Completed denchar run"\n')
+                    # Denchar is planned to run seperatly from now on since we do not want all wavefuntions
+
+
                 file_torque.write(f"END_JOB_SCRIPT\n")
             else:
                 file_torque.write(f'    cd "$PWD/$dir"\n')
