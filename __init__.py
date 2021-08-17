@@ -399,7 +399,6 @@ def get_species(atoms):
     from ase.atoms import Atoms as atoms_type
     species=[]
 
-    print(type(atoms))
     if type(atoms) is atoms_type:
         all_symbols = atoms.get_chemical_symbols()
         for x in all_symbols:
