@@ -83,15 +83,15 @@ class Generatefdf:
         self.Denchar_PlotWaveFunctions = kwargs.get("Denchar.PlotWaveFunctions", True)
         self.Denchar_CoorUnits     = kwargs.get("Denchar.CoorUnits", "Ang")  # Can also be Bohr
         self.Denchar_DensityUnits  = kwargs.get("Denchar.DensityUnits ", "Ele/Ang**3")
-        self.Denchar_NumberPointsX = kwargs.get("Denchar.NumberPointsX", "75")
-        self.Denchar_NumberPointsY = kwargs.get("Denchar.NumberPointsX", "75")
-        self.Denchar_NumberPointsZ = kwargs.get("Denchar.NumberPointsX", "75")
-        self.Denchar_MinX          = kwargs.get("Denchar.MinX", "-6.5 Ang")
-        self.Denchar_MaxX          = kwargs.get("Denchar.MaxX", "+6.5 Ang")
-        self.Denchar_MinY          = kwargs.get("Denchar.MinY", "-6.5 Ang")
-        self.Denchar_MaxY          = kwargs.get("Denchar.MaxY", "+6.5 Ang")
-        self.Denchar_MinZ          = kwargs.get("Denchar.MinZ", "-6.5 Ang")
-        self.Denchar_MaxZ          = kwargs.get("Denchar.MaxZ", "+6.5 Ang")  # data type is real length
+        self.Denchar_NumberPointsX = kwargs.get("Denchar.NumberPointsX", "25")
+        self.Denchar_NumberPointsY = kwargs.get("Denchar.NumberPointsX", "25")
+        self.Denchar_NumberPointsZ = kwargs.get("Denchar.NumberPointsX", "25")
+        self.Denchar_MinX          = kwargs.get("Denchar.MinX", "-6.5")
+        self.Denchar_MaxX          = kwargs.get("Denchar.MaxX", "+6.5")
+        self.Denchar_MinY          = kwargs.get("Denchar.MinY", "-6.5")
+        self.Denchar_MaxY          = kwargs.get("Denchar.MaxY", "+6.5")
+        self.Denchar_MinZ          = kwargs.get("Denchar.MinZ", "-6.5")
+        self.Denchar_MaxZ          = kwargs.get("Denchar.MaxZ", "+6.5")  # data type is real length
         self.Denchar_PlaneGeneration = kwargs.get("Denchar.PlaneGeneration", "NormalVector")
         self.WFS_to_write_range    = kwargs.get("WFS_to_write_range", [35,40])
         self.MaxSCFIterations = kwargs.get("MaxSCFIterations", 0)  # Here ) will set the default value (will not be written to fdf file)
@@ -361,12 +361,12 @@ class Generatefdf:
             fdf_file.write(f"Denchar.NumberPointsX       {self.Denchar_NumberPointsX:<15}\n")
             fdf_file.write(f"Denchar.NumberPointsY       {self.Denchar_NumberPointsY:<15}\n")
             fdf_file.write(f"Denchar.NumberPointsZ       {self.Denchar_NumberPointsZ:<15}\n")
-            fdf_file.write(f"Denchar.MinX                {self.Denchar_MinX:<15}\n")
-            fdf_file.write(f"Denchar.MaxX                {self.Denchar_MaxY:<15}\n")
-            fdf_file.write(f"Denchar.MinY                {self.Denchar_MinY:<15}\n")
-            fdf_file.write(f"Denchar.MaxY                {self.Denchar_MaxY:<15}\n")
-            fdf_file.write(f"Denchar.MinZ                {self.Denchar_MinZ:<15}\n")
-            fdf_file.write(f"Denchar.MaxZ                {self.Denchar_MaxZ:<15}\n")
+            fdf_file.write(f"Denchar.MinX                {self.Denchar_MinX:<15} Ang\n")
+            fdf_file.write(f"Denchar.MaxX                {self.Denchar_MaxY:<15} Ang\n")
+            fdf_file.write(f"Denchar.MinY                {self.Denchar_MinY:<15} Ang\n")
+            fdf_file.write(f"Denchar.MaxY                {self.Denchar_MaxY:<15} Ang\n")
+            fdf_file.write(f"Denchar.MinZ                {self.Denchar_MinZ:<15} Ang\n")
+            fdf_file.write(f"Denchar.MaxZ                {self.Denchar_MaxZ:<15} Ang\n")
 
 
 # -----------------------------------------------------------------------------
