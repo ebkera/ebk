@@ -9,6 +9,7 @@ More diverse funtionality has been added since initial planned scope was set.
 #Here are some global innitializations
 # import os
 import sys
+from numpy import ALLOW_THREADS, positive
 import scipy.constants
 import math
 
@@ -386,6 +387,27 @@ def make_ghost(file_list, atoms_list, output_file_name="out.xyz"):
                 file.write(f"{line[0]}_g\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
             else:
                 file.write(f"{line[0]}\t{float(line[1]):.7f}\t{float(line[2]):.7f}\t{float(line[3]):.7f}\n")
+
+
+def get_species(atoms):
+    """
+    returns the species as a list for use in other scripts
+    input should be an atoms type object 
+    maybe we need to implement for an xyz type file as well
+    """
+
+    from ase.atoms import Atoms as atoms_type
+    species=[]
+
+    print(type(atoms))
+    if type(atoms) is atoms_type:
+        all_symbols = atoms.get_chemical_symbols()
+        for x in all_symbols:
+            if x not in species:
+                species.append(x)
+
+    return species
+
 
 class progress_bar():
     """To be used as a progress bar"""    
