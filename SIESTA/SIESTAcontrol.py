@@ -170,7 +170,8 @@ class Generatefdf:
 
                 fdf_file.write(f"%block ProjectedDensityOfStates\n")
                 if self.ElectronicTemperature:
-                    fdf_file.write(f"-10.00 15.00 {2*self.ElectronicTemperature} 3000 eV\n")
+                    # fdf_file.write(f"-10.00 15.00 {2*self.ElectronicTemperature} 3000 eV\n")  # Used to be the default but now it seems that we dont get clear PDOS and more better resolution is obtained frm not taking twice the e temp
+                    fdf_file.write(f"-10.00 15.00 {self.ElectronicTemperature} 3000 eV\n")
                 else:
                     fdf_file.write(f"-10.00 15.00 0.050 3000 eV\n")
                 fdf_file.write(f"%endblock ProjectedDensityOfStates\n\n")
@@ -290,7 +291,7 @@ class Generatefdf:
 
             fdf_file.write(f"\n# Convergence settings\n")
             fdf_file.write(f"SCF.MustConverge            false\n")
-            fdf_file.write(f"Write.DM                    true\n  # encouraged to have this flag true in case we have to restart or for post processing")
+            fdf_file.write(f"Write.DM                    true\n  # encouraged to have this flag true in case we have to restart or for post processing\n")
             if self.UseStructFile == True:
                 fdf_file.write(f"UseStructFile              true\n")
             if self.NetCharge != None:
