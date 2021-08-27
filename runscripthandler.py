@@ -752,7 +752,7 @@ class RunScriptHandler():
             bat_file.write(f'{program}rsync -avtuz -e "ssh -p 33301" ../{self.base_folder} rathnayake@localhost:~/Run_files/\n')
             bat_file.close()
             bat_file = open(f"{self.base_folder}/rsyn_in_current_folder.{extension}", "w+")
-            bat_file.write(f'{program}rsync -avtuz --max-size=5m -e "ssh -p 33301" rathnayake@localhost:~/Run_files/{self.base_folder}/ ./\n')
+            bat_file.write(f'{program}rsync -avtuz --exclude "*.HSX" --exclude "*.MD" --exclude "*.DM" --exclude "*.VT" --max-size=5m -e "ssh -p 33301" rathnayake@localhost:~/Run_files/{self.base_folder}/ ./\n')
             bat_file.close()
             submit_file = open(f"{self.base_folder}/run_all_jobs.sh", "w+")
             submit_file.write(f'#!/bin/bash\n')
