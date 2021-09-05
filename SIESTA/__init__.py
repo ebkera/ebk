@@ -172,7 +172,7 @@ def siesta_convergence_checker(file_name, title_addon="",show_linear_Kicks=False
 
 def struct2xyz(file_name):
     """
-    This function converts a SIESTA struct out file to n xyz file.
+    This function converts a SIESTA struct out file to an xyz file.
     Inputs: filename (string): The file name to save the file. Should the given without the extension.
     """
     from ase.io import read, write
@@ -186,7 +186,7 @@ def struct2xyz(file_name):
 
 def struct2vasp(file_name):
     """
-    This function converts a SIESTA struct out file to vasp file.
+    This function converts a SIESTA struct out file to a vasp file.
     Inputs: filename (string): The file name to save the file. Should the given without the extension.
     """
     from ase.io import read, write
