@@ -248,7 +248,3 @@ def get_geometrical_steps(file_name, write_png = True):
             write(f"{filename_pre}.x{file_number}.png", atoms)
             atoms.rotate([0,1,0], [0,0,1])
             write(f"{filename_pre}.y{file_number}.png", atoms)
-
-
-    
-
