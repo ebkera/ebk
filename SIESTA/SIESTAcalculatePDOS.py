@@ -146,6 +146,8 @@ class Read_PDOS():
         plt.legend(loc='upper right')
         # plt.legend()
         plt.title(f"{self.plt_title}")
+        # plt.xticks(np.arange(-3,3, step=0.5))  # Set label locations.
+
         if self.set_x_range == True:
             plt.xlim([self.xlim_low,self.xlim_high])
         if self.set_y_range == True:
