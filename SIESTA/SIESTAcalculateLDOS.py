@@ -38,6 +38,7 @@ class LDOS():
         self.plt_set_ylim = kwargs.get("SetYlim", False)
         self.plt_set_ylim_max = kwargs.get("SetYlim_max", 3)
         self.plt_set_ylim_min = kwargs.get("SetYlim_min", -3)
+        self.figure_name = f"{self.SystemLabel}"
 
         # Getting other parameters automatically by reading in files
         self.outfile = SiestaReadOut(f"{self.folder_path}/{self.SystemLabel}")
@@ -143,6 +144,7 @@ class LDOS():
         # print(len(xlist),len(ylist),len(X[0]),len(Y[0]),len(Z[0]),len(Z[0]))
         # print(type(X), type(Y), type(Z))
         print(X.shape, Y.shape, Z.shape)
+        plt.figure()
         fig,ax=plt.subplots(1,1)
         cp = ax.contourf(X, Y, Z)
         fig.colorbar(cp) # Add a colorbar to a plot
@@ -152,7 +154,9 @@ class LDOS():
         # ax.set_ylim((-4.8, 4.8)) # for EDT
             ax.set_ylim((self.plt_set_ylim_min, self.plt_set_ylim_max))
         ax.set_ylabel('E (eV)')
-        plt.show() 
+        plt.savefig(f"{self.figure_name}.pdf")
+        # plt.show() 
+
 
         # # Original plotting code
         # import numpy as np
