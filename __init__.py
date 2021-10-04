@@ -210,6 +210,9 @@ def get_pseudopotential(id):
     elif "MCT_Slab_with_ligands" in identifier:
         # This is for the relaxation of slabs
         pseudopotential = {"H":"h_pbe_v1.4.uspp.F.UPF", "Hg":"hg_pbe_v1.uspp.F.UPF", "Te":"te_pbe_v1.uspp.F.UPF", 'C': 'c_pbe_v1.2.uspp.F.UPF', 'H': 'h_pbe_v1.4.uspp.F.UPF', 'S': 's_pbe_v1.4.uspp.F.UPF'}                 
+    elif "PtSe2D" in identifier:
+        # This is for the relaxation of slabs
+        pseudopotential = {"Pt":"Pt.rel-pbe-n-kjpaw_psl.1.0.0.UPF", "Se":"Se.rel-pbe-dn-kjpaw_psl.1.0.0.UPF"}                 
     return pseudopotential
 
 def make_mini_proj():
