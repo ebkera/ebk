@@ -1,3 +1,5 @@
+"""This is legacy code. Please see runsctiphandler.py for latest implementation"""
+
 import os
 import shutil
 import sys
