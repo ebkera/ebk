@@ -98,6 +98,7 @@ class RunScriptHandler():
         self.fft_grid        = kwargs.get("fft_grid", [40, 40, 432])
         self.n_proj_boxes    = kwargs.get("n_proj_boxes", self.fft_grid[2])
         self.job_name        = kwargs.get("job_name", self.identifier)
+        self.email_recipients= kwargs.get("email_recipients", ["ebk_era@hotmail.com"])  # List of strings
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
@@ -730,7 +731,16 @@ class RunScriptHandler():
         bash_file.write(f'  echo "$f" >> run.log\n')
         bash_file.write(f'done\n')
         bash_file.write(f'echo "" >> run.log\n\n')
+        email_addresses = ",".join(self.email_recipients)
+        top_line = f"To:"
+        for x in email_addresses:
+            top_line+=x
+        print(top_line)
 
+        bash_file.write(r"email_header=$'To:ebk_era@hotmail.com\nFrom:statusreport_eranjan@outlook.com\nSubject:Status on: PtSe2_1L Calculations\n\n'")
+        bash_file.write(f"\n")
+        bash_file.write(r"email_footer=$'\n\nAutomated Message\n'")
+        bash_file.write(f"\n")
         bash_file.write('for dir in "${dir_list[@]}"\n')
         bash_file.write(f"do\n")
         bash_file.write(f'  cd $dir\n')
@@ -744,6 +754,7 @@ class RunScriptHandler():
         elif self.job_handler == "era_pc":
             bash_file.write(f'  . *job\n')
         else:
+            bash_file.write(f'  echo "  Now working on: scf $(date)" >> ../run.log\n')
             if "scf" in self.calculation or "vc-relax" in self.calculation or "relax" in self.calculation:
                 bash_file.write(f'  echo "  Now working on: scf $(date)" >> ../run.log\n')
                 bash_file.write(f'  mpirun -np {self.nodes*self.ntasks} pw.x -in {self.identifier}.scf.in | tee {self.identifier}.scf.out\n')
@@ -762,8 +773,14 @@ class RunScriptHandler():
             if "bands" in self.calculation:
                 bash_file.write(f'  echo "  Now working on: bands $(date)" >> ../run.log\n')
                 bash_file.write(f'  mpirun -np {self.nodes*self.ntasks} pw.x -in {self.identifier}.bands.in | tee {self.identifier}.bands.out\n')
-        bash_file.write(f'  echo "  Done" >> run.log\n')
+        bash_file.write(f'  echo "  Done" >> ../run.log\n')
+        bash_file.write(r'  mail_text="${email_header} Runs in folder $f has completed on $(date).${email_footer}"')
+        bash_file.write(f"\n")
+        bash_file.write(r'  echo "$mail_text" > email.txt')
+        bash_file.write(f"\n")
+        bash_file.write(f"  sendmail -t < email.txt\n")
         bash_file.write(f'  cd ..\n')
+        bash_file.write(f'echo "" >> run.log\n')
         bash_file.write(f'done\n')
         bash_file.write(f'\n\necho "********************************************************" >> run.log\n')
         bash_file.write(f'echo "All Runs complete. Time now is: $(date)" >> run.log\n')
