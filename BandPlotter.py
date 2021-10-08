@@ -21,7 +21,7 @@ class BandPlotter():
         self.y = y
         self.k_symbols = k_symbols
         self.k_locations = k_locations
-        self.number_of_bands_to_plot = 30
+        # self.number_of_bands_to_plot = 30
         self.fermi_level = 0
         self.hlines = False
         self.vlines = False
@@ -147,7 +147,7 @@ class BandPlotterASE():
         self.x_margins = 0
         # self.xlim_low = 0
         # self.xlim_high = 0
-        self.saveas_extension
+        self.saveas_extension = "pdf"
 
     # def get_dos(self, readoutfilesobj):
     #     """
@@ -223,6 +223,8 @@ class BandPlotterASE():
                             ax1.plot(self.x_to_plot[i], band, self.band_colour[i], label = self.labels[i])
                     else:
                         ax1.plot(self.x_to_plot[i], band)  # Here we have ignored labels since individual bands have no labels
+            print(self.k_locations)
+            print(self.k_symbols)
             ax1.set_xticks( self.k_locations)
             ax1.set_xticklabels(self.k_symbols)
             ax1.set_xlabel("K path")
@@ -287,8 +289,8 @@ class BandPlotterASE():
             path = readoutfilesobj.atoms_bands_objects[0].cell.bandpath(npoints=0)
             kinks = find_bandpath_kinks(readoutfilesobj.atoms_bands_objects[0].cell, kpts, eps=1e-5)  # These are the high symmetry points in use 
             pathspec = resolve_custom_points(kpts[kinks], path.special_points, eps=1e-5) # This gives the postions for the relevant high symmetry points
-            path.kpts = kpts
-            path.path = pathspec
+            # path.kpts = kpts
+            # path.path = pathspec
 
             klengths = []
             for x in range(0, len(kpts)):
