@@ -744,7 +744,24 @@ class RunScriptHandler():
         elif self.job_handler == "era_pc":
             bash_file.write(f'  . *job\n')
         else:
-            bash_file.write(f'  mpirun -np {self.nodes*self.ntasks} pw.x -in {self.identifier}.scf.in | tee {self.identifier}.scf.out\n')
+            if "scf" in self.calculation or "vc-relax" in self.calculation or "relax" in self.calculation:
+                bash_file.write(f'  echo "  Now working on: scf $(date)" >> ../run.log\n')
+                bash_file.write(f'  mpirun -np {self.nodes*self.ntasks} pw.x -in {self.identifier}.scf.in | tee {self.identifier}.scf.out\n')
+            if "nscf" in self.calculation:
+                bash_file.write(f'  echo "  Now working on: nscf $(date)" >> ../run.log\n')
+                bash_file.write(f'  mpirun -np {self.nodes*self.ntasks} pw.x -in {self.identifier}.nscf.in | tee {self.identifier}.nscf.out\n')
+            if "dos" in self.calculation:
+                bash_file.write(f'  echo "  Now working on: dos $(date)" >> ../run.log\n')
+                bash_file.write(f'  mpirun -np {self.nodes*self.ntasks} pw.x -in {self.identifier}.dos.in | tee {self.identifier}.dos.out\n')
+            if "pdos" in self.calculation:
+                bash_file.write(f'  echo "  Now working on: pdos $(date)" >> ../run.log\n')
+                bash_file.write(f'  mpirun -np {self.nodes*self.ntasks} pw.x -in {self.identifier}.pdos.in | tee {self.identifier}.pdos.out\n')
+            if "ldos" in self.calculation:
+                bash_file.write(f'  echo "  Now working on: ldos $(date)" >> ../run.log\n')
+                bash_file.write(f'  mpirun -np {self.nodes*self.ntasks} pw.x -in {self.identifier}.ldos.in | tee {self.identifier}.ldos.out\n')
+            if "bands" in self.calculation:
+                bash_file.write(f'  echo "  Now working on: bands $(date)" >> ../run.log\n')
+                bash_file.write(f'  mpirun -np {self.nodes*self.ntasks} pw.x -in {self.identifier}.bands.in | tee {self.identifier}.bands.out\n')
         bash_file.write(f'  echo "  Done" >> run.log\n')
         bash_file.write(f'  cd ..\n')
         bash_file.write(f'done\n')
@@ -802,7 +819,6 @@ class ReadOutfiles():
         # for root, dirs, files in os.walk(os.getcwd(), topdown=False):
         #     for name in dirs:
         self.directory_list = os.listdir(dir)
-        # print(f"Printing Directory list: {self.directory_list}")
 
         # Removing all the non relevant folders
         directoriestopop = []
@@ -817,6 +833,7 @@ class ReadOutfiles():
                 print(f"read_folder_data: Ignoring folder or file: {printable}")
         # print(f"THis is the list of directories(after):\n{self.directory_list}")
 
+        print(f"Printing Directory list: {self.directory_list}")
         self.folder_data = []
         # print("Right now we are in the read_folder_data method")  # For Debugging
         for dir in self.directory_list:
@@ -870,8 +887,11 @@ class ReadOutfiles():
         self.required_folders_list = []
         self.required_folder_data = []
         for folder in self.folder_data:
+            # print(self.identifier)
+            # print(folder["identifier"])
             if folder["identifier"] in self.identifier or self.identifier == []:
                 # print("inside Identifier")  # For debugging
+                # print(f"methana")
                 if folder["Calc"] in self.calculator or self.calculator == []:
                     # since you can mistakenly set a0 in strings lets try to convert them to floats
                     self.a0 = [float(x) for x in self.a0]
@@ -887,7 +907,7 @@ class ReadOutfiles():
                                 if float(folder["KE"]) in self.KE_cut or self.KE_cut == []:
                                     if float(folder["K"]) in self.k or self.k == []:
                                         if folder["type"] == self.calculation or self.calculation == []:
-                                            # print(f"This is self.calculation:{self.calculation}")
+                                            print(f"This is self.calculation:{self.calculation}")
                                             self.required_folders_list.append(self.directory_list[self.folder_data.index(folder)])
                                             self.required_folder_data.append(self.folder_data[self.folder_data.index(folder)])
         if self.high_verbosity == True:
