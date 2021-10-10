@@ -213,6 +213,9 @@ def get_pseudopotential(id):
     elif "PtSe2D" in identifier:
         # This is for the relaxation of slabs
         pseudopotential = {"Pt":"Pt.rel-pbe-n-kjpaw_psl.1.0.0.UPF", "Se":"Se.rel-pbe-dn-kjpaw_psl.1.0.0.UPF"}                 
+    elif "PdSe2D" in identifier:
+        # This is for the relaxation of slabs
+        pseudopotential = {"Pd":"Pd.rel-pbe-n-kjpaw_psl.1.0.0.UPF", "Se":"Se.rel-pbe-dn-kjpaw_psl.1.0.0.UPF"}                 
     return pseudopotential
 
 def make_mini_proj():
