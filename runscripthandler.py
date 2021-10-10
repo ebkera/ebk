@@ -732,15 +732,11 @@ class RunScriptHandler():
         bash_file.write(f'done\n')
         bash_file.write(f'echo "" >> run.log\n\n')
         email_addresses = ",".join(self.email_recipients)
-        top_line = f"To:"
-        for x in email_addresses:
-            top_line+=x
-        print(top_line)
-
-        bash_file.write(r"email_header=$'To:ebk_era@hotmail.com\nFrom:statusreport_eranjan@outlook.com\nSubject:Status on: PtSe2_1L Calculations\n\n'")
+        bash_file.write(f"email_header=$'To:{email_addresses}\nFrom:statusreport_eranjan@outlook.com\nSubject:Status on: {self.identifier} Calculations\n\n'")
         bash_file.write(f"\n")
-        bash_file.write(r"email_footer=$'\n\nAutomated Message\n'")
-        bash_file.write(f"\n")
+        bash_file.write(f'email_footer="\n\nOther Details\n--------------\n"\n')
+        bash_file.write(f'email_footer="$email_footer Machine: $HOSTNAME\n"\n')
+        bash_file.write(f'email_footer="$email_footer Solver   : {self.calculator}\n\nAutomated Message\n"\n')
         bash_file.write('for dir in "${dir_list[@]}"\n')
         bash_file.write(f"do\n")
         bash_file.write(f'  cd $dir\n')
