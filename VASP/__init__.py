@@ -119,7 +119,7 @@ def populate_epsilon(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF"):
     shutil.copy(f"{RELAX_DIR}/CONTCAR", f"{folder_name}/POSCAR")
 
 
-def make_NSCF_calculation(folder_list, run_name="run", SCF_DIR="2_SCF", out_file =f"run.log"):
+def make_NSCF_calculation(folder_list, run_name="run", SCF_DIR="2_SCF", out_file =f"run.log", email_addresses = "ebk_era@hotmail.com"):
     folder_list_text = ''
     for x in folder_list:
         folder_list_text+=(f' "{x}"')
@@ -137,10 +137,17 @@ for f in "${{folder_list[@]}}"; do\n\
 done\n\
 \n\
 echo "" >> {out_file}\n\
-\n\
+\n\n\
+email_header=$\'To:{email_addresses}\nFrom:statusreport_eranjan@outlook.com\nSubject:Status on: {run_name} Calculations\n\n\'\n\
+email_footer="\n\nOther Details\n--------------\n"\n\
+email_footer="$email_footer Machine: $HOSTNAME\n"\n\
+email_footer="$email_footer Solver   : VASP\n\nAutomated Message\n"\n\
 for f in "${{folder_list[@]}}"; do\n\
     cd $f\n\
     echo "Now working on $f ... $(date)" >> ../{out_file}\n\
+    mail_text="${{email_header}} Calculation in folder $f has started on $(date).${{email_footer}}"\n\
+    echo "$mail_text" > email.txt\n\
+    sendmail -t < email.txt\n\n\
     # cp ../2_SCF/KPOINTS\n\
     cp ../{SCF_DIR}/CHGCAR CHGCAR\n\
     cp ../{SCF_DIR}/POSCAR POSCAR\n\
@@ -148,12 +155,14 @@ for f in "${{folder_list[@]}}"; do\n\
     mpirun -np 4 vasp_ncl | tee era.out\n\
     cd ..\n\
 done\n\
+mail_text="${{email_header}} All calculations for {run_name} has finished on $(date).${{email_footer}}"\n\
+echo "$mail_text" > email.txt\n\
+sendmail -t < email.txt\n\n\
 echo "done"\n\
 echo "done" >> {out_file}'
 
     with open(f"{run_name}.sh", "w+") as file:
         file.write(string_to_write)
-
 
 def get_relaxation_INCAR():
     content = f"SYSTEM = RELAXATION_for_\n\
