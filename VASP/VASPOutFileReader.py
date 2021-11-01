@@ -144,8 +144,10 @@ class VASPReadOut():
         x.same_band_colour = True
         x.hlines = True
         x.vlines = True
-        x.ylim_high = 3
-        x.ylim_low = -15
+        # x.ylim_high = 2.5
+        # x.ylim_low = -2.5
+        # x.ylim_high = 3
+        # x.ylim_low = -15
         x.saveas_extension = "png"
 
         if self.draw_band_edge_lines:

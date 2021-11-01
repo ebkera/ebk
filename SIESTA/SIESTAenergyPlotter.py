@@ -51,6 +51,8 @@ class PlotEnergy():
         self.dots = kwargs.get("dots", False)
         self.ylim_low = -9
         self.ylim_high = 0
+        self.x_tick_font_size = 14
+        self.xlabel = "Ligand"
         if "x_ticks_rotation" in kwargs:
             self.x_ticks_rotation = kwargs.get("x_ticks_rotation", 0)
 
@@ -175,7 +177,7 @@ class PlotEnergy():
         """
         fig, ax1 = plt.subplots(figsize=(4*(len(self.Energies)*self.line_widths*2+0.5), 10))
         # fig, ax1 = plt.subplots()
-        # plt.rcParams["figure.figsize"] = (100,4)
+        plt.rcParams["figure.figsize"] = (10,4)
         # plt.figure()
         # Setting y ranges
         if self.set_y_range_upper == True:
@@ -199,14 +201,26 @@ class PlotEnergy():
             if self.show_lumo:
                 plt.plot([x_coordinates[1]+0.1, x_coordinates[1]+0.1], [self.LUMOs[x-1], self.LUMOs[x-1]], "<g", label="LUMO")
         ax1.set_xticks(E)
-        ax1.set_xticklabels(self.labels)
-        ax1.set_xlabel("Ligand")
+        ax1.set_xticklabels(self.labels, fontsize=self.x_tick_font_size)
+        ax1.set_xlabel(self.xlabel)
         ax1.set_ylabel("Energy (eV) (vac = 0)")
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend(by_label.values(), by_label.keys(), loc = 'upper right')
         if hasattr(self, "x_ticks_rotation"): plt.xticks(rotation=self.x_ticks_rotation, ha='right')
         ax1.set_title(f"{self.title}")
+
+        from matplotlib.offsetbox import TextArea, DrawingArea, OffsetImage, AnnotationBbox
+        import matplotlib.image as mpimg
+        arr_lena = mpimg.imread('Structure_NH2_3.png')
+        imagebox = OffsetImage(arr_lena, zoom=0.2)
+        ab = AnnotationBbox(imagebox, (0.4, 0.6))
+        ax1.add_artist(ab)
+        
+
+
+
+
         plt.tight_layout()
         plt.savefig(f"{self.file_name}.pdf")
         plt.show()

@@ -141,7 +141,8 @@ echo "" >> {out_file}\n\
 email_header=$\'To:{email_addresses}\nFrom:statusreport_eranjan@outlook.com\nSubject:Status on: {run_name} Calculations\n\n\'\n\
 email_footer="\n\nOther Details\n--------------\n"\n\
 email_footer="$email_footer Machine: $HOSTNAME\n"\n\
-email_footer="$email_footer Solver   : VASP\n\nAutomated Message\n"\n\
+email_footer="$email_footer Solver     : VASP\n"\n\
+email_footer="$email_footer Work Dir : $(pwd)\n\nAutomated Message\n"\n\
 for f in "${{folder_list[@]}}"; do\n\
     cd $f\n\
     echo "Now working on $f ... $(date)" >> ../{out_file}\n\
@@ -152,6 +153,7 @@ for f in "${{folder_list[@]}}"; do\n\
     cp ../{SCF_DIR}/CHGCAR CHGCAR\n\
     cp ../{SCF_DIR}/POSCAR POSCAR\n\
     cp ../{SCF_DIR}/POTCAR POTCAR\n\
+    # cp ../4_BANDS_E=0/WAVECAR WAVECAR\n\
     mpirun -np 4 vasp_ncl | tee era.out\n\
     cd ..\n\
 done\n\

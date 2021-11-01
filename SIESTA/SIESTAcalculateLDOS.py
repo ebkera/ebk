@@ -24,6 +24,9 @@ from ase.io import read, write
 from matplotlib.pyplot import axes, get
 from ebk.MatMan import get_extreme_coordinates
 from numpy.core.numeric import zeros_like
+from math import log10, log
+import numpy as np
+import matplotlib
 
 class LDOS():
     def __init__(self, *args, **kwargs):
@@ -38,6 +41,7 @@ class LDOS():
         self.plt_set_ylim = kwargs.get("SetYlim", False)
         self.plt_set_ylim_max = kwargs.get("SetYlim_max", 3)
         self.plt_set_ylim_min = kwargs.get("SetYlim_min", -3)
+        self.log = kwargs.get("log", False)
         self.figure_name = f"{self.SystemLabel}"
 
         # Getting other parameters automatically by reading in files
@@ -119,6 +123,42 @@ class LDOS():
         #     print(len(x))
         #     # pass
 
+        # self.bins
+        # print(self.bins[0])
+        
+        lowest = 1000
+        print(len(self.bins[0]))
+        if self.log == True:
+            print("Taking logarithmic for the z scale")
+            throwaway = self.bins.copy()
+            self.bins = []
+            for y in throwaway:
+                t = [0.000001 if x == 0 else x for x in y]
+                # print(t)
+                self.bins.append(t)
+            print(len(self.bins[0]))
+
+            throwaway = self.bins.copy()
+            self.bins = []
+            for y in throwaway:
+                # print(y)
+                t = [np.log(x) for x in y]
+                minimum = min(t) 
+                # print(t)
+                if minimum < lowest:
+                    lowest = minimum
+                self.bins.append(t)
+            print(len(self.bins[0]))
+
+
+            throwaway = self.bins.copy()
+            self.bins = []
+            for y in throwaway:
+                t = [x-lowest for x in y]
+                # print(t)
+                self.bins.append(t)
+            # print(len(self.bins))
+            print(len(self.bins[0]))
 
 
     def plot(self):
@@ -144,16 +184,45 @@ class LDOS():
         # print(len(xlist),len(ylist),len(X[0]),len(Y[0]),len(Z[0]),len(Z[0]))
         # print(type(X), type(Y), type(Z))
         print(X.shape, Y.shape, Z.shape)
-        plt.figure()
         fig,ax=plt.subplots(1,1)
-        cp = ax.contourf(X, Y, Z)
-        fig.colorbar(cp) # Add a colorbar to a plot
+
+        # contour_start = 0
+        # contour_num = 20
+        # contour_factor = 1.20
+        # # calculate contour levels
+        # cl = contour_start * contour_factor ** np.arange(contour_num) 
+        # negcl = cl[::-1] * -1
+        # supercl = np.concatenate([negcl, cl])
+        # cp = ax.contourf(X, Y, Z)
+
+
+
+        cp = ax.contourf(X, Y, Z, 20, cmap="viridis",nlevels=200)
+        # cp.set_label('LDOS')
+
+        # This is the fix for the white lines between contour levels
+        for c in cp.collections:
+            c.set_edgecolor("face")
+
+        norm= matplotlib.colors.Normalize(vmin=cp.cvalues.min(), vmax=cp.cvalues.max())
+        # a previous version of this used
+        #norm= matplotlib.colors.Normalize(vmin=cs.vmin, vmax=cs.vmax)
+        # which does not work any more
+        sm = plt.cm.ScalarMappable(norm=norm, cmap = cp.cmap)
+        sm.set_array([])
+        fig.colorbar(sm, ticks=cp.levels)
+
+
+        # fig.colorbar(cp) # Add a colorbar to a plot
+        # ax.figure.set_size_inches(12,6)
         ax.set_title(self.plt_title)
-        ax.set_xlabel('position ($\AA$)')
+        ax.set_xlabel('Position ($\AA$)')
         if self.plt_set_ylim:
         # ax.set_ylim((-4.8, 4.8)) # for EDT
             ax.set_ylim((self.plt_set_ylim_min, self.plt_set_ylim_max))
+            # ax.set_zlim((0,2))
         ax.set_ylabel('E (eV)')
+        plt.tight_layout()
         plt.savefig(f"{self.figure_name}.pdf")
         # plt.show() 
 

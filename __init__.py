@@ -250,7 +250,7 @@ This is dummy text.
 \bibliography{../../referencesCQD}
 \end{document}"""
 
-    with open("main.tex", "w+") as tex_file:
+    with open("mini_project.tex", "w+") as tex_file:
         tex_file.write(tex_file_text)
         
 def add_xyz_files(file1, file2, file_name_to_write=f"combined.xyz"):
