@@ -45,7 +45,7 @@ def make_inversion_symmetric_2(atoms, x_offset = 0, y_offset = 0, duplicate_z = 
     Here everyting works for but now then the duplicate z is set to -ve
     This will make the cell inversion symmetric. 
     inputs:
-        duplicate z = (- or +) THis will make make either the negative or positive part of the cell as the original before inversion
+        duplicate z = (- or +) THis will set either the negative or positive part of the cell as the original before inversion
     Funtionality till now includes only inversion symmetry along the z axis.
         What this means is that all Z>0 atoms will be rewritten so that we have inversion symmetry which again means that
         the surface of interest should be oriented in the z axis
