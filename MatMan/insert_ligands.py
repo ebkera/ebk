@@ -61,6 +61,8 @@ class Insert_ligand():
         diff_vec = [0, 0, 0]
         for i in range(3):
             diff_vec[i] = (atom1[i] + atom2[i])/2
+
+        print(f"Centre coordinates of ligand before adjusting to origin: {diff_vec}")
         
         for atom in self.atoms:
             for i in range(3):
@@ -109,6 +111,10 @@ class Insert_ligand():
         if not retain_passivation_atoms:
             del slab[sp]
             del self.atoms[lp]
+            # Making sure that the center atoms still poit to the same atoms if delting the passivant atom changes the index of the center atoms
+            if center_atom1>lp: center_atom1-=1
+            if center_atom2>lp: center_atom2-=1
+            # print(f"center atmos indeces: {center_atom1, center_atom2,lp}")   # left here for debugging
         for i,atom in enumerate(slab):
             self.atoms.append(atom)
             if i == sb:
@@ -116,7 +122,6 @@ class Insert_ligand():
                 self.sb = len(self.atoms)-1  # saving the slab bulk site globally
                 # print(self.sb)
         self.make_centre(center_atom1, center_atom2)
-        # self.edit()
         return slab_only, ligand_only
 
 
