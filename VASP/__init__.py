@@ -183,7 +183,10 @@ def get_relaxation_INCAR():
   SIGMA  = 0.01\n\
   # ENMAX  = 400       # cutoff should be set manually  (This seems to be an obsolete flag...)\n\
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
-  # LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
+  # LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\n\
+  # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
+  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2\n\
+  # LASPH = .TRUE.     # (Default: LASPH = .FALSE.)  include non-spherical contributions related to the gradient of the density in the PAW spheres.\n\
   \n\
   # van der Waals\n\
   IVDW    = 1         # IVDW=1|10 DFT-D2 method of Grimme (available as of VASP.5.2.11)\n\
@@ -213,7 +216,8 @@ def get_relaxation_INCAR():
 # performance optimization\n\
   NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
   #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
-  #  KPAR   = 2        # make 4 groups, each group working on one set of k-points "
+  #  KPAR   = 2        # make 4 groups, each group working on one set of k-points \n\
+  #  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run."
 	
     # print(content)
     return content
@@ -252,9 +256,12 @@ def get_scf_INCAR():
   SIGMA  = 0.01\n\
   # ENMAX  = 400       # cutoff should be set manually  (This seems to be an obsolete flag...)\n\
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
-  LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
+  LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\n\
+  # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
+  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2\n\
+  # LASPH = .TRUE.     # (Default: LASPH = .FALSE.)  include non-spherical contributions related to the gradient of the density in the PAW spheres.\n\
   \n\
-  # van der Waals\n\
+# van der Waals\n\
   IVDW    = 1         # IVDW=1|10 DFT-D2 method of Grimme (available as of VASP.5.2.11)\n\
   # VDW_RADIUS=50.0     # cutoff radius (in Å {{\displaystyle \AA }} \AA ) for pair interactions\n\
   # VDW_S6  =0.75 	    # global scaling factor s 6 {{\displaystyle s_{{6}}}} s_{{6}} (available in VASP.5.3.4 and later)\n\
@@ -282,7 +289,8 @@ def get_scf_INCAR():
 # performance optimization\n\
   NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
 #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
-#  KPAR   = 2        # make 4 groups, each group working on one set of k-points "
+#  KPAR   = 2        # make 4 groups, each group working on one set of k-points \n\
+#  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run. "
 	
     # print(content)
     return content
@@ -369,6 +377,9 @@ def get_bands_INCAR(**kwargs):
   # ENMAX  = 400       # cutoff should be set manually  (This seems to be an obsolete flag...)\n\
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
   LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
+  # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
+  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2\n\
+  # LASPH = .TRUE.     # (Default: LASPH = .FALSE.)  include non-spherical contributions related to the gradient of the density in the PAW spheres.\n\
   \n\
   # van der Waals\n\
   IVDW    = 1         # IVDW=1|10 DFT-D2 method of Grimme (available as of VASP.5.2.11)\n\
@@ -399,5 +410,5 @@ def get_bands_INCAR(**kwargs):
   NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
 #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
 #  KPAR   = 2        # make 4 groups, each group working on one set of k-points\n\
- "
+#  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run. "
     return content
