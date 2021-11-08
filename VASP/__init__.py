@@ -203,12 +203,12 @@ def get_relaxation_INCAR():
   #  NBANDS = *\n\
   \n\
 # ionic relaxation\n\
+  IBRION = 1         # -1:no update. | 0:molecular dynamics.| 1:ionic relaxation (RMM-DIIS) (usually faster) | 2:ionic relaxation (conjugate gradient algorithm) | 3 | 5 | 6 | 7 | 8 | 44  \n\
   ISIF   = 3         # 0: only atoms nostress | 1: Relaxing atoms stress trace only | 2: Relaxing atoms stress trace full | 3: Relaxing atoms stress trace full cell shape and volume| 4:cell shape, and cell volume\n\
   EDIFFG = -1E-02    # stopping-criterion for IOM (If negative: all forces smaller 1E-2)\n\
   NSW    = 200       # number of steps for IOM in other words 20 ionic steps\n\
   POTIM  = .5        # step for ionic-motion (for MD in fs)\n\
   NFREE  = 2         # depending on IBRION, NFREE specifies the number of remembered steps in the history of ionic convergence runs, or the number of ionic displacements in frozen phonon calculations. however systems of low dimensionality require a careful setting of NFREE (or preferably an exact counting of the number of degrees of freedom)\n\
-  IBRION = 1         # -1:no update. | 0:molecular dynamics.| 1:ionic relaxation (RMM-DIIS) (usually faster) | 2:ionic relaxation (conjugate gradient algorithm) | 3 | 5 | 6 | 7 | 8 | 44  \n\
   \n\
 # performance optimization\n\
   NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
@@ -272,12 +272,12 @@ def get_scf_INCAR():
 #  NBANDS = *\n\
 \n\
 # ionic relaxation\n\
+  IBRION = -1         # IBRION = -1:no update. | 0:molecular dynamics.| 1:ionic relaxation (RMM-DIIS) (usually faster) | 2:ionic relaxation (conjugate gradient algorithm) | 3 | 5 | 6 | 7 | 8 | 44  \n\
   ISIF   = 0         # 0: only atoms nostress | 1: Relaxing atoms stress trace only | 2: Relaxing atoms stress trace full | 4:cell shape, and cell volume\n\
   EDIFFG = -1E-02    # stopping-criterion for IOM (If negative: all forces smaller 1E-2)\n\
   NSW    = 0         # number of steps for IOM in other words 20 ionic steps\n\
   POTIM  = .5        # step for ionic-motion (for MD in fs)\n\
   NFREE  = 2         # 2 independent degrees of freedom\n\
-  IBRION = -1         # IBRION = -1:no update. | 0:molecular dynamics.| 1:ionic relaxation (RMM-DIIS) (usually faster) | 2:ionic relaxation (conjugate gradient algorithm) | 3 | 5 | 6 | 7 | 8 | 44  \n\
 \n\
 # performance optimization\n\
   NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
@@ -388,12 +388,12 @@ def get_bands_INCAR(**kwargs):
 #  NBANDS = *\n\
 \n\
 # ionic relaxation\n\
+  IBRION = -1         # IBRION = -1:no update. | 0:molecular dynamics.| 1:ionic relaxation (RMM-DIIS) (usually faster) | 2:ionic relaxation (conjugate gradient algorithm) | 3 | 5 | 6 | 7 | 8 | 44  \n\
   ISIF   = 3         # 0: only atoms nostress | 1: Relaxing atoms stress trace only | 2: Relaxing atoms stress trace full | 4:cell shape, and cell volume\n\
   EDIFFG = -1E-02    # stopping-criterion for IOM (If negative: all forces smaller 1E-2)\n\
   NSW    = 0         # number of steps for IOM in other words 20 ionic steps\n\
   POTIM  = .5        # step for ionic-motion (for MD in fs)\n\
   NFREE  = 2         # 2 independent degrees of freedom\n\
-  IBRION = -1         # IBRION = -1:no update. | 0:molecular dynamics.| 1:ionic relaxation (RMM-DIIS) (usually faster) | 2:ionic relaxation (conjugate gradient algorithm) | 3 | 5 | 6 | 7 | 8 | 44  \n\
 \n\
 # performance optimization\n\
   NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
