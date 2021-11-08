@@ -188,7 +188,7 @@ def get_relaxation_INCAR():
   # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2\n\
   # LASPH = .TRUE.     # (Default: LASPH = .FALSE.)  include non-spherical contributions related to the gradient of the density in the PAW spheres.\n\
   \n\
-  # van der Waals\n\
+# van der Waals\n\
   IVDW    = 1         # IVDW=1|10 DFT-D2 method of Grimme (available as of VASP.5.2.11)\n\
   # VDW_RADIUS=50.0     # cutoff radius (in Å {{\displaystyle \AA }} \AA ) for pair interactions\n\
   # VDW_S6  =0.75 	    # global scaling factor s 6 {{\displaystyle s_{{6}}}} s_{{6}} (available in VASP.5.3.4 and later)\n\
