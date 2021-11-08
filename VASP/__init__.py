@@ -185,7 +185,7 @@ def get_relaxation_INCAR():
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
   # LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\n\
   # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
-  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2\n\
+  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2\n (Remember to diable LSORBIT)\
   # LASPH = .TRUE.     # (Default: LASPH = .FALSE.)  include non-spherical contributions related to the gradient of the density in the PAW spheres.\n\
   \n\
 # van der Waals\n\
@@ -214,7 +214,7 @@ def get_relaxation_INCAR():
   NFREE  = 2         # depending on IBRION, NFREE specifies the number of remembered steps in the history of ionic convergence runs, or the number of ionic displacements in frozen phonon calculations. however systems of low dimensionality require a careful setting of NFREE (or preferably an exact counting of the number of degrees of freedom)\n\
   \n\
 # performance optimization\n\
-  NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
+  NCORE   = 4         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
   #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
   #  KPAR   = 2        # make 4 groups, each group working on one set of k-points \n\
   #  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run."
@@ -258,7 +258,7 @@ def get_scf_INCAR():
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
   LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\n\
   # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
-  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2\n\
+  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2 (Remember to diable LSORBIT)\n\
   # LASPH = .TRUE.     # (Default: LASPH = .FALSE.)  include non-spherical contributions related to the gradient of the density in the PAW spheres.\n\
   \n\
 # van der Waals\n\
@@ -287,7 +287,7 @@ def get_scf_INCAR():
   NFREE  = 2         # 2 independent degrees of freedom\n\
 \n\
 # performance optimization\n\
-  NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
+  NCORE   = 4         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
 #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
 #  KPAR   = 2        # make 4 groups, each group working on one set of k-points \n\
 #  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run. "
@@ -378,7 +378,7 @@ def get_bands_INCAR(**kwargs):
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
   LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
   # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
-  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2\n\
+  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2 (Remember to diable LSORBIT)\n\
   # LASPH = .TRUE.     # (Default: LASPH = .FALSE.)  include non-spherical contributions related to the gradient of the density in the PAW spheres.\n\
   \n\
   # van der Waals\n\
@@ -407,7 +407,7 @@ def get_bands_INCAR(**kwargs):
   NFREE  = 2         # 2 independent degrees of freedom\n\
 \n\
 # performance optimization\n\
-  NCORE   = 2         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
+  NCORE   = 4         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
 #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
 #  KPAR   = 2        # make 4 groups, each group working on one set of k-points\n\
 #  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run. "
