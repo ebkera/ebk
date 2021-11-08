@@ -356,7 +356,7 @@ Reciprocal\n\
         
 def get_bands_INCAR(**kwargs):
     EFIELD = kwargs.get("EFIELD", 0.00)
-    content = f"SYSTEM = SCF_for_\n\n\
+    content = f"SYSTEM = BANDS_for_\n\n\
 # start parameters for this Run (automatic defaults are finem, hence not often required)\n\
   ISTART = 1         # job   : 0-new  1- orbitals from WAVECAR\n\
   ICHARG = 11        # charge: 1: from CHGCAR file | 2-atom (for SCF) | 10+: NSCF calculations\n\
