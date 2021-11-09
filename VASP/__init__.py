@@ -154,7 +154,7 @@ for f in "${{folder_list[@]}}"; do\n\
     cp ../{SCF_DIR}/POSCAR POSCAR\n\
     cp ../{SCF_DIR}/POTCAR POTCAR\n\
     # cp ../4_BANDS_E=0/WAVECAR WAVECAR\n\
-    mpirun -np 4 vasp_ncl | tee era.out\n\
+    mpirun -np 32 vasp_ncl | tee era.out\n\
     cd ..\n\
 done\n\
 mail_text="${{email_header}} All calculations for {run_name} has finished on $(date).${{email_footer}}"\n\
