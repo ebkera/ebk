@@ -137,8 +137,47 @@ def make_inversion_symmetric_original_for_this_file(atoms, x_offset = 0, y_offse
     #         elif x == self.sb: self.sb = "Has been deleted"
     #         del self.atoms[x]
 
-def find_cell(atoms, a0, **kwargs):
+def find_cell(atoms, a0, slab_atoms_species="Sn", **kwargs):
     """
+    This function as of now is intended for use with setups that contain slabs and ligands.
+    It looks at the off set in the slab atoms on the either side of the ligand and looks to compensate for the change by changing the c axis
+    """
+
+    # We will first try to find the extreme slab atoms by looking at slab atoms extreme coordinates
+    # Have not used the get_extreme_coordinates method since it might pick up ligand atoms (non slab atoms)
+    max_z = 0
+    min_z = 1000000 
+
+    for atom in atoms:
+        if atom.symbol == slab_atoms_species:
+            if atom.position[2] > max_z: max_z = atom.position[2]
+            if atom.position[2] < min_z: min_z = atom.position[2]
+        # print(atom.symbol)
+
+    for atom in atoms:
+        if atom.position[2] == max_z and atom.symbol == slab_atoms_species:
+            max_z_atom_index = atom.index
+        if atom.position[2] == min_z and atom.symbol == slab_atoms_species:
+            min_z_atom_index = atom.index
+
+    # z_length = extreme_coordinates[2][1] - extreme_coordinates[2][0]
+    z_length = max_z - min_z 
+    x_spill_over = atoms[max_z_atom_index].position[0] - atoms[min_z_atom_index].position[0] - a0/4
+    y_spill_over = atoms[max_z_atom_index].position[1] - atoms[min_z_atom_index].position[1] + a0/4
+
+    # These are the cell vectors
+    x_cell = (a0, 0, 0)
+    y_cell = (0, a0, 0)
+    z_cell = (x_spill_over, y_spill_over, z_length + a0/4)  # Here we have to add a0/4 since there is no information on that.
+
+    cell = [x_cell, y_cell, z_cell]
+    atoms.set_cell(cell)
+    atoms.center()
+    return cell
+
+def find_cell_old(atoms, a0, **kwargs):
+    """
+    This is old legacy code that I have been using for everything before the Qunfei type ligand coding began
     x, y, z will add extra vacuum
     LI.find_cell(atoms, a0, z=a0/4, x=0, y=0, xcell=a0/4, ycell=a0/4)
     """
@@ -173,7 +212,7 @@ def find_cell(atoms, a0, **kwargs):
 
     cell = [x_cell, y_cell, z_cell]
     translation_vec = [(x_cell[0]+x_offset)/2, (y_cell[1]+y_offset)/2, (z_cell[2])/2]
-    translation_vec = [(x_cell[0]+x_offset)/2, (y_cell[1]+y_offset)/2, (z_cell[2])/2]
+    # translation_vec = [(x_cell[0]+x_offset)/2, (y_cell[1]+y_offset)/2, (z_cell[2])/2]
     for atom in atoms:
         atom.position = (atom.position[0] + translation_vec[0], atom.position[1] + translation_vec[1], atom.position[2] + translation_vec[2])
     atoms.set_cell(cell)
