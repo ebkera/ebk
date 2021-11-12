@@ -124,6 +124,142 @@ class Insert_ligand():
         self.make_centre(center_atom1, center_atom2)
         return slab_only, ligand_only
 
+    def attach_to_slab_Qunfei(self, slab, sb, sp, lb, lp, center_atom1, center_atom2, bond_length = 0, retain_passivation_atoms = False):
+        """
+        Attaches the ligand : 
+            if retain_passivation_atoms : by retaining the passivation atoms on the slab and ligand. (for use as ghost atoms)
+            else: by removing the passivation atoms on the slab and ligand.
+        Will align the passivation atom vectors of the slab and ligand. There by preserving the dihedral angle.
+        Then the slab passivation atom is removed and replced by the ligand non passivation atom at site of attachment.
+        The ligands bonding atoms will also be replaced.
+        Requirements:
+            Slab will need to be passivated
+        Inputs,
+            slab: will be a zincblende type object which will attach onto the ligand
+            sb  : slab bulk atom at site
+            sp  : slab passivation atom at site
+            lb  : ligand bulk atom at site
+            lp  : ligand passivation atom at site
+            center_atom1,2: position of the centre atoms of the ligand so that we can set teh 0,0,0 for the system. 
+            bond_length = Here we can set the coordinates for the bond length of the attaching bond (eg Sn-S bond). if length is zero no adjustment is made
+                This is done by repositioning the slab passivation atom so that it will be at the right distance when being replaced.
+        """
+        self.lb = lb  # Saving the ligand bulk site globaly
+        if bond_length != 0 :
+            pass
+        Vsp = [0, 0, 0]  # The vector between the slab atoms and the passivation atom
+        Vlp = [0, 0, 0]  # The vector between the ligand atoms and the attaching atom
+        for i in range(3):
+            # Getting the vectors
+            Vsp[i] = slab[sb].position[i] - slab[sp].position[i]
+            Vlp[i] = self.atoms[lp].position[i] - self.atoms[lb].position[i]
+        # self.edit()
+        # self.atoms.rotate(Vlp, Vsp, center = self.atoms[lb].position)
+        diff_vec = [0, 0, 0]
+        for i in range(3):
+            diff_vec[i] = slab[sp].position[i] - self.atoms[lb].position[i]
+        for i,atom in enumerate(slab):
+            atom.position = (atom.position[0] - diff_vec[0], atom.position[1] - diff_vec[1], atom.position[2] - diff_vec[2])
+        # Making copies of the slabs so that we can return them for ghost atoms calculations
+        slab_only = slab
+        ligand_only = self.atoms.copy()
+        # Deleting the relevant atoms
+        if not retain_passivation_atoms:
+            del slab[sp]
+            del slab[sp-1]
+            del self.atoms[lp]
+            # Making sure that the center atoms still poit to the same atoms if delting the passivant atom changes the index of the center atoms
+            if center_atom1>lp: center_atom1-=1
+            if center_atom2>lp: center_atom2-=1
+            # print(f"center atmos indeces: {center_atom1, center_atom2,lp}")   # left here for debugging
+        for i,atom in enumerate(slab):
+            self.atoms.append(atom)
+            if i == sb:
+                # print(sb)
+                self.sb = len(self.atoms)-1  # saving the slab bulk site globally
+                # print(self.sb)
+        self.make_centre(center_atom1, center_atom2)
+        return slab_only, ligand_only
+
+    def attach_to_slab_Qunfei_dense(self, slab, sb, sp, lb, lp, center_atom1, center_atom2, bond_length = 0, retain_passivation_atoms = False):
+        """
+        Attaches the ligand : 
+            if retain_passivation_atoms : by retaining the passivation atoms on the slab and ligand. (for use as ghost atoms)
+            else: by removing the passivation atoms on the slab and ligand.
+        Will align the passivation atom vectors of the slab and ligand. There by preserving the dihedral angle.
+        Then the slab passivation atom is removed and replced by the ligand non passivation atom at site of attachment.
+        The ligands bonding atoms will also be replaced.
+        Requirements:
+            Slab will need to be passivated
+        Inputs,
+            slab: will be a zincblende type object which will attach onto the ligand
+            sb  : slab bulk atom at site
+            sp  : slab passivation atom at site
+            lb  : ligand bulk atom at site
+            lp  : ligand passivation atom at site
+            center_atom1,2: position of the centre atoms of the ligand so that we can set teh 0,0,0 for the system. 
+            bond_length = Here we can set the coordinates for the bond length of the attaching bond (eg Sn-S bond). if length is zero no adjustment is made
+                This is done by repositioning the slab passivation atom so that it will be at the right distance when being replaced.
+        """
+        self.lb = lb  # Saving the ligand bulk site globaly
+        if bond_length != 0 :
+            pass
+        Vsp = [0, 0, 0]  # The vector between the slab atoms and the passivation atom
+        Vlp = [0, 0, 0]  # The vector between the ligand atoms and the attaching atom
+        for i in range(3):
+            # Getting the vectors
+            Vsp[i] = slab[sb].position[i] - slab[sp].position[i]
+            Vlp[i] = self.atoms[lp].position[i] - self.atoms[lb].position[i]
+        # self.edit()
+        # self.atoms.rotate(Vlp, Vsp, center = self.atoms[lb].position)
+        self.atoms.rotate(-25, [0,0,1])
+        diff_vec = [0, 0, 0]
+        delta_x = 0
+        delta_y = 0
+        delta_z = 0
+        delta_x = 1
+        # delta_y = 2
+        delta_z = 0.5
+        for i in range(3):
+            diff_vec[i] = slab[sp].position[i] - self.atoms[lb].position[i]
+        for i,atom in enumerate(slab):
+            atom.position = (atom.position[0] - diff_vec[0] - delta_x, atom.position[1] - diff_vec[1] - delta_y, atom.position[2] - diff_vec[2] - delta_z)
+        # Making copies of the slabs so that we can return them for ghost atoms calculations
+        slab_only = slab
+        ligand_only = self.atoms.copy()
+        # Deleting the relevant atoms
+        diff_vec_2ndligand = [0, 0, 0]
+        for i in range(3):
+            diff_vec_2ndligand[i] = slab[sp-2].position[i] - self.atoms[lb].position[i]
+        if not retain_passivation_atoms:
+            del slab[sp+1]
+            del slab[sp]
+            del slab[sp-1]
+            del slab[sp-2]
+            del self.atoms[lp]
+            # Making sure that the center atoms still poit to the same atoms if delting the passivant atom changes the index of the center atoms
+            if center_atom1>lp: center_atom1-=1
+            if center_atom2>lp: center_atom2-=1
+            # print(f"center atmos indeces: {center_atom1, center_atom2,lp}")   # left here for debugging
+        for i,atom in enumerate(slab):
+            self.atoms.append(atom)
+            if i == sb:
+                # print(sb)
+                self.sb = len(self.atoms)-1  # saving the slab bulk site globally
+                # print(self.sb)
+        # Here we add the ligand again to make the cell densly packed with ligands
+        del ligand_only[lp]
+        for i,atom in enumerate(self.atoms):
+            atom.position = (atom.position[0] - diff_vec_2ndligand[0] - delta_x, atom.position[1] - diff_vec_2ndligand[1] - delta_y, atom.position[2] - diff_vec_2ndligand[2] - delta_z)
+        for i,atom in enumerate(ligand_only):
+            self.atoms.append(atom)
+            if i == sb:
+                # print(sb)
+                self.sb = len(self.atoms)-1  # saving the slab bulk site globally
+                # print(self.sb)
+        self.make_centre(center_atom1, center_atom2)
+        return slab_only, ligand_only
+
 
     # def attach_to_slab_ghosting(self, slab, sb, sp, lb, lp, center_atom1, center_atom2, bond_length = 0):
     #     """
