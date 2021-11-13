@@ -84,7 +84,7 @@ class BandPlotter():
                 plt.axhline(y=line[0], label = f"{line[1]}")
 
         plt.xticks(self.k_locations, self.k_symbols)
-        if self.include_xlabel: plt.xlabel("K path")
+        if self.include_xlabel: plt.xlabel("$\\vec{{k}}$")
         if self.include_ylabel: plt.ylabel("E-E$_f$ (eV)")
         if self.include_title: plt.title(f"{self.title}")
         if self.plot_arrow != [0,0,0,0]:
