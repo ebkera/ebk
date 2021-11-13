@@ -3,6 +3,7 @@ This file reads the the file system_label.out and extracts/calculates data/value
 """
 from os import P_WAIT, kill
 from ebk.BandPlotter import BandPlotter 
+import numpy as np
 
 class VASPReadOut():
     def __init__(self, out_folder, *args, **kwargs):
@@ -33,6 +34,21 @@ class VASPReadOut():
                         self.spin_orbit = False
                     else:
                         print(f"Spin-Orbit settings not detected")
+
+                # Reading in the lattice vectors
+                # a1,a2,a3 are the real vectors in 2pi/a while A1,A2,A3 are the real cell lengths in Angstroms
+                if 'A1 = ' in line:
+                    a = line.split()
+                    self.a1= [float(a[3].replace(',',"")), float(a[4].replace(',',"")), float(a[5].replace(')',""))]
+                    self.A1 = np.sqrt(self.a1[0]**2+self.a1[1]**2+self.a1[2]**2)
+                if 'A2 = ' in line:
+                    a = line.split()
+                    self.a2= [float(a[3].replace(',',"")), float(a[4].replace(',',"")), float(a[5].replace(')',""))]
+                    self.A2 = np.sqrt(self.a2[0]**2+self.a2[1]**2+self.a2[2]**2)
+                if 'A3 = ' in line:
+                    a = line.split()
+                    self.a3= [float(a[3].replace(',',"")), float(a[4].replace(',',"")), float(a[5].replace(')',""))]
+                    self.A3 = np.sqrt(self.a3[0]**2+self.a3[1]**2+self.a3[2]**2)
 
                 # print(line)  # Left here for debugging 
                 if 'k-point' in line and 'plane waves' in line:
@@ -92,10 +108,14 @@ class VASPReadOut():
 
         for x in range(1,len(self.kpoints)):
             dist_v=[0, 0, 0]
+            # Here we adjust for the actual lengths in reciprocal space
+            x_multiplier = 2*np.pi**(10)/self.A1
+            y_multiplier = 2*np.pi**(10)/self.A2
+            z_multiplier = 2*np.pi**(10)/self.A3
             for i in range(3):
                 # print (i, x)
                 dist_v[i] = self.kpoints[x][i] - self.kpoints[x-1][i]
-            self.k_dist.append((dist_v[0]**2+dist_v[1]**2+dist_v[2]**2) + self.k_dist[x-1])
+            self.k_dist.append(((dist_v[0]*x_multiplier)**2+(dist_v[1]*y_multiplier)**2+(dist_v[2]*z_multiplier)**2) + self.k_dist[x-1])
 
         with open(f"{self.out_folder}/KPOINTS", "r+") as KPOINTS:
             hss_old = "empty"
@@ -161,7 +181,7 @@ class VASPReadOut():
         return x
 
 
-    def get_curvature_at_k_point(self, k_point: list[float,float,float]=False, k_index:int=False, direction:str=False, sigma:int=20, high_symmetry_point:bool=True, show_plot:bool=False)-> float:
+    def get_curvature_at_k_point(self, k_point: list[float,float,float]=False, k_index:int=False, direction:str=False, sigma:int=10, high_symmetry_point:bool=True, show_plot:bool=False)-> float:
         """
         This code is still being written.
         Goals: to get the band curvature around the maxima and minima of the CBM and VBM
@@ -221,10 +241,15 @@ class VASPReadOut():
             fit_para_left_valance = np.polyfit(left_side_kpoint_dist, left_side_valance_E, 2)
             fit_para_right_valance = np.polyfit(right_side_kpoint_dist, right_side_valance_E, 2)
 
-            electron_effective_mass_left = scipy.constants.hbar**2/(2*fit_para_left_conduction[0]*scipy.constants.m_e)  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
-            electron_effective_mass_right = scipy.constants.hbar**2/(2*fit_para_right_conduction[0]*scipy.constants.m_e)  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
-            hole_effective_mass_left = scipy.constants.hbar**2/(2*fit_para_left_valance[0]*scipy.constants.m_e)  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
-            hole_effective_mass_right = scipy.constants.hbar**2/(2*fit_para_right_valance[0]*scipy.constants.m_e)  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
+            electron_effective_mass_left = scipy.constants.hbar**2/(2*fit_para_left_conduction[0]*scipy.constants.elementary_charge*scipy.constants.m_e)  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
+            electron_effective_mass_right = scipy.constants.hbar**2/(2*fit_para_right_conduction[0]*scipy.constants.elementary_charge*scipy.constants.m_e)  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
+            hole_effective_mass_left = scipy.constants.hbar**2/(2*fit_para_left_valance[0]*scipy.constants.elementary_charge*scipy.constants.m_e)  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
+            hole_effective_mass_right = scipy.constants.hbar**2/(2*fit_para_right_valance[0]*scipy.constants.elementary_charge*scipy.constants.m_e)  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
+
+            # electron_effective_mass_left = scipy.constants.hbar**2/(2*fit_para_left_conduction[0])  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
+            # electron_effective_mass_right = scipy.constants.hbar**2/(2*fit_para_right_conduction[0])  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
+            # hole_effective_mass_left = scipy.constants.hbar**2/(2*fit_para_left_valance[0])  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
+            # hole_effective_mass_right = scipy.constants.hbar**2/(2*fit_para_right_valance[0])  # The two on the denominator is from the 2 that comes from differentiating a 2 order polynomial
 
             return_dict = {}
             return_dict.update({"fit_para_conduction_l":fit_para_left_conduction})
@@ -235,10 +260,6 @@ class VASPReadOut():
             return_dict.update({"me_r":electron_effective_mass_right})
             return_dict.update({"mh_l":hole_effective_mass_left})
             return_dict.update({"mh_r":hole_effective_mass_right})
-            return_dict.update({"bottom_of_conduction_l": fit_para_left_conduction[2]})
-            return_dict.update({"bottom_of_conduction_r":fit_para_right_conduction[2]})
-            return_dict.update({"top_of_valance_l":fit_para_left_valance[2]})
-            return_dict.update({"top_of_valance_r":fit_para_right_valance[2]})
 
             p_era_LDA_ES = np.poly1d(fit_para_left_conduction)
             fit_curve_left_conduction = p_era_LDA_ES(left_side_kpoint_dist)
@@ -254,10 +275,10 @@ class VASPReadOut():
             plt.plot(left_side_kpoint_dist, left_side_conduction_E, label=f"Left Conduction")
             plt.plot(right_side_kpoint_dist, fit_curve_right_conduction, label=f"Right Conduction fit")
             plt.plot(right_side_kpoint_dist, right_side_conduction_E, label=f"Right Conduction")
-            plt.plot(left_side_kpoint_dist, fit_curve_left_valance, label=f"Left Valance fit")
-            plt.plot(left_side_kpoint_dist, left_side_valance_E, label=f"Left Valance")
-            plt.plot(right_side_kpoint_dist, fit_curve_right_valance, label=f"Right Valance fit")
-            plt.plot(right_side_kpoint_dist, right_side_valance_E, label=f"Right Valance")
+            # plt.plot(left_side_kpoint_dist, fit_curve_left_valance, label=f"Left Valance fit")
+            # plt.plot(left_side_kpoint_dist, left_side_valance_E, label=f"Left Valance")
+            # plt.plot(right_side_kpoint_dist, fit_curve_right_valance, label=f"Right Valance fit")
+            # plt.plot(right_side_kpoint_dist, right_side_valance_E, label=f"Right Valance")
             plt.legend()
             if show_plot: plt.show()
 
