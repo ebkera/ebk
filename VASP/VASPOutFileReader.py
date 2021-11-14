@@ -12,8 +12,8 @@ class VASPReadOut():
         self.kpoints = []
         trigger = False
         self.k_dist=[0]
-        self.highest_valance = [[0], -500]    # Will contain [[kpath_index],E]
-        self.lowest_conduction = [[0], 500]  # Will contain [[kpath_index],E]
+        self.highest_valance = [0, -500]    # Will contain [[kpath_index],E]
+        self.lowest_conduction = [0, 500]  # Will contain [[kpath_index],E]
         self.valance_band_label_index = 0
         self.conduction_band_label_index = 0
         self.hsp = []
@@ -50,9 +50,20 @@ class VASPReadOut():
                     self.a3= [float(a[3].replace(',',"")), float(a[4].replace(',',"")), float(a[5].replace(')',""))]
                     self.A3 = np.sqrt(self.a3[0]**2+self.a3[1]**2+self.a3[2]**2)
 
+                # This part will read in the lines from the initial k point listing where we also have the plane wave numbers given
+                # Sometimes VASP output is not properly syntaxed and there are not spaces for so will not be able to resolve values
+                # So this has been abandoned and we read K points from the second section with energies
+                # if 'k-point' in line and 'plane waves' in line:
+                #     k = line.split()
+                #     k2 = [float(k[3]),float(k[4]),float(k[5])]
+                #     self.kpoints.append(k2)
+                #     # print(k2)
+
                 # print(line)  # Left here for debugging 
-                if 'k-point' in line and 'plane waves' in line:
+                if 'k-point' in line and len(line.split()) == 6:
+                    # print(line)
                     k = line.split()
+                    current_kpoint = int(k[1])
                     k2 = [float(k[3]),float(k[4]),float(k[5])]
                     self.kpoints.append(k2)
                     # print(k2)
@@ -99,12 +110,12 @@ class VASPReadOut():
                     if Occ > Occ_threshold:  # This is because there might be partial occupancies
                         if E >= self.highest_valance[1]: 
                             self.highest_valance[1] =  E
-                            self.highest_valance[0] = len(self.kpoints.copy()) -1
+                            self.highest_valance[0] = current_kpoint - 1
                             self.valance_band_label_index = band_label
                     else: # This is because there might be partial occupancies
                         if E<= self.lowest_conduction[1]:
                             self.lowest_conduction[1] = E
-                            self.lowest_conduction[0] = len(self.kpoints.copy()) -1
+                            self.lowest_conduction[0] = current_kpoint - 1
                             self.conduction_band_label_index = band_label
                             # print(E)
 
@@ -151,11 +162,28 @@ class VASPReadOut():
             for x in range(1,len(self.hss)):
                 self.hsp.append(self.k_dist[self.k_point_density*x-1])
 
+        def get_dos(self):
+            print("Calculating Density of States")
+            with open(f"{self.out_folder}/DOSCAR", "r+") as DOSCAR:
+                pass
+
     def get_band_gap(self):
         return self.Eg
 
     def get_fermi_energy(self):
         return self.Ef
+
+    def get_highest_valance_band_kpoint(self):
+        return self.highest_valance[0]
+
+    def get_lowest_conduction_band_kpoint(self):
+        return self.lowest_conduction[0]
+
+    def get_highest_valance_band_energy(self):
+        return self.highest_valance[1]
+
+    def get_lowest_conduction_band_energy(self):
+        return self.lowest_conduction[1]
 
     def get_band_structure(self, title = "Band Diagram", file_name = None):
         """
