@@ -12,8 +12,8 @@ class VASPReadOut():
         self.kpoints = []
         trigger = False
         self.k_dist=[0]
-        self.highest_valance = [[0,0,0], -500]    # Will contain [[kpathpoint],E]
-        self.lowest_conduction = [[0,0,0], 500]  # Will contain [[kpathpoint],E]
+        self.highest_valance = [[0], -500]    # Will contain [[kpath_index],E]
+        self.lowest_conduction = [[0], 500]  # Will contain [[kpath_index],E]
         self.valance_band_label_index = 0
         self.conduction_band_label_index = 0
         self.hsp = []
@@ -99,10 +99,12 @@ class VASPReadOut():
                     if Occ > Occ_threshold:  # This is because there might be partial occupancies
                         if E >= self.highest_valance[1]: 
                             self.highest_valance[1] =  E
+                            self.highest_valance[0] = len(self.kpoints.copy()) -1
                             self.valance_band_label_index = band_label
                     else: # This is because there might be partial occupancies
                         if E<= self.lowest_conduction[1]:
                             self.lowest_conduction[1] = E
+                            self.lowest_conduction[0] = len(self.kpoints.copy()) -1
                             self.conduction_band_label_index = band_label
                             # print(E)
 
@@ -181,7 +183,7 @@ class VASPReadOut():
         return x
 
 
-    def get_curvature_at_k_point(self, k_point: list[float,float,float]=False, k_index:int=False, direction:str=False, sigma:int=10, high_symmetry_point:bool=True, show_plot:bool=False)-> float:
+    def get_curvature_at_k_point(self, k_point: list[float,float,float]=False, k_index:int=False, direction:str=False, sigma:int=15, high_symmetry_point:bool=True, show_plot:bool=False, show_holes:bool=False, show_elec:bool=False)-> float:
         """
         This code is still being written.
         Goals: to get the band curvature around the maxima and minima of the CBM and VBM
@@ -271,14 +273,16 @@ class VASPReadOut():
             p_right_valance = np.poly1d(fit_para_right_valance)
             fit_curve_right_valance = p_right_valance(right_side_kpoint_dist)
             import matplotlib.pyplot as plt 
-            plt.plot(left_side_kpoint_dist, fit_curve_left_conduction, label=f"Left Conduction fit")
-            plt.plot(left_side_kpoint_dist, left_side_conduction_E, label=f"Left Conduction")
-            plt.plot(right_side_kpoint_dist, fit_curve_right_conduction, label=f"Right Conduction fit")
-            plt.plot(right_side_kpoint_dist, right_side_conduction_E, label=f"Right Conduction")
-            # plt.plot(left_side_kpoint_dist, fit_curve_left_valance, label=f"Left Valance fit")
-            # plt.plot(left_side_kpoint_dist, left_side_valance_E, label=f"Left Valance")
-            # plt.plot(right_side_kpoint_dist, fit_curve_right_valance, label=f"Right Valance fit")
-            # plt.plot(right_side_kpoint_dist, right_side_valance_E, label=f"Right Valance")
+            if show_elec:
+                plt.plot(left_side_kpoint_dist, fit_curve_left_conduction, label=f"Left Conduction fit")
+                plt.plot(left_side_kpoint_dist, left_side_conduction_E, label=f"Left Conduction")
+                plt.plot(right_side_kpoint_dist, fit_curve_right_conduction, label=f"Right Conduction fit")
+                plt.plot(right_side_kpoint_dist, right_side_conduction_E, label=f"Right Conduction")
+            if show_holes:
+                plt.plot(left_side_kpoint_dist, fit_curve_left_valance, label=f"Left Valance fit")
+                plt.plot(left_side_kpoint_dist, left_side_valance_E, label=f"Left Valance")
+                plt.plot(right_side_kpoint_dist, fit_curve_right_valance, label=f"Right Valance fit")
+                plt.plot(right_side_kpoint_dist, right_side_valance_E, label=f"Right Valance")
             plt.legend()
             if show_plot: plt.show()
 
