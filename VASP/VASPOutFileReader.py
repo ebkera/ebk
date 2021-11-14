@@ -118,6 +118,8 @@ class VASPReadOut():
                 # print (i, x)
                 dist_v[i] = self.kpoints[x][i] - self.kpoints[x-1][i]
             self.k_dist.append(((dist_v[0]*x_multiplier)**2+(dist_v[1]*y_multiplier)**2+(dist_v[2]*z_multiplier)**2) + self.k_dist[x-1])
+                
+        self.Eg = self.lowest_conduction[1] - self.highest_valance[1]
 
         with open(f"{self.out_folder}/KPOINTS", "r+") as KPOINTS:
             hss_old = "empty"
@@ -148,8 +150,6 @@ class VASPReadOut():
 
             for x in range(1,len(self.hss)):
                 self.hsp.append(self.k_dist[self.k_point_density*x-1])
-
-        self.Eg = self.lowest_conduction[1] - self.highest_valance[1]
 
     def get_band_gap(self):
         return self.Eg
