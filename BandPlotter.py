@@ -61,11 +61,11 @@ class BandPlotter():
         # Setting vertical lines
         if self.vlines == True:
             for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
-                plt.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
+                plt.axvline(x=xc, linestyle='dotted', color='k', linewidth=0.05)
 
         # Setting horizontal lines Usualy only fermi
         if self.hlines == True:
-            plt.axhline(linewidth=0.1, color='k')
+            plt.axhline( linestyle='dotted',linewidth=0.05, color='k')
 
         # Setting y ranges
         if self.set_y_range == True:
