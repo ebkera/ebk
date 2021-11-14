@@ -104,6 +104,40 @@ def populate_BANDS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **
         print(f"No CONTCAR file found in relaxation run.. Looking for DEFAULTS/POSCAR_relaxed.. if you already have relaxed structure rename as such..")
         shutil.copy(f"DEFAULTS/POSCAR_relaxed", f"{folder_name}/POSCAR")
 
+def populate_DOS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **kwargs):
+    if folder_name == False:
+        folder_name = "3_DOS"
+    else:
+        folder_name = f"3_DOS_{folder_name}"
+    
+    if not os.path.isdir(folder_name):
+        os.mkdir(folder_name)
+    shutil.copy(f"DEFAULTS/POTCAR", f"{folder_name}/POTCAR")
+    try:
+        shutil.copy(f"DEFAULTS/INCAR_DOS_TEMPLATE", f"{folder_name}/INCAR")
+        print(f"INCAR for DOS run loaded from template file in DEFAULTS")
+    except:
+        print(f"No template for INCAR for DOS (INCAR_DOS_TEMPLATE) using original template from code")
+        file = open(f"{folder_name}/INCAR", "w+")
+        contents = get_dos_INCAR(**kwargs)
+        file.write(contents)
+        file.close()
+    try:
+        shutil.copy(f"DEFAULTS/KPOINTS_DOS_TEMPLATE", f"{folder_name}/KPOINTS")
+        print(f"KPOINTS for DOS run loaded from template file in DEFAULTS")
+    except:
+        print(f"No template for KPOINTS for DOS (KPOINTS_DOS_TEMPLATE) using original template from code")
+        file = open(f"{folder_name}/KPOINTS", "w+")
+        contents = get_dos_KPOINTS()
+        file.write(contents)
+        file.close()
+    try:
+        shutil.copy(f"{RELAX_DIR}/CONTCAR", f"{folder_name}/POSCAR")
+        print(f"CONTCAR file found in relaxation run.. Using it for POSCAR in BANDS")
+    except:
+        print(f"No CONTCAR file found in relaxation run.. Looking for DEFAULTS/POSCAR_relaxed.. if you already have relaxed structure rename as such..")
+        shutil.copy(f"DEFAULTS/POSCAR_relaxed", f"{folder_name}/POSCAR")
+
 def populate_epsilon(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF"):
     folder_base = "4_eps2"
     if folder_name == False:
@@ -236,6 +270,14 @@ def get_scf_KPOINTS():
  0\n\
 Monkhorst Pack\n\
  15 15 1\n\
+ 0. 0. 0.\n\
+ "
+
+def get_dos_KPOINTS():
+    content = f"Automatic Mesh\n\
+ 0\n\
+Monkhorst Pack\n\
+ 25 25 3\n\
  0. 0. 0.\n\
  "
     return content
@@ -397,6 +439,65 @@ def get_bands_INCAR(**kwargs):
 #  EMIN   = -5\n\
 #  EMAX   = 5\n\
 #  NBANDS = *\n\
+\n\
+# ionic relaxation\n\
+  IBRION = -1         # IBRION = -1:no update. | 0:molecular dynamics.| 1:ionic relaxation (RMM-DIIS) (usually faster) | 2:ionic relaxation (conjugate gradient algorithm) | 3 | 5 | 6 | 7 | 8 | 44  \n\
+  ISIF   = 3         # 0: only atoms nostress | 1: Relaxing atoms stress trace only | 2: Relaxing atoms stress trace full | 4:cell shape, and cell volume\n\
+  EDIFFG = -1E-02    # stopping-criterion for IOM (If negative: all forces smaller 1E-2)\n\
+  NSW    = 0         # number of steps for IOM in other words 20 ionic steps\n\
+  POTIM  = .5        # step for ionic-motion (for MD in fs)\n\
+  NFREE  = 2         # 2 independent degrees of freedom\n\
+\n\
+# performance optimization\n\
+  NCORE   = 4         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
+#  LREAL  = A        # real space projection; slightly less accurate but faster \n\
+#  KPAR   = 2        # make 4 groups, each group working on one set of k-points\n\
+#  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run. "
+    return content
+        
+def get_dos_INCAR(**kwargs):
+    EFIELD = kwargs.get("EFIELD", 0.00)
+    content = f"SYSTEM = DOS_for_\n\n\
+# start parameters for this Run (automatic defaults are finem, hence not often required)\n\
+  ISTART = 1         # job   : 0-new  1- orbitals from WAVECAR\n\
+  ICHARG = 11        # charge: 1: from CHGCAR file | 2-atom (for SCF) | 10+: NSCF calculations\n\
+  PREC   = Accurate  # standard precision (OtherOptions: Accurate)\n\
+\n\
+# IF adding E feild turn these on\n\
+  EFIELD = {EFIELD}      # units V/A  \n\
+  LDIPOL = .TRUE.    # to avoid interactions between the periodically repeated images\n\
+  IDIPOL = 3         # To set E direction and apply dipole corrections\n\
+\n\
+# electronic optimization\n\
+  ENCUT  = 420.00 eV # defaults from POTCAR, but wise to include (Recommened 130% of POTCAT val)\n\
+  ALGO   = Normal    # alorithm for electron optimization, can be also FAST or ALL\n\
+  NELM   = 200       # of ELM steps, sometimes default is too small \n\
+  EDIFF  = 1E-07     # stopping-criterion for ELM\n\
+  ISMEAR = -5         # -5:Tetrahedral Method for smearing \n\
+  SIGMA  = 0.01\n\
+  # ENMAX  = 400       # cutoff should be set manually  (This seems to be an obsolete flag...)\n\
+  # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
+  LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
+  # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
+  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2 (Remember to diable LSORBIT)\n\
+  # LASPH = .TRUE.     # (Default: LASPH = .FALSE.)  include non-spherical contributions related to the gradient of the density in the PAW spheres.\n\
+  \n\
+  # van der Waals\n\
+  IVDW    = 1         # IVDW=1|10 DFT-D2 method of Grimme (available as of VASP.5.2.11)\n\
+  # VDW_RADIUS=50.0     # cutoff radius (in Å {{\displaystyle \AA }} \AA ) for pair interactions\n\
+  # VDW_S6  =0.75 	    # global scaling factor s 6 {{\displaystyle s_{{6}}}} s_{{6}} (available in VASP.5.3.4 and later)\n\
+  # VDW_SR  =		    # 1.00 scaling factor s R {{\displaystyle s_{{R}}}} s_{{R}} (available in VASP.5.3.4 and later)\n\
+  # VDW_D   =20.0 	    # damping parameter d {{\displaystyle d}} d\n\
+  # VDW_C6=[real array] C 6 \n\
+  # VDW_R0=[real array] R 0 \n\
+  # LVDW_EWALD=.FALSE.  # decides whether lattice summation in E d i s p\n\
+\n\
+# DOS calculations\n\
+  LORBIT = 11        # 11 for both total and projected\n\
+  NEDOS  = 1000      # numbr of points for DOS\n\
+  EMIN   = -5\n\
+  EMAX   = 5\n\
+  # NBANDS = *\n\
 \n\
 # ionic relaxation\n\
   IBRION = -1         # IBRION = -1:no update. | 0:molecular dynamics.| 1:ionic relaxation (RMM-DIIS) (usually faster) | 2:ionic relaxation (conjugate gradient algorithm) | 3 | 5 | 6 | 7 | 8 | 44  \n\
