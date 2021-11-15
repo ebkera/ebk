@@ -161,6 +161,7 @@ def make_NSCF_calculation(folder_list, run_name="run", SCF_DIR="2_SCF", email_ad
 
     string_to_write = f'#!/bin/bash\n\
 \n\
+script_start_time=$(date +%s)\n\
 folder_list=({folder_list_text} )\n\
 \n\
 echo "Start of log" > {out_file}\n\
@@ -180,19 +181,26 @@ email_footer="$email_footer Solver     : VASP\n"\n\
 email_footer="$email_footer Work Dir : $(pwd)\n\nAutomated Message\n"\n\
 for f in "${{folder_list[@]}}"; do\n\
     cd $f\n\
+    run_start_time=$(date +%s)\n\
     echo "Now working on $f ... $(date)" >> ../{out_file}\n\
     mail_text="${{email_header}} Calculation in folder $f has started on $(date).${{email_footer}}"\n\
     echo "$mail_text" > email.txt\n\
     sendmail -t < email.txt\n\n\
-    # cp ../2_SCF/KPOINTS\n\
     cp ../{SCF_DIR}/CHGCAR CHGCAR\n\
     cp ../{SCF_DIR}/POSCAR POSCAR\n\
     cp ../{SCF_DIR}/POTCAR POTCAR\n\
     # cp ../4_BANDS_E=0/WAVECAR WAVECAR\n\
     mpirun -np 32 vasp_ncl | tee era.out\n\
+    run_end_time=$(date +%s)\n\
+    elapsed_run_time=$(( run_end_time - run_start_time ))\n\
+    mail_text="${{email_header}} Calculation in folder $f has ended on $(date). Wall_time: $elapsed_run_time s. ${{email_footer}}"\n\
+    echo "$mail_text" > email_end.txt\n\
+    sendmail -t < email_end.txt\n\n\
     cd ..\n\
 done\n\
-mail_text="${{email_header}} All calculations for {run_name} has finished on $(date).${{email_footer}}"\n\
+script_end_time=$(date +%s)\n\
+elapsed_script_time=$(( script_end_time - script_start_time ))\n\
+mail_text="${{email_header}} All calculations for {run_name} has ended on $(date). Total wall_time: $elapsed_script_time s. ${{email_footer}}"\n\
 echo "$mail_text" > email.txt\n\
 sendmail -t < email.txt\n\n\
 echo "done"\n\
