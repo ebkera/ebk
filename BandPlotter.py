@@ -5,8 +5,8 @@ from ase.dft.kpoints import resolve_custom_points, find_bandpath_kinks
 from ase.dft.dos import DOS
 from matplotlib import gridspec
 
-class BandPlotter():
-    """Retianed as legacy code"""
+class BandPlotter_old():
+    """Retained as legacy code Please use the below code"""
     def __init__(self, x, y, k_locations, k_symbols):
         """
         |All the inputs needed for a band plot are set here
@@ -106,6 +106,152 @@ class BandPlotter():
         # plt.legend(loc= "upper right")
         plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
         plt.show()
+
+class BandPlotter():
+    def __init__(self, **kwargs):
+        """
+        If plotting multiple band plots here can do only same path.
+        The idea of how to use this class is as below:
+            1) you set the required parameters that you need to plot the graph
+            2) You add all the bands you want to add by using the add_to_plot() method
+            3) Plot all bands that you have added using above method by calling the plot() method
+        """
+        self.file_name = "band_diagram"
+        self.number_of_bands_to_plot = 30
+        self.fermi_level = 0
+        self.hlines = kwargs.get("hlines", True)
+        self.vlines = kwargs.get("vlines", True)
+        self.title = "Band diagram"
+        self.dos_title = "Density of States"
+        self.set_y_range = kwargs.get("set_y_range", True)
+        self.set_x_range = False
+        self.Ef_shift = True
+        self.y_to_plot = []
+        self.x_to_plot = []
+        self.dos = []
+        self.E_dos = []
+        self.labels = []
+        self.same_band_colour = kwargs.get("same_band_colour", True)
+        self.band_colour = ["b", "g", "r", "c", "m", "y", "k"]
+        self.new_fig = False
+        self.k_locations = None
+        self.k_symbols = None
+        self.dots = kwargs.get("dots", False)
+        self.include_dos = kwargs.get("include_dos", False)
+        self.plot_only_dos = kwargs.get("only_dos", False)
+        self.pin_fermi = kwargs.get("pin_fermi", "scf") # if there are difference in fermi levels (Eg E_scf and E_nscf) then use this to pin the levels There options "off", "scf", "nscf" 
+        self.plot_from_QE_dos_file = True  # This will make the code read in files from a QE dos output file.
+        self.QE_dos_file_path = ""
+        self.ylim_low = -5
+        self.ylim_high = 5
+        self.x_margins = 0
+        # self.xlim_low = 0
+        # self.xlim_high = 0
+        self.saveas_extension = "pdf"
+
+    def plot(self):
+        """
+        |All the features of the band plot are set here
+        |Inputs: None
+        """
+        # Setting the dimensions of the saved image
+        plt.rcParams["figure.figsize"] = (8,4)
+        if self.include_dos:
+            # fig, (ax1, ax2) = plt.subplots(1,2)
+            gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1])
+            ax1 = plt.subplot(gs[0])
+            ax2 = plt.subplot(gs[1])
+        elif self.plot_only_dos:
+            fig, ax2 = plt.subplots()
+        else:
+            fig, ax1 = plt.subplots()
+
+        # Setting vertical lines
+        if self.vlines == True:
+            if not self.plot_only_dos:
+                for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
+                    ax1.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
+        # Setting horizontal line on the fermi energy
+        if self.hlines == True:
+            if self.plot_only_dos or self.include_dos:
+                ax2.axhline(linewidth=0.1, color='k')
+            if not self.plot_only_dos :
+                ax1.axhline(linewidth=0.1, color='k')
+        # Setting y ranges
+        if self.set_y_range == True:
+            if self.plot_only_dos:
+                ax2.set_ylim([self.ylim_low, self.ylim_high])
+            elif self.include_dos:
+                ax1.set_ylim([self.ylim_low, self.ylim_high])
+                ax2.set_ylim([self.ylim_low, self.ylim_high])
+            else:
+                ax1.set_ylim([self.ylim_low, self.ylim_high])
+        if self.set_x_range == True:
+            if self.plot_only_dos or self.include_dos:
+                # This for now applies only to DOS
+                ax2.set_xlim([self.xlim_low, self.xlim_high])
+            if not self.plot_only_dos :
+                pass
+        # we plot the dos figure here
+        if self.plot_only_dos or self.include_dos:
+            # print(self.include_dos)
+            for i,v in enumerate(self.y_to_plot):
+                ax2.plot(self.dos[i], self.E_dos[i], self.band_colour[i], label = self.labels[i])
+            ax2.set_xlabel("DOS")
+            ax2.set_ylabel("Energy (eV)")
+            ax2.set_title(f"{self.dos_title}")
+            ax2.legend()
+        if not self.plot_only_dos :
+            # We plot the bands figure here
+            for i,v in enumerate(self.y_to_plot):
+                for band in v:
+                    if self.same_band_colour == True:
+                        if self.labels[i] != None:
+                            ax1.plot(self.x_to_plot[i], band, self.band_colour[i], label = self.labels[i])
+                            self.labels[i] = None  # Here we have set the label to none since we are plotting multiple bands with teh same label and we dont want to list multiple labels
+                        else:
+                            ax1.plot(self.x_to_plot[i], band, self.band_colour[i], label = self.labels[i])
+                    else:
+                        ax1.plot(self.x_to_plot[i], band)  # Here we have ignored labels since individual bands have no labels
+            # print(self.k_locations)
+            # print(self.k_symbols)
+            ax1.set_xticks( self.k_locations)
+            ax1.set_xticklabels(self.k_symbols)
+            ax1.set_xlabel("$\\vec{{k}}$")
+            ax1.set_ylabel("Energy (eV)")
+            ax1.set_title(f"{self.title}")
+            ax1.legend()
+        plt.margins(x=self.x_margins)
+        plt.tight_layout()
+        plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
+        plt.show()
+
+    def add_to_plot(self, Ef, k_dist, bands, hsp, hss, E_dos=0, dos=0, label=None):
+        """
+        |Here you add individual plots that need to be plot and then just plot them with the plot() method
+        """
+
+        if self.include_dos or self.plot_only_dos:
+            self.dos.append(dos)
+            self.E_dos.append(E_dos)
+            if self.plot_only_dos:  # Other wise we wil lappend to labels twice sicnce we will do it again at theloading of bands
+                self.labels.append(label)
+
+        if self.plot_only_dos == False:
+            # This is for the band structure
+            self.k_locations = hsp
+            self.k_symbols = hss
+            Energy_to_plot = []
+            if self.Ef_shift == True:
+                for band in bands:
+                    if self.pin_fermi != "nscf":
+                        Energy_to_plot.append([E - Ef for E in band])
+                    else:
+                        Energy_to_plot.append([E - Ef_nscf for E in band])  # here the assumption is that if this option is ever reached then the idea is that an nscf calculation has already being done and dos is being plotted.
+
+            self.y_to_plot.append(bands)
+            self.x_to_plot.append(k_dist)
+            self.labels.append(label)
 
 class BandPlotterASE():
     def __init__(self, **kwargs):
