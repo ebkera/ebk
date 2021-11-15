@@ -162,10 +162,30 @@ class VASPReadOut():
             for x in range(1,len(self.hss)):
                 self.hsp.append(self.k_dist[self.k_point_density*x-1])
 
-        def get_dos(self):
-            print("Calculating Density of States")
-            with open(f"{self.out_folder}/DOSCAR", "r+") as DOSCAR:
-                pass
+    def get_dos(self, DOS_DIR):
+        self.dos_MIN_E = 0
+        self.dos_MAX_E = 0
+        self.dos_E = []
+        self.dos_D = []  # These are the DOS values
+        self.dos_ID = []  # These are the integrated DOS values
+        print("Calculating Density of States")
+        with open(f"{DOS_DIR}/DOSCAR", "r+") as DOSCAR:
+            for i,line in enumerate(DOSCAR):
+                if i == 5:
+                    data = line.split()
+                    self.dos_MIN_E = data[0]
+                    self.dos_MAX_E = data[1]
+                if i>5 and len(line.split()) == 3:
+                    data = line.split()
+                    self.dos_E.append(float(data[0]) - self.Ef)
+                    self.dos_D.append(float(data[1]))
+                    self.dos_ID.append(float(data[2]))
+
+    def plot_dos(self):
+        import matplotlib.pyplot as plt
+        plt.plot(self.dos_E, self.dos_D)
+        plt.show()
+
 
     def get_band_gap(self):
         return self.Eg
@@ -185,24 +205,23 @@ class VASPReadOut():
     def get_lowest_conduction_band_energy(self):
         return self.lowest_conduction[1]
 
-    def get_band_structure(self, title = "Band Diagram", file_name = None):
+    def get_band_structure(self, file_name = None):
         """
         Sets initial settings and returns a BandPlotter type object for further manipulation but ready to plot
         """
         if file_name == None:
             file_name = self.out_folder
         
-        x = BandPlotter(self.k_dist, self.bands, self.hsp, self.hss)
+        x = BandPlotter()
+        if hasattr(self, "dos_E"):x.add_to_plot(self.Ef, self.k_dist, self.bands, self.hsp, self.hss, self.dos_E, self.dos_D)
+        else:x.add_to_plot(self.Ef, self.k_dist, self.bands, self.hsp, self.hss)
         x.file_name = f"{file_name}"
-        x.title = title
         x.set_y_range=True
         x.same_band_colour = True
         x.hlines = True
         x.vlines = True
-        # x.ylim_high = 2.5
-        # x.ylim_low = -2.5
-        # x.ylim_high = 3
-        # x.ylim_low = -15
+        x.ylim_high = 2.5
+        x.ylim_low = -2.5
         x.saveas_extension = "png"
 
         if self.draw_band_edge_lines:
