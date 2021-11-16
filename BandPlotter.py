@@ -138,6 +138,7 @@ class BandPlotter():
         self.k_symbols = None
         self.dots = kwargs.get("dots", False)
         self.include_dos = kwargs.get("include_dos", False)
+        self.dos_units = kwargs.get("dos_units", "states/eV")
         self.plot_only_dos = kwargs.get("only_dos", False)
         self.pin_fermi = kwargs.get("pin_fermi", "scf") # if there are difference in fermi levels (Eg E_scf and E_nscf) then use this to pin the levels There options "off", "scf", "nscf" 
         self.plot_from_QE_dos_file = True  # This will make the code read in files from a QE dos output file.
@@ -155,7 +156,7 @@ class BandPlotter():
         |Inputs: None
         """
         # Setting the dimensions of the saved image
-        plt.rcParams["figure.figsize"] = (8,4)
+        plt.rcParams["figure.figsize"] = (16,8)
         if self.include_dos:
             # fig, (ax1, ax2) = plt.subplots(1,2)
             gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1])
@@ -197,7 +198,7 @@ class BandPlotter():
             # print(self.include_dos)
             for i,v in enumerate(self.y_to_plot):
                 ax2.plot(self.dos[i], self.E_dos[i], self.band_colour[i], label = self.labels[i])
-            ax2.set_xlabel("DOS")
+            ax2.set_xlabel(self.dos_units)
             ax2.set_ylabel("Energy (eV)")
             ax2.set_title(f"{self.dos_title}")
             ax2.legend()
@@ -220,6 +221,7 @@ class BandPlotter():
             ax1.set_xlabel("$\\vec{{k}}$")
             ax1.set_ylabel("Energy (eV)")
             ax1.set_title(f"{self.title}")
+            ax1.margins(x=self.x_margins)
             ax1.legend()
         plt.margins(x=self.x_margins)
         plt.tight_layout()
