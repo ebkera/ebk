@@ -188,7 +188,7 @@ for f in "${{folder_list[@]}}"; do\n\
     sendmail -t < email.txt\n\n\
     cp ../{SCF_DIR}/CHGCAR CHGCAR\n\
     cp ../{RELAX_DIR}/CONTCAR POSCAR\n\
-    cp ../{SCF_DIR}/POTCAR POTCAR\n\
+    cp ../{RELAX_DIR}/POTCAR POTCAR\n\
     # cp ../4_BANDS_E=0/WAVECAR WAVECAR\n\
     mpirun -np 32 vasp_ncl | tee era.out\n\
     run_end_time=$(date +%s)\n\
