@@ -22,6 +22,7 @@ class VASPReadOut():
         self.draw_band_edge_lines = False
         self.spin_orbit = None
         self.Ef = 0
+        self.consider_actual_k_distance = False  # important when we want actual K distance like when calculating electron and hole masses
         
         with open(f"{self.out_folder}/OUTCAR", "r+") as OUTCAR:
             for line in OUTCAR:
@@ -122,9 +123,14 @@ class VASPReadOut():
         for x in range(1,len(self.kpoints)):
             dist_v=[0, 0, 0]
             # Here we adjust for the actual lengths in reciprocal space
-            x_multiplier = 2*np.pi**(10)/self.A1
-            y_multiplier = 2*np.pi**(10)/self.A2
-            z_multiplier = 2*np.pi**(10)/self.A3
+            if self.consider_actual_k_distance:
+                x_multiplier = 2*np.pi**(10)/self.A1
+                y_multiplier = 2*np.pi**(10)/self.A2
+                z_multiplier = 2*np.pi**(10)/self.A3
+            else:
+                x_multiplier = 1
+                y_multiplier = 1
+                z_multiplier = 1
             for i in range(3):
                 # print (i, x)
                 dist_v[i] = self.kpoints[x][i] - self.kpoints[x-1][i]
