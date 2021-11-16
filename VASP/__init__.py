@@ -153,7 +153,7 @@ def populate_epsilon(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF"):
     shutil.copy(f"{RELAX_DIR}/CONTCAR", f"{folder_name}/POSCAR")
 
 
-def make_NSCF_calculation(folder_list, run_name="run", SCF_DIR="2_SCF", email_addresses = "ebk_era@hotmail.com"):
+def make_NSCF_calculation(folder_list, run_name="run",RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", email_addresses = "ebk_era@hotmail.com"):
     out_file = f"{run_name}.log"
     folder_list_text = ''
     for x in folder_list:
@@ -187,7 +187,7 @@ for f in "${{folder_list[@]}}"; do\n\
     echo "$mail_text" > email.txt\n\
     sendmail -t < email.txt\n\n\
     cp ../{SCF_DIR}/CHGCAR CHGCAR\n\
-    cp ../{SCF_DIR}/POSCAR POSCAR\n\
+    cp ../{RELAX_DIR}/CONTCAR POSCAR\n\
     cp ../{SCF_DIR}/POTCAR POTCAR\n\
     # cp ../4_BANDS_E=0/WAVECAR WAVECAR\n\
     mpirun -np 32 vasp_ncl | tee era.out\n\
