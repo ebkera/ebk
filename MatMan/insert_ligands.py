@@ -461,31 +461,8 @@ class Insert_ligand():
         Funtionality till now includes only inversion symmetry along teh z axis.
             What this means is that all Z>0 atoms will be rewritten so that we have inversion symmetry
         """
-        zg0 = []  # Atoms that are at z>0
-        ze0 = []  # Atoms that are at z=0
-        zl0 = []  # Atoms that are at z<0
-
-        for i,v in enumerate(self.atoms):
-            if v.position[2] > 0: zg0.append(i)
-            elif v.position[2] == 0: ze0.append(i)
-            elif v.position[2] < 0: zl0.append(i)
-
-        # print(f"zg0: {zg0}")
-        # print(f"ze0: {ze0}")
-        # print(f"zl0: {zl0}")
-        # print(len(self.atoms))
-
-        for x in zl0:
-            self.atoms.append(self.atoms[x])
-            last_atom = len(self.atoms)-1
-            for i in range(3):
-                self.atoms[last_atom].position[i] = -self.atoms[last_atom].position[i]
-
-        for x in range(len(self.atoms), -1, -1):
-            if x in zg0:
-                if x < self.sb: self.sb = self.sb - 1
-                elif x == self.sb: self.sb = "Has been deleted"
-                del self.atoms[x]
+        from ebk.MatMan import make_inversion_symmetric
+        make_inversion_symmetric(self.atoms)
 
     def update_to_relaxed_coordinates(self, relaxed_atoms):
         """
