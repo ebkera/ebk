@@ -1,5 +1,8 @@
 """This file contails some utilities to be used with SIESTA"""
 
+from ase.io import animation
+
+
 def xyz2fdf(file_name, format, lattice=False, lattice_constant=0):
     """
     This function takes a .xyz file and converts it into a fdf compliant format file
@@ -207,19 +210,24 @@ def read_struct_file(file_name):
     print(f"read_struct_file: STRUCT_OUT file imported: {atoms}")
     return atoms
 
-def get_geometrical_steps(file_name, write_png = True):
+def get_geometrical_steps(file_name:str, write_png:bool = False, animate:bool=True) -> None:
     """
     This function breaks up *.ANI (.ANI files are in xyz format) files into multiple .xyz files with subscripts.
-    file_name: (str) should be the file name of the .ANI file (or path)
+    file_name: (str) should be the file name of the .ANI file (or path) should include the .ANI
     write_png: (bool) should be True if every step is to be written to a png file.
+    animate  : (bool) Setting this to true makes .mp4 and .gif animations
     """
     from ase.io import read, write
+    from ase.io.animation import write_gif, write_mp4
     filename_parts = file_name.split(".")
     # Check to see if it is a .ANI file, not completed
     del filename_parts[-1]
     filename_pre = ".".join(filename_parts)
     from ase.io import read
     file_number = 0
+    atom_images_z = []
+    atom_images_x = []
+    atom_images_y = []
     with open(file_name, "r+") as file:
         for line in file:
             len_of_line = len(line.split())
@@ -233,14 +241,22 @@ def get_geometrical_steps(file_name, write_png = True):
                         write(f"{filename_pre}.x{file_number}.png", atoms)
                         atoms.rotate([0,1,0], [0,0,1])
                         write(f"{filename_pre}.y{file_number}.png", atoms)
+                    if animate:
+                        atoms = read(f"{filename_pre}.{file_number}.xyz")
+                        atom_images_z.append(atoms)
+                        atoms.edit()
+                        atoms.rotate([1,0,0], [0,0,1])
+                        atom_images_x.append(atoms)
+                        atoms.edit()
+                        atoms.rotate([0,1,0], [0,0,1])
+                        atom_images_y.append(atoms)
                 except:
                     pass
                 file_number+=1
-                # atoms = read(f"{filename_pre}.{file_number}.xyz")
-                # write(f"{filename_pre}.{file_number}.png")
                 file_to_write = open(f"{filename_pre}.{file_number}.xyz", "w+")
             file_to_write.write(line)
         file_to_write.close()
+        print(f"Number of Frames: {len(atom_images_y)}")
         if write_png:
             atoms = read(f"{filename_pre}.{file_number}.xyz")
             write(f"{filename_pre}.z{file_number}.png", atoms)
@@ -248,3 +264,12 @@ def get_geometrical_steps(file_name, write_png = True):
             write(f"{filename_pre}.x{file_number}.png", atoms)
             atoms.rotate([0,1,0], [0,0,1])
             write(f"{filename_pre}.y{file_number}.png", atoms)
+        if animate:
+            print(f"making mp4 animations")
+            write_mp4(f"{filename_pre}.z.mp4", atom_images_z)
+            write_mp4(f"{filename_pre}.x.mp4", atom_images_x)
+            write_mp4(f"{filename_pre}.y.mp4", atom_images_y)
+            print(f"Making gif animations")
+            write_gif(f"{filename_pre}.z.gif", atom_images_z)
+            write_gif(f"{filename_pre}.x.gif", atom_images_x)
+            write_gif(f"{filename_pre}.y.gif", atom_images_y)
