@@ -1,8 +1,5 @@
 """This file contails some utilities to be used with SIESTA"""
 
-from ase.io import animation
-
-
 def xyz2fdf(file_name, format, lattice=False, lattice_constant=0):
     """
     This function takes a .xyz file and converts it into a fdf compliant format file
@@ -219,6 +216,7 @@ def get_geometrical_steps(file_name:str, write_png:bool = False, animate:bool=Tr
     """
     from ase.io import read, write
     from ase.io.animation import write_gif, write_mp4
+
     filename_parts = file_name.split(".")
     # Check to see if it is a .ANI file, not completed
     del filename_parts[-1]
