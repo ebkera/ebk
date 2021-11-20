@@ -242,12 +242,12 @@ def get_geometrical_steps(file_name:str, write_png:bool = False, animate:bool=Tr
                     if animate:
                         atoms = read(f"{filename_pre}.{file_number}.xyz")
                         atom_images_z.append(atoms)
-                        atoms.edit()
-                        atoms.rotate([1,0,0], [0,0,1])
-                        atom_images_x.append(atoms)
-                        atoms.edit()
-                        atoms.rotate([0,1,0], [0,0,1])
-                        atom_images_y.append(atoms)
+                        atomsx = atoms.copy()
+                        atomsx.rotate([1,0,0], [0,0,1])
+                        atom_images_x.append(atomsx)
+                        atomsy = atomsx.copy()
+                        atomsy.rotate([0,1,0], [0,0,1])
+                        atom_images_y.append(atomsy)
                 except:
                     pass
                 file_number+=1
@@ -263,11 +263,11 @@ def get_geometrical_steps(file_name:str, write_png:bool = False, animate:bool=Tr
             atoms.rotate([0,1,0], [0,0,1])
             write(f"{filename_pre}.y{file_number}.png", atoms)
         if animate:
-            print(f"making mp4 animations")
+            print(f"Making mp4 animations...")
             write_mp4(f"{filename_pre}.z.mp4", atom_images_z)
             write_mp4(f"{filename_pre}.x.mp4", atom_images_x)
             write_mp4(f"{filename_pre}.y.mp4", atom_images_y)
-            print(f"Making gif animations")
+            print(f"Making gif animations...")
             write_gif(f"{filename_pre}.z.gif", atom_images_z)
             write_gif(f"{filename_pre}.x.gif", atom_images_x)
             write_gif(f"{filename_pre}.y.gif", atom_images_y)
