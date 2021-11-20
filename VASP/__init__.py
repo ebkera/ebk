@@ -187,10 +187,14 @@ for f in "${{folder_list[@]}}"; do\n\
     echo "$mail_text" > email.txt\n\
     sendmail -t < email.txt\n\n\
     cp ../{SCF_DIR}/CHGCAR CHGCAR\n\
-    cp ../{RELAX_DIR}/CONTCAR POSCAR\n\
+    FILE=POSCAR\n\
+    if [ ! -f "$FILE" ]; then\n\
+        cp ../{RELAX_DIR}/CONTCAR POSCAR\n\
+    fi\n\
     cp ../{RELAX_DIR}/POTCAR POTCAR\n\
+    cp ../{RELAX_DIR}/vdw_kernel.bindat vdw_kernel.bindat\n\
     # cp ../4_BANDS_E=0/WAVECAR WAVECAR\n\
-    mpirun -np 32 vasp_ncl | tee era.out\n\
+    mpirun -np 28 vasp_ncl | tee era.out\n\
     run_end_time=$(date +%s)\n\
     elapsed_run_time=$(( run_end_time - run_start_time ))\n\
     mail_text="${{email_header}} Calculation in folder $f has ended on $(date). Wall_time: $elapsed_run_time s. ${{email_footer}}"\n\
