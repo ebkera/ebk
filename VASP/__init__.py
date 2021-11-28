@@ -285,6 +285,7 @@ Monkhorst Pack\n\
  15 15 1\n\
  0. 0. 0.\n\
  "
+    return content
 
 def get_dos_KPOINTS():
     content = f"Automatic Mesh\n\
