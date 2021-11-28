@@ -148,6 +148,8 @@ class BandPlotter():
         self.x_margins = 0
         # self.xlim_low = 0
         # self.xlim_high = 0
+        self.plt_width = 16
+        self.plt_height = 8
         self.saveas_extension = "pdf"
 
     def plot(self):
@@ -156,7 +158,7 @@ class BandPlotter():
         |Inputs: None
         """
         # Setting the dimensions of the saved image
-        plt.rcParams["figure.figsize"] = (16,8)
+        plt.rcParams["figure.figsize"] = (self.plt_width,self.plt_height)
         if self.include_dos:
             # fig, (ax1, ax2) = plt.subplots(1,2)
             gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1])
