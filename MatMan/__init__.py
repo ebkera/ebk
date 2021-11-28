@@ -48,6 +48,9 @@ def find_cell(atoms, a0, slab_atoms_species="Sn", **kwargs):
     # Have not used the get_extreme_coordinates method since it might pick up ligand atoms (non slab atoms)
     max_z = 0
     min_z = 1000000 
+    x_mf = kwargs.get("x_multiplication_factor", 1)
+    y_mf = kwargs.get("y_multiplication_factor", 1)
+    z_mf = kwargs.get("z_multiplication_factor", 1)
 
     for atom in atoms:
         if atom.symbol == slab_atoms_species:
@@ -67,9 +70,18 @@ def find_cell(atoms, a0, slab_atoms_species="Sn", **kwargs):
     y_spill_over = atoms[max_z_atom_index].position[1] - atoms[min_z_atom_index].position[1] + a0/4
 
     # These are the cell vectors
-    x_cell = (a0, 0, 0)
-    y_cell = (0, a0, 0)
+    # Original for slabs going as 1 UC 
+    x_cell = (a0*x_mf, 0, 0)
+    y_cell = (0, a0*y_mf, 0)
+
+    # x_cell = (a0*x_mf, a0*y_mf, 0)
+    # y_cell = (0, a0*y_mf, 0)
+    # x_cell = (0, a0*y_mf, a0*z_mf)
+    # y_cell = (a0*x_mf,0, a0*z_mf)
+    # x_cell = (0, a0*y_mf, 0)
+    # y_cell = (a0*x_mf,0, 0)
     z_cell = (x_spill_over, y_spill_over, z_length + a0/4)  # Here we have to add a0/4 since there is no information on that.
+    # z_cell = (x_spill_over*x_mf, y_spill_over*y_mf, z_length + a0/4)  # Here we have to add a0/4 since there is no information on that.
 
     cell = [x_cell, y_cell, z_cell]
     atoms.set_cell(cell)
