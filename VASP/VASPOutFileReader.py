@@ -61,7 +61,7 @@ class VASPReadOut():
                 #     # print(k2)
 
                 # print(line)  # Left here for debugging 
-                if 'k-point' in line and len(line.split()) == 6:
+                if 'k-point' in line and len(line.split()) == 6 and "Found" not in line:
                     # print(line)
                     k = line.split()
                     current_kpoint = int(k[1])
