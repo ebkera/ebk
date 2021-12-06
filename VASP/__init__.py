@@ -153,7 +153,7 @@ def populate_epsilon(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF"):
     shutil.copy(f"{RELAX_DIR}/CONTCAR", f"{folder_name}/POSCAR")
 
 
-def make_NSCF_calculation(folder_list, run_name="run",RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", email_addresses = "ebk_era@hotmail.com"):
+def make_NSCF_calculation(folder_list, run_name="run",RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", email_addresses = "ebk_era@hotmail.com", np = 4):
     out_file = f"{run_name}.log"
     folder_list_text = ''
     for x in folder_list:
@@ -194,7 +194,7 @@ for f in "${{folder_list[@]}}"; do\n\
     cp ../{RELAX_DIR}/POTCAR POTCAR\n\
     cp ../{RELAX_DIR}/vdw_kernel.bindat vdw_kernel.bindat\n\
     # cp ../4_BANDS_E=0/WAVECAR WAVECAR\n\
-    mpirun -np 28 vasp_ncl | tee era.out\n\
+    mpirun -np {np} vasp_ncl | tee era.out\n\
     run_end_time=$(date +%s)\n\
     elapsed_run_time=$(( run_end_time - run_start_time ))\n\
     mail_text="${{email_header}} Calculation in folder $f has ended on $(date). Wall_time: $elapsed_run_time s. ${{email_footer}}"\n\
@@ -346,8 +346,67 @@ def get_scf_INCAR():
   NCORE   = 4         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
 #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
 #  KPAR   = 2        # make 4 groups, each group working on one set of k-points \n\
-#  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run. "
-	
+#  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run. \n\
+\n\
+# Hybrid Functionals arguments here\n\
+# HSE06\n\
+LHFCALC  = .TRUE.\n\
+HFSCREEN = 0.2 \n\
+GGA = PE \n\
+\n\
+# HSE03 \n\
+LHFCALC  = .TRUE. \n\
+HFSCREEN = 0.3 \n\
+GGA = PE \n\
+\n\
+# PBE0 \n\
+LHFCALC = .TRUE. \n\
+GGA = PE \n\
+\n\
+# vdW-DF2 type runs\n\
+# vdW-DF of Dion et al \n\
+GGA = RE\n\
+LUSE_VDW = .TRUE.\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+  \n\
+# optPBE\n\
+GGA = OR\n\
+LUSE_VDW = .TRUE.\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+\n\
+# optB86b-vdW\n\
+GGA = MK \n\
+PARAM1 = 0.1234 \n\
+PARAM2 = 1.0000\n\
+LUSE_VDW = .TRUE.\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+\n\
+# rev-vdW-DF2\n\
+GGA      = MK\n\
+LUSE_VDW = .TRUE.\n\
+PARAM1   = 0.1234\n\
+PARAM2   = 0.711357\n\
+Zab_vdW  = -1.8867\n\
+AGGAC    = 0.0000\n\
+LASPH = .TRUE.\n\
+\n\
+# SCAN + rVV10 functional of Peng et al.\n\
+METAGGA  = SCAN\n\
+LUSE_VDW = .TRUE.\n\
+BPARAM = 6.3     # default but can be overwritten by this tag\n\
+CPARAM = 0.0093  # default but can be overwritten by this tag\n\
+LASPH = .TRUE.\n\
+\n\
+# vdW-DF2\n\
+GGA = ML\n\
+LUSE_VDW = .TRUE.\n\
+Zab_vdW = -1.8867\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+"
     # print(content)
     return content
 
@@ -466,7 +525,67 @@ def get_bands_INCAR(**kwargs):
   NCORE   = 4         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
 #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
 #  KPAR   = 2        # make 4 groups, each group working on one set of k-points\n\
-#  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run. "
+#  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run. \n\
+\n\
+# Hybrid Functionals arguments here\n\
+# HSE06\n\
+LHFCALC  = .TRUE.\n\
+HFSCREEN = 0.2 \n\
+GGA = PE \n\
+\n\
+# HSE03 \n\
+LHFCALC  = .TRUE. \n\
+HFSCREEN = 0.3 \n\
+GGA = PE \n\
+\n\
+# PBE0 \n\
+LHFCALC = .TRUE. \n\
+GGA = PE \n\
+\n\
+# vdW-DF2 type runs\n\
+# vdW-DF of Dion et al \n\
+GGA = RE\n\
+LUSE_VDW = .TRUE.\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+  \n\
+# optPBE\n\
+GGA = OR\n\
+LUSE_VDW = .TRUE.\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+\n\
+# optB86b-vdW\n\
+GGA = MK \n\
+PARAM1 = 0.1234 \n\
+PARAM2 = 1.0000\n\
+LUSE_VDW = .TRUE.\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+\n\
+# rev-vdW-DF2\n\
+GGA      = MK\n\
+LUSE_VDW = .TRUE.\n\
+PARAM1   = 0.1234\n\
+PARAM2   = 0.711357\n\
+Zab_vdW  = -1.8867\n\
+AGGAC    = 0.0000\n\
+LASPH = .TRUE.\n\
+\n\
+# SCAN + rVV10 functional of Peng et al.\n\
+METAGGA  = SCAN\n\
+LUSE_VDW = .TRUE.\n\
+BPARAM = 6.3     # default but can be overwritten by this tag\n\
+CPARAM = 0.0093  # default but can be overwritten by this tag\n\
+LASPH = .TRUE.\n\
+\n\
+# vdW-DF2\n\
+GGA = ML\n\
+LUSE_VDW = .TRUE.\n\
+Zab_vdW = -1.8867\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+"    
     return content
         
 def get_dos_INCAR(**kwargs):
@@ -525,5 +644,66 @@ def get_dos_INCAR(**kwargs):
   NCORE   = 4         # one orbital handled by 4 cores recommened: 4-SQRT(number of cores)\n\
 #  LREAL  = A        # real space projection; slightly less accurate but faster \n\
 #  KPAR   = 2        # make 4 groups, each group working on one set of k-points\n\
-#  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run. "
+#  LWAVE = .FALSE.   # (Default: .TRUE.) LWAVE determines whether the wavefunctions are written to the WAVECAR file at the end of a run.\n\
+\n\
+# Hybrid Functionals arguments here\n\
+# HSE06\n\
+LHFCALC  = .TRUE.\n\
+HFSCREEN = 0.2 \n\
+GGA = PE \n\
+\n\
+# HSE03 \n\
+LHFCALC  = .TRUE. \n\
+HFSCREEN = 0.3 \n\
+GGA = PE \n\
+\n\
+# PBE0 \n\
+LHFCALC = .TRUE. \n\
+GGA = PE \n\
+\n\
+# vdW-DF2 type runs\n\
+# vdW-DF of Dion et al \n\
+GGA = RE\n\
+LUSE_VDW = .TRUE.\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+  \n\
+# optPBE\n\
+GGA = OR\n\
+LUSE_VDW = .TRUE.\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+\n\
+# optB86b-vdW\n\
+GGA = MK \n\
+PARAM1 = 0.1234 \n\
+PARAM2 = 1.0000\n\
+LUSE_VDW = .TRUE.\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+\n\
+# rev-vdW-DF2\n\
+GGA      = MK\n\
+LUSE_VDW = .TRUE.\n\
+PARAM1   = 0.1234\n\
+PARAM2   = 0.711357\n\
+Zab_vdW  = -1.8867\n\
+AGGAC    = 0.0000\n\
+LASPH = .TRUE.\n\
+\n\
+# SCAN + rVV10 functional of Peng et al.\n\
+METAGGA  = SCAN\n\
+LUSE_VDW = .TRUE.\n\
+BPARAM = 6.3     # default but can be overwritten by this tag\n\
+CPARAM = 0.0093  # default but can be overwritten by this tag\n\
+LASPH = .TRUE.\n\
+\n\
+# vdW-DF2\n\
+GGA = ML\n\
+LUSE_VDW = .TRUE.\n\
+Zab_vdW = -1.8867\n\
+AGGAC = 0.0000\n\
+LASPH = .TRUE.\n\
+"
+
     return content
