@@ -2,6 +2,7 @@
 This file reads the the file system_label.out and extracts/calculates data/values from it
 """
 from os import P_WAIT, kill
+from types import coroutine
 from ebk.BandPlotter import BandPlotter 
 import numpy as np
 
@@ -23,6 +24,8 @@ class VASPReadOut():
         self.spin_orbit = None
         self.Ef = 0
         self.consider_actual_k_distance = False  # important when we want actual K distance like when calculating electron and hole masses
+        self.kpoints_read_from = kwargs.get("kpoints_read_from", 1)  # This is when you want to ignore some of the first k points for exxample in a HSE calculation grid k points not requried for band structure calculations
+        self.reset_k_dist = kwargs.get("reset_k_dist", [])   # This is when there is a discontinuity in the K path like U|K
         
         with open(f"{self.out_folder}/OUTCAR", "r+") as OUTCAR:
             for line in OUTCAR:
@@ -61,10 +64,11 @@ class VASPReadOut():
                 #     # print(k2)
 
                 # print(line)  # Left here for debugging 
-                if 'k-point' in line and len(line.split()) == 6 and "Found" not in line:
+                if 'k-point' in line and len(line.split()) == 6 and "Found" not in line  and "KPOINTS" not in line:
                     # print(line)
                     k = line.split()
                     current_kpoint = int(k[1])
+                    if current_kpoint< self.kpoints_read_from : continue
                     k2 = [float(k[3]),float(k[4]),float(k[5])]
                     self.kpoints.append(k2)
                     # print(k2)
@@ -76,7 +80,7 @@ class VASPReadOut():
                     # E_fermi = 0
                     # print(E_fermi)
 
-                if " k-point     1 " in line:
+                if f" k-point     {self.kpoints_read_from} " in line:
                     # print(line)
                     trigger = True
                     soft_trigger = True
@@ -119,6 +123,7 @@ class VASPReadOut():
                             self.lowest_conduction[0] = current_kpoint - 1
                             self.conduction_band_label_index = band_label
                             # print(E)
+               
 
         for x in range(1,len(self.kpoints)):
             dist_v=[0, 0, 0]
@@ -127,6 +132,11 @@ class VASPReadOut():
                 x_multiplier = 2*np.pi**(10)/self.A1
                 y_multiplier = 2*np.pi**(10)/self.A2
                 z_multiplier = 2*np.pi**(10)/self.A3
+            elif x+1 in self.reset_k_dist:  # If there is a discontinuity in the k path
+                # print(x,"multi0")
+                x_multiplier = 0
+                y_multiplier = 0
+                z_multiplier = 0
             else:
                 x_multiplier = 1
                 y_multiplier = 1
@@ -161,7 +171,7 @@ class VASPReadOut():
                     self.hss.append(hss)
 
                     for i,v in enumerate(self.hss):
-                        if v.lower() == "gamma":
+                        if v.lower() == "gamma" or v.lower() == "g":
                             self.hss[i] = "$\Gamma$"
             self.hsp.append(self.k_dist[0])
 
