@@ -23,6 +23,8 @@ class VASPReadOut():
         self.draw_band_edge_lines = False
         self.spin_orbit = None
         self.Ef = 0
+        self.E_tot = 0
+        self.E_tot_with_entropy = 0
         self.consider_actual_k_distance = False  # important when we want actual K distance like when calculating electron and hole masses
         self.kpoints_read_from = kwargs.get("kpoints_read_from", 1)  # This is when you want to ignore some of the first k points for exxample in a HSE calculation grid k points not requried for band structure calculations
         self.reset_k_dist = kwargs.get("reset_k_dist", [])   # This is when there is a discontinuity in the K path like U|K
@@ -79,6 +81,14 @@ class VASPReadOut():
                     self.Ef = E_fermi
                     # E_fermi = 0
                     # print(E_fermi)
+                    
+                if 'TOTEN  =' in line:
+                    k = line.split()
+                    self.E_tot_with_entropy = float(k[4])
+                    
+                if 'energy  without entropy=' in line:
+                    k = line.split()
+                    self.E_tot = float(k[3])
 
                 if f" k-point     {self.kpoints_read_from} " in line:
                     # print(line)
@@ -220,6 +230,12 @@ class VASPReadOut():
 
     def get_lowest_conduction_band_energy(self):
         return self.lowest_conduction[1]
+
+    def get_total_energy(self):
+        return self.E_tot
+
+    def get_total_energy_without_entropy(self):
+        return self.E_tot_with_entropy
 
     def get_band_structure(self, file_name = None):
         """
