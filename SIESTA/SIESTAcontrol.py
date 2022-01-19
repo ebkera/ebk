@@ -13,6 +13,7 @@ atomic_numbers.update({"N": 7})
 atomic_numbers.update({"O": 8})
 atomic_numbers.update({"F": 9})
 atomic_numbers.update({"S": 16})
+atomic_numbers.update({"Pd": 46})
 atomic_numbers.update({"Sn": 50})
 # Ghost atoms:
 atomic_numbers.update({"H_g": -1})
@@ -21,6 +22,7 @@ atomic_numbers.update({"N_g": -7})
 atomic_numbers.update({"O_g": -8})
 atomic_numbers.update({"F_g": -9})
 atomic_numbers.update({"S_g": -16})
+atomic_numbers.update({"Pd_g": -46})
 atomic_numbers.update({"Sn_g": -50})
 
 class Generatefdf:
@@ -64,12 +66,14 @@ class Generatefdf:
         self.MD_Broyden_History_Steps = kwargs.get("MD_Broyden_History_Steps", 5) # Default value is 5 but set so that we remember this option
         self.MD_Steps              =kwargs.get("MD_Steps", 300)
         self.MD_MaxForceTol        =kwargs.get("MD_MaxForceTol", 0.04)  # in eV/Ang
+        self.MD_VariableCell        =kwargs.get("MD_VariableCell", False)
         self.Spin                  = kwargs.get("Spin", False)  # can be spin-orbit
         self.SO_strength           = kwargs.get("SO_strength", 1)
         self.include_H_in_block    = kwargs.get("include_H_in_block", False)
         self.ElectronicTemperature = kwargs.get("ElectronicTemperature", False)
         self.constrain_centre_atom = kwargs.get("constrain_centre_atom", False)  # for when doing dots we can have the central atom fixed.
         self.constrain_atom_list   = kwargs.get("constrain_atom_list", False)
+        self.constrain_cell_vectors = kwargs.get("constrain_cell_vectors", False)
         self.UseStructFile         = kwargs.get("UseStructFile", False)
         self.NetCharge             = kwargs.get("NetCharge", None)
         # Here we have all inputs for Denchar specifically
@@ -105,6 +109,7 @@ class Generatefdf:
         with open(f"{self.SystemLabel}.fdf", "w+") as fdf_file:
             fdf_file.write(f"# -----------------------------------------------------------------------------\n")
             fdf_file.write(f"# FDF file written on:  {datetime.now()}\n")
+            # fdf_file.write(f"# සිංහල ජනතාව\n")
             fdf_file.write(f"# Description:  {self.description}\n")
             fdf_file.write(f"# Zincblende Sn I (alpha, grey)\n")
             fdf_file.write(f"# space group:  Fd3m\n")
@@ -233,16 +238,6 @@ class Generatefdf:
                     fdf_file.write(f"  1.000  1.000\n")
                 fdf_file.write(f"%endblock PAO.Basis\n\n")
 
-            if self.constrain_centre_atom and self.MD or self.constrain_atom_list and self.MD:
-                if self.constrain_centre_atom:
-                    fdf_file.write(f"%block Geometry.Constraints\n")
-                    fdf_file.write(f"atom 1\n")
-                    fdf_file.write(f"%endblock Geometry.Constraints\n")
-                elif self.constrain_atom_list:
-                    fdf_file.write(f"%block Geometry.Constraints\n")
-                    for x in self.constrain_atom_list:
-                        fdf_file.write(f"atom {x}\n")    # Here atom numbers start from 1
-                    fdf_file.write(f"%endblock Geometry.Constraints\n")
 
             if self.bands_block:
                 fdf_file.write(f"\n# Band lines path\n")
@@ -284,24 +279,38 @@ class Generatefdf:
                 fdf_file.write(f"MD.TypeOfRun                {self.MD_TypeOfRun}\t\t\t\t\t\t # default: CG\n")
                 if self.MD_TypeOfRun == "Broyden":
                     fdf_file.write(f"MD.Broyden.History.Steps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t # default: 5\n")
-                fdf_file.write(f"MD.Steps                    {self.MD_Steps}    \t\t\t\t\t # default: 0\n")
-                fdf_file.write(f"MD.MaxForceTol              {self.MD_MaxForceTol} eV/Ang\t\t\t\t\t # default: 0.04eV/Ang\n")
+                fdf_file.write(f"MD.Steps                    {self.MD_Steps}    \t\t\t\t # default: 0\n")
+                fdf_file.write(f"MD.MaxForceTol              {self.MD_MaxForceTol} eV/Ang\t\t # default: 0.04eV/Ang\n")
+                if self.MD_VariableCell:
+                    fdf_file.write("MD.VariableCell             true\n")
                 if self.WriteMDHistory:
                     fdf_file.write("WriteMDHistory              true\n")
 
+                if self.constrain_centre_atom or self.constrain_atom_list or self.constrain_cell_vectors:
+                    fdf_file.write(f"%block Geometry.Constraints\n")
+                    if self.constrain_centre_atom:
+                        fdf_file.write(f"atom 1\n")
+                    elif self.constrain_atom_list:
+                        for x in self.constrain_atom_list:
+                            fdf_file.write(f"atom {x}\n")    # Here atom numbers start from 1
+                    if self.constrain_cell_vectors != []:
+                        for v in self.constrain_cell_vectors:
+                            fdf_file.write(f"cell-vector {v}\n")    # Should be A/B/C and the vecoros have to be in the form: 100 or 010 or 001 to be considered
+                    fdf_file.write(f"%endblock Geometry.Constraints\n")
+
             fdf_file.write(f"\n# Convergence settings\n")
             fdf_file.write(f"SCF.MustConverge            false\n")
-            fdf_file.write(f"Write.DM                    true\n  # encouraged to have this flag true in case we have to restart or for post processing\n")
-            if self.UseStructFile == True:
-                fdf_file.write(f"UseStructFile              true\n")
             if self.NetCharge != None:
                 fdf_file.write(f"NetCharge                   {self.NetCharge}\n")
             if self.MaxSCFIterations: 
                 fdf_file.write(f"MaxSCFIterations            {self.MaxSCFIterations}\n")
 
             fdf_file.write(f"\n# IO settings\n")
+            if self.UseStructFile == True:
+                fdf_file.write(f"UseStructFile              true\n")
             fdf_file.write(f"SaveTotalPotential          true\n")
             fdf_file.write(f"SaveElectrostaticPotential  true\n")
+            fdf_file.write(f"Write.DM                    true\n  # encouraged to have this flag true in case we have to restart or for post processing\n")
             if self.WriteForces:
                 fdf_file.write("WriteForces                 true\n")
             if self.Write_Denchar:
