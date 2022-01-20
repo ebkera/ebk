@@ -339,8 +339,8 @@ class RunScriptHandler():
         for x in self.SIESTA_inputs["Species"]:
             y = x.split("_")[0]
             # Here we copy the required PP files. Ideally this can be pulled from the net but we need to work offline. Use git to control the content and use ebk.get_achine_paths()
-            if y == "Sn":
-                shutil.copy(f"{paths['pps']}/_{self.SIESTA_inputs['XC_Functional']}_their/{y}.psf", f'./{self.base_folder}/{run_name}/{x}.psf')
+            if y == "Sn" or y == "Pd" or y=="Se":
+                shutil.copy(f"{paths['pps']}/_{self.SIESTA_inputs['XC_Functional']}_rivero/{y}.psf", f'./{self.base_folder}/{run_name}/{x}.psf')
             else:
                 shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/{y}.psf", f'./{self.base_folder}/{run_name}/{x}.psf')
 
@@ -720,12 +720,13 @@ class RunScriptHandler():
         bash_file = open(f"{self.base_folder}/run_{self.identifier}.sh", "w+")
         bash_file.write(f"#!/bin/bash\n\n")
 
+        bash_file.write(f'script_start_time=$(date +%s)\n')
         bash_file.write(f'echo "Start of log" > run.log\n')
         bash_file.write(f'echo "" >> run.log\n')
         bash_file.write(f"dir_list=(")
         for x in self.all_runs_list:
             bash_file.write(f" {x}")
-        bash_file.write(")\n")
+        bash_file.write(" )\n")
         bash_file.write(f'echo "List of folders to run" >> run.log\n')
         bash_file.write('for f in "${dir_list[@]}"; do\n')
         bash_file.write(f'  echo "$f" >> run.log\n')
@@ -736,19 +737,28 @@ class RunScriptHandler():
         bash_file.write(f"\n")
         bash_file.write(f'email_footer="\n\nOther Details\n--------------\n"\n')
         bash_file.write(f'email_footer="$email_footer Machine: $HOSTNAME\n"\n')
-        bash_file.write(f'email_footer="$email_footer Solver   : {self.calculator}\n\nAutomated Message\n"\n')
+        bash_file.write(f'email_footer="$email_footer Solver   : {self.calculator}\n"\n')
+        bash_file.write(f'email_footer="$email_footer Work Dir : $(pwd)\n\nAutomated Message\n"\n')
         bash_file.write('for dir in "${dir_list[@]}"\n')
         bash_file.write(f"do\n")
         bash_file.write(f'  cd $dir\n')
         bash_file.write(f'  echo "Now working on: $f ... $(date)" >> ../run.log\n')
         bash_file.write(f'  dos2unix *job\n')
 
-        if self.job_handler == "torque":
-            bash_file.write(f'  qsub *job\n')
-        elif self.job_handler == "slurm":
-            bash_file.write(f'  sbatch *job\n')
-        elif self.job_handler == "era_pc":
-            bash_file.write(f'  . *job\n')
+        if self.calculator == "SIESTA":
+            bash_file.write(f'  run_start_time=$(date +%s)\n')
+            bash_file.write(f'  echo "  Now working on: $f $(date)" >> ../run.log\n')
+            bash_file.write(r'  mail_text="${email_header} SIESTA calculation in folder $f has started on $(date).${email_footer}"')
+            bash_file.write(f"\n")
+            bash_file.write(r'  echo "$mail_text" > email.txt')
+            bash_file.write(f"\n")
+            bash_file.write(f"  sendmail -t < email.txt\n")
+            bash_file.write(f'  mpirun -np {self.nodes*self.procs} siesta -in {self.identifier}.fdf | tee {self.identifier}.out\n')
+            bash_file.write(f'  run_end_time=$(date +%s)\n')
+            bash_file.write(f'  elapsed_run_time=$(( run_end_time - run_start_time ))\n')
+            bash_file.write(f'  mail_text="${{email_header}} Calculation in folder $f has ended on $(date). Wall_time: $elapsed_run_time s. ${{email_footer}}"\n')
+            bash_file.write(f'  echo "$mail_text" > email_end.txt\n')
+            bash_file.write(f'  sendmail -t < email_end.txt\n\n')
         else:
             if "scf" in self.calculation or "vc-relax" in self.calculation or "relax" in self.calculation:
                 bash_file.write(f'  echo "  Now working on: scf $(date)" >> ../run.log\n')

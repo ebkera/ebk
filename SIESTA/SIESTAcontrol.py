@@ -52,8 +52,8 @@ class Generatefdf:
         self.PDOS                  = kwargs.get("PDOS", True)
         self.LDOS                  = kwargs.get("LDOS", False)
         self.PDOS_MPGrid           = kwargs.get("PDOS_MPGrid", [31, 31, 31])
-        self.PAO_EnergyShift       = kwargs.get("PAO_EnergyShift", 0.001)
-        self.PAO_SplitNorm         = kwargs.get("PAO_SplitNorm", 0.001)
+        self.PAO_EnergyShift       = kwargs.get("PAO_EnergyShift", None)
+        self.PAO_SplitNorm         = kwargs.get("PAO_SplitNorm", None)
         self.SCF_Mix               = kwargs.get("SCF_Mix", "Hamiltonian")
         self.SCF_Mixer_Weight      = kwargs.get("SCF_Mixer_Weight", 0.01)
         self.SCF_Mixer_History     = kwargs.get("SCF_Mixer_History", 8)
@@ -78,6 +78,7 @@ class Generatefdf:
         self.constrain_cell_vectors = kwargs.get("constrain_cell_vectors", False)
         self.UseStructFile         = kwargs.get("UseStructFile", False)
         self.NetCharge             = kwargs.get("NetCharge", None)
+        self.bands                 = kwargs.get("bands", False)
         # Here we have all inputs for Denchar specifically
         self.Write_Denchar         = kwargs.get("Write.Denchar", False)  # This will be in the siesta fdf
         self.WriteWaveFunctions    = kwargs.get("WriteWaveFunctions", False)  # This will be in the siesta fdf
@@ -193,9 +194,11 @@ class Generatefdf:
             # This way we can have H to not be forced to some value we set and have it free
                 fdf_file.write(f"# Basis set optimization\n")
                 fdf_file.write(f"PAO.BasisSize               DZP\n")
-                fdf_file.write(f"PAO.EnergyShift             {self.PAO_EnergyShift} Ry\t\t\t\t\t# Range of first zeta (A standard for orbital-confining cutoff radii)\n")
+                if self.PAO_EnergyShift:
+                    fdf_file.write(f"PAO.EnergyShift             {self.PAO_EnergyShift} Ry\t\t\t\t\t# Range of first zeta (A standard for orbital-confining cutoff radii)\n")
                 fdf_file.write(f"PAO.BasisType               SPLIT    \t\t\t\t\t# Split Valance\n")
-                fdf_file.write(f"PAO.SplitNorm               {self.PAO_SplitNorm}    \t\t\t\t\t# Range of second-zeta\n\n")
+                if self.PAO_SplitNorm:
+                    fdf_file.write(f"PAO.SplitNorm               {self.PAO_SplitNorm}    \t\t\t\t\t# Range of second-zeta\n\n")
             if self.PAO_define == "block":
                 fdf_file.write(f"%block PAO.Basis                 # Define Basis set\n")
                 # if self.XC_Functional == "LDA":
@@ -325,6 +328,18 @@ class Generatefdf:
                 fdf_file.write("%block WaveFuncKPoints\n")
                 fdf_file.write("0.0 0.0 0.0 \t\t\t\t\t # If you want only specific EF per k point: 0.0 0.0 0.0 from 30 to 70\n")
                 fdf_file.write("%endblock WaveFuncKPoints\n")
+
+            if self.bands:
+                    fdf_file.write(f"\n# Band structure parameters\n")
+                    fdf_file.write("BandLinesScale ReciprocalLatticeVectors\n")
+                    fdf_file.write("%block BandLines\n")
+                    fdf_file.write(" 1 0.3800000000   0.5000000000   0.0000000000     M \n")
+                    fdf_file.write("40 0.0000000000   0.0000000000   0.0000000000     \GAMMA\n")
+                    fdf_file.write("40 0.5000000000   0.0000000000   0.0000000000     X \n")
+                    fdf_file.write("40 0.5000000000   0.5000000000   0.0000000000     S \n")
+                    fdf_file.write("40 0.0000000000   0.5000000000   0.0000000000     Y \n")
+                    fdf_file.write("40 0.0000000000   0.0000000000   0.0000000000     \GAMMA \n")
+                    fdf_file.write("%endblock BandLines\n")
                         
                 # fdf_file.write(f"MD.MaxForceTol         0.04\n")
                 # fdf_file.write(f"MD.VariableCell        T\n")  # Is false by default.

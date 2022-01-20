@@ -48,11 +48,15 @@ class Insert_ligand():
         # print(f"atom1: {atom1}")
         # print(f"atom2: {atom2}")
         if axis == [0,0,1]:
+            x = atom2[0]-atom2[1]
             y = atom2[1]-atom1[1]
             z = atom2[2]-atom1[2]
+            # old method still might be used by some codes
             theta_radians = np.arctan(y/z)
             theta = theta_radians*360/(2*np.pi)
             self.atoms.rotate(theta, 'x')
+
+            # self.atoms.rotate((x,y,z),axis)
 
     def make_centre(self, atom1, atom2):
         """Centres the ligand at the bisector of the two atoms."""
@@ -181,7 +185,7 @@ class Insert_ligand():
         self.make_centre(center_atom1, center_atom2)
         return slab_only, ligand_only
 
-    def attach_to_slab_Qunfei_dense(self, slab, sb, sp, lb, lp, center_atom1, center_atom2, bond_length = 0, retain_passivation_atoms = False):
+    def attach_to_slab_Qunfei_dense(self, slab, sb, sp, lb, lp, center_atom1, center_atom2, bond_length = 0, retain_passivation_atoms = False, retain_ligand_passivant_atom = False, dense=False):
         """
         Attaches the ligand : 
             if retain_passivation_atoms : by retaining the passivation atoms on the slab and ligand. (for use as ghost atoms)
@@ -212,7 +216,7 @@ class Insert_ligand():
             Vlp[i] = self.atoms[lp].position[i] - self.atoms[lb].position[i]
         # self.edit()
         # self.atoms.rotate(Vlp, Vsp, center = self.atoms[lb].position)
-        self.atoms.rotate(-25, [0,0,1])
+        # self.atoms.rotate(-25, [0,0,1])  # Remove this when doing the acenes ligands
         diff_vec = [0, 0, 0]
         delta_x = 0
         delta_y = 0
@@ -232,14 +236,19 @@ class Insert_ligand():
         for i in range(3):
             diff_vec_2ndligand[i] = slab[sp-2].position[i] - self.atoms[lb].position[i]
         if not retain_passivation_atoms:
-            del slab[sp+1]
-            del slab[sp]
-            del slab[sp-1]
-            del slab[sp-2]
-            del self.atoms[lp]
-            # Making sure that the center atoms still poit to the same atoms if delting the passivant atom changes the index of the center atoms
-            if center_atom1>lp: center_atom1-=1
-            if center_atom2>lp: center_atom2-=1
+            if dense:
+                del slab[sp+1]
+                del slab[sp]
+                del slab[sp-1]
+                del slab[sp-2]
+            else:
+                del slab[sp]
+                del slab[sp-1]
+            if not retain_ligand_passivant_atom:
+                del self.atoms[lp]  # Here we will retain or not the ligand passivatnt atom
+                # Making sure that the center atoms still poit to the same atoms if delting the passivant atom changes the index of the center atoms
+                if center_atom1>lp: center_atom1-=1
+                if center_atom2>lp: center_atom2-=1
             # print(f"center atmos indeces: {center_atom1, center_atom2,lp}")   # left here for debugging
         for i,atom in enumerate(slab):
             self.atoms.append(atom)
@@ -248,15 +257,17 @@ class Insert_ligand():
                 self.sb = len(self.atoms)-1  # saving the slab bulk site globally
                 # print(self.sb)
         # Here we add the ligand again to make the cell densly packed with ligands
-        del ligand_only[lp]
+        if not retain_ligand_passivant_atom:
+            del ligand_only[lp]
         for i,atom in enumerate(self.atoms):
             atom.position = (atom.position[0] - diff_vec_2ndligand[0] - delta_x, atom.position[1] - diff_vec_2ndligand[1] - delta_y, atom.position[2] - diff_vec_2ndligand[2] - delta_z)
-        for i,atom in enumerate(ligand_only):
-            self.atoms.append(atom)
-            if i == sb:
-                # print(sb)
-                self.sb = len(self.atoms)-1  # saving the slab bulk site globally
-                # print(self.sb)
+        if dense:
+            for i,atom in enumerate(ligand_only):
+                self.atoms.append(atom)
+                if i == sb:
+                    # print(sb)
+                    self.sb = len(self.atoms)-1  # saving the slab bulk site globally
+                    # print(self.sb)
         self.make_centre(center_atom1, center_atom2)
         return slab_only, ligand_only
 

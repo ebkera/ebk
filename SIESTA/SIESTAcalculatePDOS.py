@@ -152,7 +152,7 @@ class Read_PDOS():
             plt.xlim([self.xlim_low,self.xlim_high])
         if self.set_y_range == True:
             plt.ylim([self.ylim_low,self.ylim_high])
-        plt.savefig(f"{self.figure_name}.pdf")
+        plt.savefig(f"{self.figure_name}.png")
         if self.plt_show: plt.show()
         plt.close()
 
