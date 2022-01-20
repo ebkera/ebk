@@ -249,6 +249,7 @@ class BandPlotter():
             if self.Ef_shift == True:
                 for band in bands:
                     if self.pin_fermi != "nscf":
+                        # print(Ef)
                         Energy_to_plot.append([E - Ef for E in band])
                     else:
                         Energy_to_plot.append([E - Ef_nscf for E in band])  # here the assumption is that if this option is ever reached then the idea is that an nscf calculation has already being done and dos is being plotted.
