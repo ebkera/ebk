@@ -45,6 +45,7 @@ class BandPlotter_old():
         self.include_ylabel = True
         self.include_title = True
 
+
     def plot(self):
         """
         |All the features of the band plot are set here
@@ -116,12 +117,12 @@ class BandPlotter():
             2) You add all the bands you want to add by using the add_to_plot() method
             3) Plot all bands that you have added using above method by calling the plot() method
         """
-        self.file_name = "band_diagram"
+        self.file_name = kwargs.get("file_name", "Band diagram")
+        self.title = kwargs.get("title", self.file_name)
         self.number_of_bands_to_plot = 30
         self.fermi_level = 0
         self.hlines = kwargs.get("hlines", True)
         self.vlines = kwargs.get("vlines", True)
-        self.title = "Band diagram"
         self.dos_title = "Density of States"
         self.set_y_range = kwargs.get("set_y_range", True)
         self.set_x_range = False
@@ -143,14 +144,16 @@ class BandPlotter():
         self.pin_fermi = kwargs.get("pin_fermi", "scf") # if there are difference in fermi levels (Eg E_scf and E_nscf) then use this to pin the levels There options "off", "scf", "nscf" 
         self.plot_from_QE_dos_file = True  # This will make the code read in files from a QE dos output file.
         self.QE_dos_file_path = ""
-        self.ylim_low = -5
-        self.ylim_high = 5
+        self.ylim_low = -2
+        self.ylim_high = 2
         self.x_margins = 0
         # self.xlim_low = 0
         # self.xlim_high = 0
-        self.plt_width = 16
-        self.plt_height = 8
+        self.plt_width = 4
+        self.plt_height = 4
         self.saveas_extension = "pdf"
+        self.include_bandgaparrow = True
+        self.arrow_data = kwargs.get("arrow_data", [])
 
     def plot(self):
         """
@@ -210,10 +213,10 @@ class BandPlotter():
                 for band in v:
                     if self.same_band_colour == True:
                         if self.labels[i] != None:
-                            ax1.plot(self.x_to_plot[i], band, self.band_colour[i], label = self.labels[i])
+                            ax1.plot(self.x_to_plot[i], band, self.band_colour[i], label = self.labels[i],linewidth=0.5)
                             self.labels[i] = None  # Here we have set the label to none since we are plotting multiple bands with teh same label and we dont want to list multiple labels
                         else:
-                            ax1.plot(self.x_to_plot[i], band, self.band_colour[i], label = self.labels[i])
+                            ax1.plot(self.x_to_plot[i], band, self.band_colour[i], label = self.labels[i],linewidth=0.5)
                     else:
                         ax1.plot(self.x_to_plot[i], band)  # Here we have ignored labels since individual bands have no labels
             # print(self.k_locations)
@@ -224,8 +227,11 @@ class BandPlotter():
             ax1.set_ylabel("Energy (eV)")
             ax1.set_title(f"{self.title}")
             ax1.margins(x=self.x_margins)
-            ax1.legend()
+            ax1.legend(loc="upper right")
         plt.margins(x=self.x_margins)
+        if self.include_bandgaparrow and self.arrow_data != []:
+            for arrow in self.arrow_data:
+                ax1.annotate('', xytext=(arrow[0],arrow[1]), xy=(arrow[2],arrow[3]), arrowprops={'arrowstyle': '->'}, va='center')
         plt.tight_layout()
         plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
         plt.show()
