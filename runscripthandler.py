@@ -340,7 +340,9 @@ class RunScriptHandler():
             y = x.split("_")[0]
             # Here we copy the required PP files. Ideally this can be pulled from the net but we need to work offline. Use git to control the content and use ebk.get_achine_paths()
             if y == "Sn" or y == "Pd" or y=="Se":
-                shutil.copy(f"{paths['pps']}/_{self.SIESTA_inputs['XC_Functional']}_rivero/{y}.psf", f'./{self.base_folder}/{run_name}/{x}.psf')
+                if self.SIESTA_inputs['XC_Functional'] == "GGA" or self.SIESTA_inputs['XC_Functional'] == "VDW": xx = "GGA"
+                else: xx = "LDA"
+                shutil.copy(f"{paths['pps']}/_{xx}_rivero/{y}.psf", f'./{self.base_folder}/{run_name}/{x}.psf')
             else:
                 shutil.copy(f"{paths['pps']}/{self.SIESTA_inputs['XC_Functional']}_PSF/{y}.psf", f'./{self.base_folder}/{run_name}/{x}.psf')
 
