@@ -107,6 +107,8 @@ class Generatefdf:
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.479)
         if self.XC_Functional == "GGA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.672)
+        if self.XC_Functional == "VDW":
+            self.LatticeConstant       = kwargs.get("LatticeConstant", 6.479)
 
     def write(self, *args, **kwargs):
         with open(f"{self.SystemLabel}.fdf", "w+") as fdf_file:
@@ -220,6 +222,49 @@ class Generatefdf:
                 #     fdf_file.write(f"  n=5  2  1  # n, l, Nzeta, Polarization, NzetaPol\n")
                 #     fdf_file.write(f"  4.170\n")
                 #     fdf_file.write(f"  1.000\n")
+                if "Pd" in self.Species:
+                    if self.XC_Functional == "LDA":
+                        fdf_file.write(f"Pd  3  # Species label, number of l-shells\n")
+                        fdf_file.write(f"  n=5  0  2  # n, l, Nzeta \n")
+                        fdf_file.write(f"  6.599  6.097\n")
+                        fdf_file.write(f"  1.000  1.000\n")
+                        fdf_file.write(f"  n=4  2  2   # n, l, Nzeta, Polarization, NzetaPol\n")
+                        fdf_file.write(f"  4.735  2.517\n")
+                        fdf_file.write(f"  1.000  1.000\n")
+                        fdf_file.write(f"  n=5  1  1  # n, l, Nzeta, Polarization, NzetaPol\n")
+                        fdf_file.write(f"  4.252\n")
+                        fdf_file.write(f"  1.000\n")
+                    if self.XC_Functional == "GGA":
+                        fdf_file.write(f"Pd  3  # Species label, number of l-shells\n")
+                        fdf_file.write(f"  n=5  0  2  # n, l, Nzeta \n")
+                        fdf_file.write(f"  7.881,  3.823\n")
+                        fdf_file.write(f"  1.000  1.000\n")
+                        fdf_file.write(f"  n=4  2  2  # n, l, Nzeta, Polarization, NzetaPol\n")
+                        fdf_file.write(f"  7.555 4.763\n")
+                        fdf_file.write(f"  1.000  1.000\n")
+                        fdf_file.write(f"  n=5  1  1  # n, l, Nzeta, Polarization, NzetaPol\n")
+                        fdf_file.write(f"  5.474\n")
+                        fdf_file.write(f"  1.000\n")
+                if "Se" in self.Species:
+                    if self.XC_Functional == "LDA":
+                        fdf_file.write(f"Se  2  # Species label, number of l-shells\n")
+                        fdf_file.write(f"  n=4  0  2  # n, l, Nzeta \n")
+                        fdf_file.write(f"  4.257  3.619\n")
+                        fdf_file.write(f"  1.000  1.000\n")
+                        fdf_file.write(f"  n=4  1  2  P  1  # n, l, Nzeta, Polarization, NzetaPol\n")
+                        fdf_file.write(f"  5.331  4.152\n")
+                        fdf_file.write(f"  1.000  1.000\n")
+                    if self.XC_Functional == "GGA":
+                        fdf_file.write(f"Se  3  # Species label, number of l-shells\n")
+                        fdf_file.write(f"  n=4  0  2  # n, l, Nzeta \n")
+                        fdf_file.write(f"  7.554  4.189\n")
+                        fdf_file.write(f"  1.000  1.000\n")
+                        fdf_file.write(f"  n=4  1  2  # n, l, Nzeta, Polarization, NzetaPol\n")
+                        fdf_file.write(f"  5.810  4.309\n")
+                        fdf_file.write(f"  1.000  1.000\n")
+                        fdf_file.write(f"  n=3  2  1  # n, l, Nzeta, Polarization, NzetaPol\n")
+                        fdf_file.write(f"  3.708\n")
+                        fdf_file.write(f"  1.000\n")
                 if "C" in self.Species:
                     fdf_file.write(f"C  2  # Species label, number of l-shells\n")
                     fdf_file.write(f"  n=2  0  2  # n, l, Nzeta \n")

@@ -2,7 +2,9 @@
 This file reads the the file out_file_name.out and extracts/calculates data/values from it
 """
 
+from ast import parse
 from asyncore import write
+from fcntl import LOCK_WRITE
 from fileinput import filename
 from functools import total_ordering
 
@@ -12,6 +14,7 @@ class SiestaReadOut():
         self.out_file_name = out_file_name
         self.out_file = []
         self.EIG_file = []
+        self.bands_file = []
         self.RHO_file = []
         self.Species = [["Label", "Atomic_Number_int", "Number_of_atoms_int"]]  # Logs all labels and atomic numbers. Since we have a example value at index=0 Index will serve as species number
         
@@ -29,6 +32,10 @@ class SiestaReadOut():
         f = open(f"{self.out_file_name}.EIG", "r")
         for line in f:
             self.EIG_file.append(line)
+        f.close()
+        f = open(f"{self.out_file_name}.bands", "r")
+        for line in f:
+            self.bands_file.append(line)
         f.close()
 
         # We will be reading all values here...
@@ -147,6 +154,66 @@ class SiestaReadOut():
         # print(self.N_atoms, self.N_orbitals, self.N_projectors)
         # print(self.Species)
 
+        # Parsing the bands files
+        self.bands = []
+        bands_temp = []
+        self.k_dist = []
+        self.hsp = []
+        self.hss = []
+        k_point = 0
+        self.highest_valance = [0, -500]    # Will contain [kdist,E]
+        self.lowest_conduction = [0, 500]   # Will contain [kdist,E]        
+        for i,line in enumerate(self.bands_file):
+            parsed = line.split()
+            if i == 0:
+                self.Ef_bands = float(parsed[0])
+            if i == 1:
+                self.kmin = float(parsed[0])
+                self.kmax = float(parsed[1])
+            if i == 2:
+                self.Emin = float(parsed[0])
+                self.Emax = float(parsed[1])
+            if i == 3:
+                self.NumberOfBands_bands = float(parsed[0])
+                self.NumberOfSpins_bands = float(parsed[1])
+                self.NumberOfkPoints_bands = float(parsed[2])  # this is different to self.NumberOfKPoints so we
+            if i>3:
+                if len(parsed) != 11 and len(bands_temp) == 0 and len(parsed) == 1:
+                    self.NumberOfkLines = float(parsed[0])
+                    continue
+                if len(parsed) != 11 and len(bands_temp) == 0 and len(parsed) == 2:
+                    self.hsp.append(float(parsed[0]))
+                    parsed[1] = parsed[1].strip("'")
+                    if parsed[1] == "GAMMA": parsed[1] = "$\Gamma$"
+                    self.hss.append((parsed[1]))
+                    continue
+                if len(parsed) == 11:
+                    self.k_dist.append(float(parsed.pop(0)))
+                for val in parsed:
+                    val = float(val) - self.Ef_bands
+                    bands_temp.append(val)
+                    if val < self.lowest_conduction[1] and len(bands_temp) == self.get_LUMO_band_index():
+                            self.lowest_conduction[1] = val
+                            self.lowest_conduction[0] = self.k_dist[-1]
+                    if val > self.highest_valance[1] and len(bands_temp) == self.get_HOMO_band_index():
+                            self.highest_valance[1] = val
+                            self.highest_valance[0] = self.k_dist[-1]
+                if len(bands_temp) == self.NumberOfBands:
+                    self.bands.append(bands_temp)
+                    bands_temp = []
+                    k_point+=1
+                    # print(k_point, len(self.bands))
+
+        import numpy as np
+        numpy_array = np.array(self.bands)
+        transpose = numpy_array.T
+        self.bands = transpose.tolist()
+        print(self.highest_valance, self.lowest_conduction)
+   
+
+            
+
+
     def get_vacuum(self):
         """returns [self.Vac_max, self.Vac_mean, self.Vac_units]""" 
         return [self.Vac_max, self.Vac_mean, self.Vac_units]
@@ -207,6 +274,17 @@ class SiestaReadOut():
         """Returns the total ionic charge of the system"""
         return self.band_index_LUMO
 
+    def plot_band_structure(self, **kwargs):
+        """Plots the """
+        from ebk.BandPlotter import BandPlotter
+        import matplotlib.pyplot as plt
+        kwargs.update({"arrow_data":[[self.highest_valance[0] , self.highest_valance[1],self.lowest_conduction[0],self.lowest_conduction[1]]]})
+        plot = BandPlotter(**kwargs)
+        b_gap = self.lowest_conduction[1] - self.highest_valance[1]
+        plot.add_to_plot(self.Ef, self.k_dist, self.bands, self.hsp, self.hss, label=f"E$_g$={b_gap: .3f} eV")
+        # plt.plot_arrow = [self.highest_valance[0],self.highest_valance[1],self.lowest_conduction[0],self.lowest_conduction[1]]
+        # plt.text((0+0.0023)/2+0.004,(self.highest_valance[1]+self.lowest_conduction[1])/2,f"E$_g$={b_gap: .3f} eV")
+        plot.plot()
 
 # From here below we have deprecated code kept for back-compatibility
     def read_vacuum(self):
@@ -286,6 +364,9 @@ class SiestaReadOut():
 
     def get_quadrupole_moments(self, file_name = None):
         """
+        This part of the code is still under construction and should be moved up when done.
+
+
         Calculates the quadrupole for the sytem given.
         Reads in the *.RHO.cube file generated by Denchar.
 

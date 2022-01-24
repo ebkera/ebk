@@ -243,9 +243,8 @@ class VASPReadOut():
         """
         if file_name == None:
             file_name = self.out_folder
-        
         x = BandPlotter()
-        if hasattr(self, "dos_E"):x.add_to_plot(self.Ef, self.k_dist, self.bands, self.hsp, self.hss, self.dos_E, self.dos_D)
+        if hasattr(self, "dos_E"):x.add_to_plot(self.highest_valance[1], self.k_dist, self.bands, self.hsp, self.hss, self.dos_E, self.dos_D)
         else:x.add_to_plot(self.Ef, self.k_dist, self.bands, self.hsp, self.hss)
         x.file_name = f"{file_name}"
         x.set_y_range=True
@@ -255,12 +254,10 @@ class VASPReadOut():
         x.ylim_high = 2.5
         x.ylim_low = -2.5
         x.saveas_extension = "png"
-
         if self.draw_band_edge_lines:
             x.extra_horizontal_lines = [[self.lowest_conduction[1], f"Conduction band edge"]]
             x.extra_horizontal_lines.append([self.highest_valance[1], f"Valance band edge"])
         return x
-
 
     def get_curvature_at_k_point(self, k_point: list[float,float,float]=False, k_index:int=False, direction:str=False, sigma:int=15, high_symmetry_point:bool=True, show_plot:bool=False, show_holes:bool=False, show_elec:bool=False)-> float:
         """
