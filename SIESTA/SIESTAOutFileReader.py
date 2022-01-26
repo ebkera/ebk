@@ -8,6 +8,8 @@ from fcntl import LOCK_WRITE
 from fileinput import filename
 from functools import total_ordering
 
+import scipy
+
 
 class SiestaReadOut():
     def __init__(self, out_file_name):
@@ -33,10 +35,12 @@ class SiestaReadOut():
         for line in f:
             self.EIG_file.append(line)
         f.close()
-        f = open(f"{self.out_file_name}.bands", "r")
-        for line in f:
-            self.bands_file.append(line)
-        f.close()
+        try:
+            f = open(f"{self.out_file_name}.bands", "r")
+            for line in f:
+                self.bands_file.append(line)
+            f.close()
+        except: pass
 
         # We will be reading all values here...
         for line in self.out_file:
@@ -383,7 +387,7 @@ class SiestaReadOut():
 
         The last section in the header is one line for each atom consisting of 5 numbers, the first is the atom number, the second is the charge, and the last three are the x,y,z coordinates of the atom center.
 
-        Volumetric data
+        Volumetric dataive the number of voxels along each 
         The volumetric data is straightforward, one floating point number for each volumetric element. The original Gaussian format arranged the values in the format shown below in the example, most parsing programs can read any white space separated format. Traditionally the grid is arranged with the x axis as the outer loop and the z axis as the inner loop, for example, written as
 
         for (ix=0;ix<NX;ix++) {
@@ -425,6 +429,7 @@ class SiestaReadOut():
         x_voxel_vec = 0
         y_voxel_vec = 0
         z_voxel_vec = 0
+        original_units = "Angs"
         atom_coordinates_trigger = False
         total_unnormalized_charge = 0
         atoms_info = []# atomic_number, charge, valance_electrons, [x,y,z]
@@ -462,11 +467,7 @@ class SiestaReadOut():
                 z_voxel_length = np.sqrt(float(parsed[1])**2+float(parsed[2])**2+float(parsed[3])**2)
                 z_voxel_vec = [float(parsed[1]),float(parsed[2]),float(parsed[3])]
                 # print(parsed)
-                d_V = np.cross(x_voxel_vec,y_voxel_vec)
-                d_V = np.dot(z_voxel_vec,d_V)
-                # print("voxel_volume", d_V)
-                rho = np.zeros((x_number_of_voxels, y_number_of_voxels, z_number_of_voxels))
-                # print(data.shape)
+                rho = np.zeros((x_number_of_voxels, y_number_of_voxels, z_number_of_voxels))    
 
 
             if i == 6: atom_coordinates_trigger = True
@@ -501,6 +502,22 @@ class SiestaReadOut():
                         if y_voxel_counter == y_number_of_voxels:
                             y_voxel_counter=0
                             x_voxel_counter+=1
+
+        # Possible unit conversions are handled here.
+        if x_number_of_voxels > 0 and y_number_of_voxels > 0 and z_number_of_voxels > 0:
+            original_units = "Bohr"
+            # This case means that the units are in Bohr and we have to convert to angstroms
+            # Converting the cell vectors into angstroms
+            for i,v in enumerate(x_voxel_vec):
+                x_voxel_vec[i] = x_voxel_vec[i]*0.529177249
+                y_voxel_vec[i] = y_voxel_vec[i]*0.529177249
+                z_voxel_vec[i] = z_voxel_vec[i]*0.529177249
+            # Converting the atomic coordinates
+            for atom in atoms_info:
+                for i,v in enumerate(x_voxel_vec):
+                    atom[3][i] = atom[3][i]*0.529177249
+        d_V = np.cross(x_voxel_vec,y_voxel_vec)
+        d_V = np.dot(z_voxel_vec,d_V)
 
         # Normalizing the charge
         factor = self.number_of_electrons/total_unnormalized_charge
@@ -539,7 +556,6 @@ class SiestaReadOut():
             rho[x_index+1, y_index+1, z_index+1] += charge
             # rho[x_index, y_index, z_index] += charge
 
-
         Qxx = 0
         Qyy = 0
         Qzz = 0
@@ -550,8 +566,8 @@ class SiestaReadOut():
             for y in range(y_number_of_voxels):
                 for z in range(z_number_of_voxels):
                     """Methana podi indeces proshnayak thiyeanwa. mokenda iterate karanna one i+1 da nattam i da kiyala"""
-                    r = (x*x_voxel_length+x_voxel_length/2)**2*(y*y_voxel_length+y_voxel_length/2)**2*(z*z_voxel_length+z_voxel_length/2)
-                    r2 = (x*x_voxel_length+x_voxel_length/2)**2*(y*y_voxel_length+y_voxel_length/2)**2*(z*z_voxel_length+z_voxel_length/2)**2
+                    r2 = (x*x_voxel_length+x_voxel_length/2)**2+(y*y_voxel_length+y_voxel_length/2)**2+(z*z_voxel_length+z_voxel_length/2)**2
+                    r = np.sqrt(r2)
                     Qxx+= rho[x,y,z]*(3*(x*x_voxel_length+x_voxel_length/2)*(x*x_voxel_length+x_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
                     Qyy+= rho[x,y,z]*(3*(y*y_voxel_length+y_voxel_length/2)*(y*y_voxel_length+y_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
                     Qzz+= rho[x,y,z]*(3*(z*z_voxel_length+z_voxel_length/2)*(z*z_voxel_length+z_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
