@@ -406,29 +406,33 @@ class SiestaReadOut():
         from scipy import constants as c
 
         if file_name == None:
-            # Here we can defualt to open the normal output file from Dencahr
+            # Here we can default to open the normal output file from Dencahr
             f = open(f"{self.out_file_name}.RHO.cube", "r")
             for line in f:
                 self.RHO_file.append(line)
             f.close()
         else:
             read_file_name = file_name
+            f = open(f"{read_file_name}", "r")
+            for line in f:
+                self.RHO_file.append(line)
+            f.close()
 
         origin = []
         number_of_atoms = 0
-        x_voxel_counter = 0
-        y_voxel_counter = 0
-        z_voxel_counter = 0
+        a_voxel_counter = 0
+        b_voxel_counter = 0
+        c_voxel_counter = 0
         full_volume = 0
-        x_number_of_voxels = 0
-        y_number_of_voxels = 0
-        z_number_of_voxels = 0
-        x_voxel_length = 0
-        y_voxel_length = 0
-        z_voxel_length = 0
-        x_voxel_vec = 0
-        y_voxel_vec = 0
-        z_voxel_vec = 0
+        a_number_of_voxels = 0
+        b_number_of_voxels = 0
+        c_number_of_voxels = 0
+        a_voxel_length = 0
+        b_voxel_length = 0
+        c_voxel_length = 0
+        a_voxel_vec = 0
+        b_voxel_vec = 0
+        c_voxel_vec = 0
         original_units = "Angs"
         atom_coordinates_trigger = False
         total_unnormalized_charge = 0
@@ -446,28 +450,28 @@ class SiestaReadOut():
                 first_lines_of_file.append(line)
                 # print("this is inside i3")
                 parsed = line.split()
-                x_number_of_voxels = int(parsed[0])
-                x_voxel_length = np.sqrt(float(parsed[1])**2+float(parsed[2])**2+float(parsed[3])**2)
-                x_voxel_vec = [float(parsed[1]),float(parsed[2]),float(parsed[3])]
-                # print(x_voxel_vec)
+                a_number_of_voxels = int(parsed[0])
+                a_voxel_length = np.sqrt(float(parsed[1])**2+float(parsed[2])**2+float(parsed[3])**2)
+                a_voxel_vec = [float(parsed[1]),float(parsed[2]),float(parsed[3])]
+                # print(a_voxel_vec)
                 # print(parsed)
             if i == 4:
                 first_lines_of_file.append(line)
                 # print("this is inside i4")
                 parsed = line.split()
-                y_number_of_voxels = int(parsed[0])
-                y_voxel_length = np.sqrt(float(parsed[1])**2+float(parsed[2])**2+float(parsed[3])**2)
-                y_voxel_vec = [float(parsed[1]),float(parsed[2]),float(parsed[3])]
+                b_number_of_voxels = int(parsed[0])
+                b_voxel_length = np.sqrt(float(parsed[1])**2+float(parsed[2])**2+float(parsed[3])**2)
+                b_voxel_vec = [float(parsed[1]),float(parsed[2]),float(parsed[3])]
                 # print(parsed)
             if i == 5:
                 first_lines_of_file.append(line)
                 # print("this is inside i5")
                 parsed = line.split()
-                z_number_of_voxels = int(parsed[0])
-                z_voxel_length = np.sqrt(float(parsed[1])**2+float(parsed[2])**2+float(parsed[3])**2)
-                z_voxel_vec = [float(parsed[1]),float(parsed[2]),float(parsed[3])]
+                c_number_of_voxels = int(parsed[0])
+                c_voxel_length = np.sqrt(float(parsed[1])**2+float(parsed[2])**2+float(parsed[3])**2)
+                c_voxel_vec = [float(parsed[1]),float(parsed[2]),float(parsed[3])]
                 # print(parsed)
-                rho = np.zeros((x_number_of_voxels, y_number_of_voxels, z_number_of_voxels))    
+                rho = np.zeros((a_number_of_voxels, b_number_of_voxels, c_number_of_voxels))
 
 
             if i == 6: atom_coordinates_trigger = True
@@ -493,64 +497,69 @@ class SiestaReadOut():
             if not atom_coordinates_trigger and i>6:
                 parsed = line.split()
                 for val in parsed:
-                    rho[x_voxel_counter,y_voxel_counter,z_voxel_counter] = float(val)
+                    rho[a_voxel_counter,b_voxel_counter,c_voxel_counter] = float(val)
                     total_unnormalized_charge+= float(val)
-                    z_voxel_counter+=1
-                    if z_voxel_counter == z_number_of_voxels: 
-                        z_voxel_counter = 0
-                        y_voxel_counter+=1
-                        if y_voxel_counter == y_number_of_voxels:
-                            y_voxel_counter=0
-                            x_voxel_counter+=1
+                    c_voxel_counter+=1
+                    if c_voxel_counter == c_number_of_voxels: 
+                        c_voxel_counter = 0
+                        b_voxel_counter+=1
+                        if b_voxel_counter == b_number_of_voxels:
+                            b_voxel_counter=0
+                            a_voxel_counter+=1
 
         # Possible unit conversions are handled here.
-        if x_number_of_voxels > 0 and y_number_of_voxels > 0 and z_number_of_voxels > 0:
+        if a_number_of_voxels > 0 and b_number_of_voxels > 0 and c_number_of_voxels > 0:
             original_units = "Bohr"
             # This case means that the units are in Bohr and we have to convert to angstroms
             # Converting the cell vectors into angstroms
-            for i,v in enumerate(x_voxel_vec):
-                x_voxel_vec[i] = x_voxel_vec[i]*0.529177249
-                y_voxel_vec[i] = y_voxel_vec[i]*0.529177249
-                z_voxel_vec[i] = z_voxel_vec[i]*0.529177249
+            for i,v in enumerate(a_voxel_vec):
+                a_voxel_vec[i] = a_voxel_vec[i]*0.529177249
+                b_voxel_vec[i] = b_voxel_vec[i]*0.529177249
+                c_voxel_vec[i] = c_voxel_vec[i]*0.529177249
             # Converting the atomic coordinates
             for atom in atoms_info:
-                for i,v in enumerate(x_voxel_vec):
+                for i,v in enumerate(a_voxel_vec):
                     atom[3][i] = atom[3][i]*0.529177249
-        d_V = np.cross(x_voxel_vec,y_voxel_vec)
-        d_V = np.dot(z_voxel_vec,d_V)
+        d_V = np.cross(a_voxel_vec,b_voxel_vec)
+        d_V = np.dot(c_voxel_vec,d_V)
 
         # Normalizing the charge
         factor = self.number_of_electrons/total_unnormalized_charge
         total_charge = 0
         total_electronic_charge = 0
-        for x in range(x_number_of_voxels):
-            for y in range(y_number_of_voxels):
-                for z in range(z_number_of_voxels):
+        for x in range(a_number_of_voxels):
+            for y in range(b_number_of_voxels):
+                for z in range(c_number_of_voxels):
                     rho[x,y,z] = -rho[x,y,z]*factor
                     total_electronic_charge+=rho[x,y,z]
                     # for atom in atoms_info:
                     #     coordinates = atom[3]
-                    #     # if abs(x*x_voxel_length+x_voxel_length/2 - coordinates[0]) <= x_voxel_length/2 and abs(y*y_voxel_length+y_voxel_length/2 - coordinates[1]) <= y_voxel_length/2 and abs(z*z_voxel_length+z_voxel_length/2 - coordinates[2]) <= z_voxel_length/2:
-                    #     # if (abs(x*x_voxel_length+x_voxel_length/2 - coordinates[0]) <= x_voxel_length/2) and (abs(y*y_voxel_length+y_voxel_length/2 - coordinates[1]) <= y_voxel_length/2) :
-                    #     # if (abs(x*x_voxel_length+x_voxel_length/2 - coordinates[0]) <= x_voxel_length/2) :
-                    #     # if (abs(y*y_voxel_length+y_voxel_length/2 - coordinates[1]) <= y_voxel_length/2) :
-                    #     if (abs(z*z_voxel_length+z_voxel_length/2 - coordinates[2]) <= z_voxel_length/2) :
-                    #         # print(x*x_voxel_length+x_voxel_length/2,coordinates[0],abs(x*x_voxel_length+x_voxel_length/2 - coordinates[0]), x_voxel_length/2)
-                    #         # print(y*y_voxel_length+y_voxel_length/2,coordinates[1],abs(y*y_voxel_length+y_voxel_length/2 - coordinates[1]), y_voxel_length/2)
-                    #         # print(z*z_voxel_length+z_voxel_length/2,coordinates[2],abs(z*z_voxel_length+z_voxel_length/2 - coordinates[2]), z_voxel_length/2)
-                    #         print(abs(x*x_voxel_length+x_voxel_length/2 - coordinates[0]),abs(y*y_voxel_length+y_voxel_length/2 - coordinates[0]), abs(z*z_voxel_length+z_voxel_length/2 - coordinates[2]))
+                    #     # if abs(x*a_voxel_length+a_voxel_length/2 - coordinates[0]) <= a_voxel_length/2 and abs(y*b_voxel_length+b_voxel_length/2 - coordinates[1]) <= b_voxel_length/2 and abs(z*c_voxel_length+c_voxel_length/2 - coordinates[2]) <= c_voxel_length/2:
+                    #     # if (abs(x*a_voxel_length+a_voxel_length/2 - coordinates[0]) <= a_voxel_length/2) and (abs(y*b_voxel_length+b_voxel_length/2 - coordinates[1]) <= b_voxel_length/2) :
+                    #     # if (abs(x*a_voxel_length+a_voxel_length/2 - coordinates[0]) <= a_voxel_length/2) :
+                    #     # if (abs(y*b_voxel_length+b_voxel_length/2 - coordinates[1]) <= b_voxel_length/2) :
+                    #     if (abs(z*c_voxel_length+c_voxel_length/2 - coordinates[2]) <= c_voxel_length/2) :
+                    #         # print(x*a_voxel_length+a_voxel_length/2,coordinates[0],abs(x*a_voxel_length+a_voxel_length/2 - coordinates[0]), a_voxel_length/2)
+                    #         # print(y*b_voxel_length+b_voxel_length/2,coordinates[1],abs(y*b_voxel_length+b_voxel_length/2 - coordinates[1]), b_voxel_length/2)
+                    #         # print(z*c_voxel_length+c_voxel_length/2,coordinates[2],abs(z*c_voxel_length+c_voxel_length/2 - coordinates[2]), c_voxel_length/2)
+                    #         print(abs(x*a_voxel_length+a_voxel_length/2 - coordinates[0]),abs(y*b_voxel_length+b_voxel_length/2 - coordinates[0]), abs(z*c_voxel_length+c_voxel_length/2 - coordinates[2]))
                     #         # print(coordinates)
                     #         pass
 
         # Adding the ionic components
         total_ionic_charge = 0
         for atom in atoms_info:
+            """
+            This part is still under construction/testig
+            We still do not know if the coordinates are in cartesian or bhor and have to change that 
+            We also do not know if the vectors are in the orthogonal basis or non-orthogonal basis - this we cannot test with this file since teh system is orthorhombic
+            """
             # Have to remember that the coordinates are now changed (origin has changed) so we have to use the cube file coordinates
             import math
             coordinates = atom[3]
-            x_index = math.floor((coordinates[0]-origin[0])/x_voxel_length)
-            y_index = math.floor((coordinates[1]-origin[1])/y_voxel_length)
-            z_index = math.floor((coordinates[2]-origin[2])/z_voxel_length)
+            x_index = math.floor((coordinates[0]-origin[0])/a_voxel_length)
+            y_index = math.floor((coordinates[1]-origin[1])/b_voxel_length)
+            z_index = math.floor((coordinates[2]-origin[2])/c_voxel_length)
             charge = atom[2]
             total_ionic_charge+=charge
             rho[x_index+1, y_index+1, z_index+1] += charge
@@ -562,20 +571,21 @@ class SiestaReadOut():
         dipole = 0
         total_charge = 0
 
-        for x in range(x_number_of_voxels):
-            for y in range(y_number_of_voxels):
-                for z in range(z_number_of_voxels):
+        for ia in range(a_number_of_voxels):
+            for ib in range(b_number_of_voxels):
+                for ic in range(c_number_of_voxels):
                     """Methana podi indeces proshnayak thiyeanwa. mokenda iterate karanna one i+1 da nattam i da kiyala"""
-                    r2 = (x*x_voxel_length+x_voxel_length/2)**2+(y*y_voxel_length+y_voxel_length/2)**2+(z*z_voxel_length+z_voxel_length/2)**2
+                    r2 = (ia*a_voxel_length+a_voxel_length/2)**2+(ib*b_voxel_length+b_voxel_length/2)**2+(ic*c_voxel_length+c_voxel_length/2)**2
                     r = np.sqrt(r2)
-                    Qxx+= rho[x,y,z]*(3*(x*x_voxel_length+x_voxel_length/2)*(x*x_voxel_length+x_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
-                    Qyy+= rho[x,y,z]*(3*(y*y_voxel_length+y_voxel_length/2)*(y*y_voxel_length+y_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
-                    Qzz+= rho[x,y,z]*(3*(z*z_voxel_length+z_voxel_length/2)*(z*z_voxel_length+z_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
-                    total_charge+=rho[x,y,z]
-                    dipole+=rho[x,y,z]*r*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
+                    Qxx+= rho[ia, ib, ic]*(3*(ia*a_voxel_length+a_voxel_length/2)*(ia*a_voxel_length+a_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
+                    Qyy+= rho[ia, ib, ic]*(3*(ib*b_voxel_length+b_voxel_length/2)*(ib*b_voxel_length+b_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
+                    Qzz+= rho[ia, ib, ic]*(3*(ic*c_voxel_length+c_voxel_length/2)*(ic*c_voxel_length+c_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
+                    total_charge+=rho[ia, ib, ic]
+                    dipole+=rho[ia, ib, ic]*r*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
                     # dipole+=rho[x,y,z]*r) 
                     full_volume+=d_V
                
+        print("numer of voxels", a_number_of_voxels, b_number_of_voxels, c_number_of_voxels)
         print("Full volume", full_volume)
         print("charge scipy", c.elementary_charge*10**(-10))
         print("Volume we should get", 25*1.023602*25*1.023602*25*1.653511 )
@@ -598,9 +608,9 @@ class SiestaReadOut():
             for line in first_lines_of_file:
                 file.write(line)
 
-            for x in range(x_number_of_voxels):
-                for y in range(y_number_of_voxels):
-                    for z in range(z_number_of_voxels):            
+            for x in range(a_number_of_voxels):
+                for y in range(b_number_of_voxels):
+                    for z in range(c_number_of_voxels):            
                         file.write(f"{rho[x][y][z]:1.5E} ")
                         if (z % 6 == 5):
                          file.write("\n")
