@@ -1,16 +1,9 @@
 """
 This file reads the the file out_file_name.out and extracts/calculates data/values from it
 """
-
-from ast import parse
-from asyncore import write
-from fcntl import LOCK_WRITE
-from fileinput import filename
-from functools import total_ordering
-
+from numpy import char
 import scipy
-
-
+from ebk import progress_bar
 class SiestaReadOut():
     def __init__(self, out_file_name):
         self.out_file_name = out_file_name
@@ -212,11 +205,6 @@ class SiestaReadOut():
         numpy_array = np.array(self.bands)
         transpose = numpy_array.T
         self.bands = transpose.tolist()
-        print(self.highest_valance, self.lowest_conduction)
-   
-
-            
-
 
     def get_vacuum(self):
         """returns [self.Vac_max, self.Vac_mean, self.Vac_units]""" 
@@ -404,6 +392,7 @@ class SiestaReadOut():
         """
         import numpy as np
         from scipy import constants as c
+        print("Calculating the dipoles and quadrupoles...")
 
         if file_name == None:
             # Here we can default to open the normal output file from Dencahr
@@ -438,6 +427,12 @@ class SiestaReadOut():
         total_unnormalized_charge = 0
         atoms_info = []# atomic_number, charge, valance_electrons, [x,y,z]
         first_lines_of_file = []
+        rrho = 0 # The summation for the r times rho that we need to calculate the centre of charge.
+        rrho_elect = 0
+        rrho_ionic = 0
+        COC = []  # Centre of charge (vector)
+        COC_elect = []
+        COC_ionic = []
 
         for i,line in enumerate(self.RHO_file):
             if i == 2:
@@ -445,14 +440,14 @@ class SiestaReadOut():
                 parsed = line.split()
                 number_of_atoms = int(parsed[0])
                 for x in range(1,len(parsed)):
-                    origin.append(float(parsed[x]))
+                    origin.append(float(parsed[x])) # unit conversions are handled seperalty see below
             if i == 3:
                 first_lines_of_file.append(line)
                 # print("this is inside i3")
                 parsed = line.split()
                 a_number_of_voxels = int(parsed[0])
                 a_voxel_length = np.sqrt(float(parsed[1])**2+float(parsed[2])**2+float(parsed[3])**2)
-                a_voxel_vec = [float(parsed[1]),float(parsed[2]),float(parsed[3])]
+                a_voxel_vec = np.array([float(parsed[1]),float(parsed[2]),float(parsed[3])])
                 # print(a_voxel_vec)
                 # print(parsed)
             if i == 4:
@@ -461,7 +456,7 @@ class SiestaReadOut():
                 parsed = line.split()
                 b_number_of_voxels = int(parsed[0])
                 b_voxel_length = np.sqrt(float(parsed[1])**2+float(parsed[2])**2+float(parsed[3])**2)
-                b_voxel_vec = [float(parsed[1]),float(parsed[2]),float(parsed[3])]
+                b_voxel_vec = np.array([float(parsed[1]),float(parsed[2]),float(parsed[3])])
                 # print(parsed)
             if i == 5:
                 first_lines_of_file.append(line)
@@ -469,9 +464,10 @@ class SiestaReadOut():
                 parsed = line.split()
                 c_number_of_voxels = int(parsed[0])
                 c_voxel_length = np.sqrt(float(parsed[1])**2+float(parsed[2])**2+float(parsed[3])**2)
-                c_voxel_vec = [float(parsed[1]),float(parsed[2]),float(parsed[3])]
+                c_voxel_vec = np.array([float(parsed[1]),float(parsed[2]),float(parsed[3])])
                 # print(parsed)
-                rho = np.zeros((a_number_of_voxels, b_number_of_voxels, c_number_of_voxels))
+                rho = np.zeros((a_number_of_voxels, b_number_of_voxels, c_number_of_voxels))  # This is the normalized charge density in terms of the number of electrons. It will later be converted into charge in Coulombs.
+                rho_ionic = np.zeros((a_number_of_voxels, b_number_of_voxels, c_number_of_voxels))  # This is the normalized charge density in terms of the number of electrons. It will later be converted into charge in Coulombs.
 
 
             if i == 6: atom_coordinates_trigger = True
@@ -511,6 +507,9 @@ class SiestaReadOut():
         if a_number_of_voxels > 0 and b_number_of_voxels > 0 and c_number_of_voxels > 0:
             original_units = "Bohr"
             # This case means that the units are in Bohr and we have to convert to angstroms
+            # COnverting the origin
+            for x in range(0,len(origin)):
+                    origin[x] = origin[x]*0.529177249
             # Converting the cell vectors into angstroms
             for i,v in enumerate(a_voxel_vec):
                 a_voxel_vec[i] = a_voxel_vec[i]*0.529177249
@@ -518,8 +517,11 @@ class SiestaReadOut():
                 c_voxel_vec[i] = c_voxel_vec[i]*0.529177249
             # Converting the atomic coordinates
             for atom in atoms_info:
+                # print(atom)
                 for i,v in enumerate(a_voxel_vec):
                     atom[3][i] = atom[3][i]*0.529177249
+                    # pass
+                # print("new",atom)
         d_V = np.cross(a_voxel_vec,b_voxel_vec)
         d_V = np.dot(c_voxel_vec,d_V)
 
@@ -532,82 +534,135 @@ class SiestaReadOut():
                 for z in range(c_number_of_voxels):
                     rho[x,y,z] = -rho[x,y,z]*factor
                     total_electronic_charge+=rho[x,y,z]
-                    # for atom in atoms_info:
-                    #     coordinates = atom[3]
-                    #     # if abs(x*a_voxel_length+a_voxel_length/2 - coordinates[0]) <= a_voxel_length/2 and abs(y*b_voxel_length+b_voxel_length/2 - coordinates[1]) <= b_voxel_length/2 and abs(z*c_voxel_length+c_voxel_length/2 - coordinates[2]) <= c_voxel_length/2:
-                    #     # if (abs(x*a_voxel_length+a_voxel_length/2 - coordinates[0]) <= a_voxel_length/2) and (abs(y*b_voxel_length+b_voxel_length/2 - coordinates[1]) <= b_voxel_length/2) :
-                    #     # if (abs(x*a_voxel_length+a_voxel_length/2 - coordinates[0]) <= a_voxel_length/2) :
-                    #     # if (abs(y*b_voxel_length+b_voxel_length/2 - coordinates[1]) <= b_voxel_length/2) :
-                    #     if (abs(z*c_voxel_length+c_voxel_length/2 - coordinates[2]) <= c_voxel_length/2) :
-                    #         # print(x*a_voxel_length+a_voxel_length/2,coordinates[0],abs(x*a_voxel_length+a_voxel_length/2 - coordinates[0]), a_voxel_length/2)
-                    #         # print(y*b_voxel_length+b_voxel_length/2,coordinates[1],abs(y*b_voxel_length+b_voxel_length/2 - coordinates[1]), b_voxel_length/2)
-                    #         # print(z*c_voxel_length+c_voxel_length/2,coordinates[2],abs(z*c_voxel_length+c_voxel_length/2 - coordinates[2]), c_voxel_length/2)
-                    #         print(abs(x*a_voxel_length+a_voxel_length/2 - coordinates[0]),abs(y*b_voxel_length+b_voxel_length/2 - coordinates[0]), abs(z*c_voxel_length+c_voxel_length/2 - coordinates[2]))
-                    #         # print(coordinates)
-                    #         pass
+        rho_elect = rho.copy()
 
         # Adding the ionic components
         total_ionic_charge = 0
-        for atom in atoms_info:
+        rrho_atomic = 0
+        voxel_midpoint_vec = 0.5*a_voxel_vec+0.5*b_voxel_vec+0.5*c_voxel_vec
+        def get_r_vec(x,y,z):
+            # r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec  + voxel_midpoint_vec
+            r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec
+            return r_vec
+
+
+        for i_atom, atom in enumerate(atoms_info):
             """
-            This part is still under construction/testig
+            This part is still under construction/testing
             We still do not know if the coordinates are in cartesian or bhor and have to change that 
             We also do not know if the vectors are in the orthogonal basis or non-orthogonal basis - this we cannot test with this file since teh system is orthorhombic
             """
             # Have to remember that the coordinates are now changed (origin has changed) so we have to use the cube file coordinates
             import math
             coordinates = atom[3]
-            x_index = math.floor((coordinates[0]-origin[0])/a_voxel_length)
-            y_index = math.floor((coordinates[1]-origin[1])/b_voxel_length)
-            z_index = math.floor((coordinates[2]-origin[2])/c_voxel_length)
-            charge = atom[2]
-            total_ionic_charge+=charge
-            rho[x_index+1, y_index+1, z_index+1] += charge
-            # rho[x_index, y_index, z_index] += charge
+            # x_index = math.floor((coordinates[0]-origin[0])/a_voxel_length)
+            # y_index = math.floor((coordinates[1]-origin[1])/b_voxel_length)
+            # z_index = math.floor((coordinates[2]-origin[2])/c_voxel_length)
+        
+            r_atom = np.array([coordinates[0]-origin[0], coordinates[1]-origin[1], coordinates[2]-origin[2]])
+            tasks = len(atoms_info)*a_number_of_voxels*b_number_of_voxels*c_number_of_voxels
+
+            prog = progress_bar(tasks, descriptor="Loading ions into grid")
+            completed = 0
+            for ia in range(a_number_of_voxels):
+                for ib in range(b_number_of_voxels):
+                    for ic in range(c_number_of_voxels):
+                        # r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec
+                        r_vec = get_r_vec(ia, ib, ic)
+                        d_vec = abs(r_atom - r_vec)
+                        # print(ia)
+                        # prog.get_progress((i_atom+1)*((ia)*(a_number_of_voxels*b_number_of_voxels)+(ib)*c_number_of_voxels+(ic+1)))
+                        if d_vec[0] <= voxel_midpoint_vec[0] and d_vec[1] <= voxel_midpoint_vec[1] and d_vec[2] <= voxel_midpoint_vec[2]:
+                            # print(r_vec, r_atom, d_vec)
+                            charge = atom[2]
+                            total_ionic_charge += charge
+                            rho[ia, ib, ic] += charge
+                            rho_ionic[ia, ib, ic] += charge
+                            rrho_atomic += r_atom*charge
+                            completed+=c_number_of_voxels
+                            break
 
         Qxx = 0
         Qyy = 0
         Qzz = 0
         dipole = 0
         total_charge = 0
+        # voxel_midpoint_vec = 0.5*a_voxel_vec+0.5*b_voxel_vec+0.5*c_voxel_vec # This is done above
 
+        # This set of for loops does preliminary calculations that would be required.
         for ia in range(a_number_of_voxels):
             for ib in range(b_number_of_voxels):
                 for ic in range(c_number_of_voxels):
                     """Methana podi indeces proshnayak thiyeanwa. mokenda iterate karanna one i+1 da nattam i da kiyala"""
-                    r2 = (ia*a_voxel_length+a_voxel_length/2)**2+(ib*b_voxel_length+b_voxel_length/2)**2+(ic*c_voxel_length+c_voxel_length/2)**2
+                    r_vec = get_r_vec(ia, ib, ic)
+                    r2 = np.dot(r_vec,r_vec)
                     r = np.sqrt(r2)
-                    Qxx+= rho[ia, ib, ic]*(3*(ia*a_voxel_length+a_voxel_length/2)*(ia*a_voxel_length+a_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
-                    Qyy+= rho[ia, ib, ic]*(3*(ib*b_voxel_length+b_voxel_length/2)*(ib*b_voxel_length+b_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
-                    Qzz+= rho[ia, ib, ic]*(3*(ic*c_voxel_length+c_voxel_length/2)*(ic*c_voxel_length+c_voxel_length/2) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
+                    rrho += rho[ia, ib, ic]*r_vec
+                    rrho_ionic += rho_ionic[ia, ib, ic]*r_vec
+                    rrho_elect += rho_elect[ia, ib, ic]*r_vec
                     total_charge+=rho[ia, ib, ic]
-                    dipole+=rho[ia, ib, ic]*r*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
-                    # dipole+=rho[x,y,z]*r) 
                     full_volume+=d_V
-               
+
+                    if ia == 0 and ib == 0 and ic == 0:
+                        # print("Corner_start", r, r2, r_vec, ia, ib, ic)
+                        print("Corner_start", r*0.529177249, r2*0.529177249*0.529177249, r_vec*0.529177249, ia*0.529177249, ib*0.529177249, ic*0.529177249)
+                    if ia == 12 and ib == 12 and ic == 12:
+                        # print("Corner_mid", r, r2, r_vec, ia, ib, ic)
+                        print("Corner_mid", r*0.529177249, r2*0.529177249*0.529177249, r_vec*0.529177249, ia*0.529177249, ib*0.529177249, ic*0.529177249)
+                    if ia == a_number_of_voxels-1 and ib == b_number_of_voxels-1 and ic == c_number_of_voxels-1:
+                        print("Corner_end", r*0.529177249, r2*0.529177249*0.529177249, r_vec*0.529177249, ia*0.529177249, ib*0.529177249, ic*0.529177249)
+        
+        # Centre of Charge calculations
+        COC = rrho/(total_charge)
+        COC_elect = rrho_elect/total_electronic_charge
+        COC_ionic = rrho_ionic/total_ionic_charge
+        COC_atomic = rrho_atomic/total_ionic_charge
+        COC = COC_ionic # This should be set so that it can change.
+
+        for ia in range(a_number_of_voxels):
+            for ib in range(b_number_of_voxels):
+                for ic in range(c_number_of_voxels):
+                    """Methana podi indeces prashnayak thiyeanwa. mokenda iterate karanna one i+1 da nattam i da kiyala"""
+                    r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec
+                    r_vec = r_vec - COC
+                    r2 = np.dot(r_vec,r_vec)
+                    r = np.sqrt(r2)
+                    dipole+=rho[ia, ib, ic]*r*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
+                    Qxx+= rho[ia, ib, ic]*(3*(r_vec[0])*(r_vec[0]) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
+                    Qyy+= rho[ia, ib, ic]*(3*(r_vec[1])*(r_vec[1]) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
+                    Qzz+= rho[ia, ib, ic]*(3*(r_vec[2])*(r_vec[2]) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
+        
+        # Calculations happen here
+
+        # Printing values out for now. Should make proper get methods.
+        print("Origin", origin)
         print("numer of voxels", a_number_of_voxels, b_number_of_voxels, c_number_of_voxels)
         print("Full volume", full_volume)
-        print("charge scipy", c.elementary_charge*10**(-10))
+        print("Half cell vector", voxel_midpoint_vec)
+        print("elementary volume", d_V)
+        print("elementary charge scipy", c.elementary_charge)
         print("Volume we should get", 25*1.023602*25*1.023602*25*1.653511 )
-        print("check", c.elementary_charge*10**(-10)/(3.336*10**(-30)))
+        print("check for debye", c.elementary_charge*10**(-10)/(3.336*10**(-30)))
         print("Denchar Volume", 13*13*21 )
-        print("dipole", dipole)
+        print("dipole", dipole, "Debye")
         print("total_electrons", self.number_of_electrons)
         print("normalized electronic charge", total_electronic_charge)
         print("total ionic charge", total_ionic_charge)
         print("Total Charge", total_charge)
-        print("Qxx", Qxx)
-        print("Qyy", Qyy)
-        print("Qzz", Qzz)
+        print("Qxx", Qxx, "Debye")
+        print("Qyy", Qyy, "Debye")
+        print("Qzz", Qzz, "Debye")
+        # print("rrho rhoelectronic and rrho ionic", rrho, rho_elect, rho_ionic)
+        print("shapes", np.shape(rrho), np.shape(rrho_elect), np.shape(rrho_ionic))
+        print("Centre of Charge (electronic, ionic, atomic)", COC_elect, COC_ionic, COC_atomic)
+        print("Centre of Charge (ionic - elec)", COC_ionic - COC_elect)
 
-
+        # Writing out the new data in a new file
         with open(f"{self.out_file_name}.electronicandionic.cube", "w+") as file:
-            file.write("testing\n")
-            file.write("testing\n")
-
+            file.write("Produced by Eranjan\n")
+            file.write(f"For total charge for system: {self.out_file_name}\n")
             for line in first_lines_of_file:
                 file.write(line)
-
             for x in range(a_number_of_voxels):
                 for y in range(b_number_of_voxels):
                     for z in range(c_number_of_voxels):            
@@ -617,6 +672,20 @@ class SiestaReadOut():
                     file.write("\n")
     
 
+        # Writing out the new data in a new file
+        with open(f"{self.out_file_name}.ionic.cube", "w+") as file:
+            file.write("Produced by Eranjan\n")
+            file.write(f"For ionic charge for system: {self.out_file_name}\n")
+            for line in first_lines_of_file:
+                file.write(line)
+            for x in range(a_number_of_voxels):
+                for y in range(b_number_of_voxels):
+                    for z in range(c_number_of_voxels):            
+                        file.write(f"{rho_ionic[x][y][z]:1.5E} ")
+                        if (z % 6 == 5):
+                         file.write("\n")
+                    file.write("\n")
+    
 if __name__ == "__main__":
     vac = SiestaReadOut("Fe")
     # vac.read_vacuum()
