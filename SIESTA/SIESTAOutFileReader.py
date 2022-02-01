@@ -407,7 +407,7 @@ class SiestaReadOut():
                 self.RHO_file.append(line)
             f.close()
 
-        origin = []
+        origin_0 = []
         number_of_atoms = 0
         a_voxel_counter = 0
         b_voxel_counter = 0
@@ -440,7 +440,7 @@ class SiestaReadOut():
                 parsed = line.split()
                 number_of_atoms = int(parsed[0])
                 for x in range(1,len(parsed)):
-                    origin.append(float(parsed[x])) # unit conversions are handled seperalty see below
+                    origin_0.append(float(parsed[x])) # unit conversions are handled seperalty see below
             if i == 3:
                 first_lines_of_file.append(line)
                 # print("this is inside i3")
@@ -469,7 +469,7 @@ class SiestaReadOut():
                 rho = np.zeros((a_number_of_voxels, b_number_of_voxels, c_number_of_voxels))  # This is the normalized charge density in terms of the number of electrons. It will later be converted into charge in Coulombs.
                 rho_ionic = np.zeros((a_number_of_voxels, b_number_of_voxels, c_number_of_voxels))  # This is the normalized charge density in terms of the number of electrons. It will later be converted into charge in Coulombs.
 
-
+            origin = np.array(origin_0)
             if i == 6: atom_coordinates_trigger = True
             if atom_coordinates_trigger:
                 if len(line.split()) != 5:
@@ -538,61 +538,73 @@ class SiestaReadOut():
 
         # Adding the ionic components
         total_ionic_charge = 0
-        rrho_atomic = 0
+        rrho_ionic_not_binned = 0
+        dipole_ionic_not_binned = 0
         voxel_midpoint_vec = 0.5*a_voxel_vec+0.5*b_voxel_vec+0.5*c_voxel_vec
         def get_r_vec(x,y,z):
             # r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec  + voxel_midpoint_vec
-            r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec
+            r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec + origin
             return r_vec
 
 
+        prog = progress_bar(len(atoms_info)*a_number_of_voxels*b_number_of_voxels*c_number_of_voxels, descriptor="Loading ions onto grid")
         for i_atom, atom in enumerate(atoms_info):
-            """
-            This part is still under construction/testing
-            We still do not know if the coordinates are in cartesian or bhor and have to change that 
-            We also do not know if the vectors are in the orthogonal basis or non-orthogonal basis - this we cannot test with this file since teh system is orthorhombic
-            """
             # Have to remember that the coordinates are now changed (origin has changed) so we have to use the cube file coordinates
             import math
             coordinates = atom[3]
-            # x_index = math.floor((coordinates[0]-origin[0])/a_voxel_length)
-            # y_index = math.floor((coordinates[1]-origin[1])/b_voxel_length)
-            # z_index = math.floor((coordinates[2]-origin[2])/c_voxel_length)
-        
-            r_atom = np.array([coordinates[0]-origin[0], coordinates[1]-origin[1], coordinates[2]-origin[2]])
-            tasks = len(atoms_info)*a_number_of_voxels*b_number_of_voxels*c_number_of_voxels
+            # r_atom = np.array([coordinates[0]-origin[0], coordinates[1]-origin[1], coordinates[2]-origin[2]])
+            r_atom = np.array([coordinates[0], coordinates[1], coordinates[2]])
+            r_voxel = a_voxel_vec+b_voxel_vec+c_voxel_vec
 
-            prog = progress_bar(tasks, descriptor="Loading ions into grid")
-            completed = 0
+            # # Method 1
+            # x_index = math.floor((r_atom[0])/r_voxel[0])
+            # y_index = math.floor((r_atom[1])/r_voxel[1])
+            # z_index = math.floor((r_atom[2])/r_voxel[2])
+            # charge = atom[2]
+            # total_ionic_charge += charge
+            # rho[x_index, y_index, z_index] += charge
+            # rho_ionic[x_index, y_index, z_index] += charge
+            # rrho_ionic_not_binned += r_atom*charge
+            # dipole_ionic_not_binned += charge*r_atom
+            # # prog.get_progress(i_atom)
+
+            # Method 2 takes longer more accurate This is for safe keeping
             for ia in range(a_number_of_voxels):
                 for ib in range(b_number_of_voxels):
                     for ic in range(c_number_of_voxels):
-                        # r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec
+                        prog.get_progress(i_atom*a_number_of_voxels*b_number_of_voxels*c_number_of_voxels+(ia)*(b_number_of_voxels*c_number_of_voxels)+(ib)*(c_number_of_voxels)+ic)
                         r_vec = get_r_vec(ia, ib, ic)
                         d_vec = abs(r_atom - r_vec)
-                        # print(ia)
-                        # prog.get_progress((i_atom+1)*((ia)*(a_number_of_voxels*b_number_of_voxels)+(ib)*c_number_of_voxels+(ic+1)))
                         if d_vec[0] <= voxel_midpoint_vec[0] and d_vec[1] <= voxel_midpoint_vec[1] and d_vec[2] <= voxel_midpoint_vec[2]:
-                            # print(r_vec, r_atom, d_vec)
                             charge = atom[2]
                             total_ionic_charge += charge
                             rho[ia, ib, ic] += charge
                             rho_ionic[ia, ib, ic] += charge
-                            rrho_atomic += r_atom*charge
-                            completed+=c_number_of_voxels
+                            rrho_ionic_not_binned += r_atom*charge
+                            dipole_ionic_not_binned += charge*r_atom
                             break
 
+        print("")
         Qxx = 0
+        Qxy = 0
+        Qxz = 0
+        Qyx = 0
         Qyy = 0
+        Qyz = 0
+        Qzx = 0
+        Qzy = 0
         Qzz = 0
         dipole = 0
+        dipole_ionic = 0
+        dipole_elect = 0
         total_charge = 0
-        # voxel_midpoint_vec = 0.5*a_voxel_vec+0.5*b_voxel_vec+0.5*c_voxel_vec # This is done above
 
         # This set of for loops does preliminary calculations that would be required.
+        prog = progress_bar(a_number_of_voxels*b_number_of_voxels*c_number_of_voxels, descriptor="Preliminary calculations")
         for ia in range(a_number_of_voxels):
             for ib in range(b_number_of_voxels):
                 for ic in range(c_number_of_voxels):
+                    prog.get_progress((ia)*(b_number_of_voxels*c_number_of_voxels)+(ib)*(c_number_of_voxels)+ic)
                     """Methana podi indeces proshnayak thiyeanwa. mokenda iterate karanna one i+1 da nattam i da kiyala"""
                     r_vec = get_r_vec(ia, ib, ic)
                     r2 = np.dot(r_vec,r_vec)
@@ -603,58 +615,72 @@ class SiestaReadOut():
                     total_charge+=rho[ia, ib, ic]
                     full_volume+=d_V
 
-                    if ia == 0 and ib == 0 and ic == 0:
-                        # print("Corner_start", r, r2, r_vec, ia, ib, ic)
-                        print("Corner_start", r*0.529177249, r2*0.529177249*0.529177249, r_vec*0.529177249, ia*0.529177249, ib*0.529177249, ic*0.529177249)
-                    if ia == 12 and ib == 12 and ic == 12:
-                        # print("Corner_mid", r, r2, r_vec, ia, ib, ic)
-                        print("Corner_mid", r*0.529177249, r2*0.529177249*0.529177249, r_vec*0.529177249, ia*0.529177249, ib*0.529177249, ic*0.529177249)
-                    if ia == a_number_of_voxels-1 and ib == b_number_of_voxels-1 and ic == c_number_of_voxels-1:
-                        print("Corner_end", r*0.529177249, r2*0.529177249*0.529177249, r_vec*0.529177249, ia*0.529177249, ib*0.529177249, ic*0.529177249)
-        
+                    # if ia == 0 and ib == 0 and ic == 0:
+                    #     # print("Corner_start", r, r2, r_vec, ia, ib, ic)
+                    #     print("Corner_start", r*0.529177249, r2*0.529177249*0.529177249, r_vec*0.529177249, ia*0.529177249, ib*0.529177249, ic*0.529177249)
+                    # if ia == 12 and ib == 12 and ic == 12:
+                    #     # print("Corner_mid", r, r2, r_vec, ia, ib, ic)
+                    #     print("Corner_mid", r*0.529177249, r2*0.529177249*0.529177249, r_vec*0.529177249, ia*0.529177249, ib*0.529177249, ic*0.529177249)
+                    # if ia == a_number_of_voxels-1 and ib == b_number_of_voxels-1 and ic == c_number_of_voxels-1:
+                    #     print("Corner_end", r*0.529177249, r2*0.529177249*0.529177249, r_vec*0.529177249, ia*0.529177249, ib*0.529177249, ic*0.529177249)
+
         # Centre of Charge calculations
         COC = rrho/(total_charge)
         COC_elect = rrho_elect/total_electronic_charge
         COC_ionic = rrho_ionic/total_ionic_charge
-        COC_atomic = rrho_atomic/total_ionic_charge
-        COC = COC_ionic # This should be set so that it can change.
+        COC_ionic_not_binned = rrho_ionic_not_binned/total_ionic_charge
+        COC = COC_ionic_not_binned # This should be set so that it can change.
 
+        prog = progress_bar(a_number_of_voxels*b_number_of_voxels*c_number_of_voxels, descriptor="Analyzing for moments")
         for ia in range(a_number_of_voxels):
             for ib in range(b_number_of_voxels):
                 for ic in range(c_number_of_voxels):
+                    prog.get_progress((ia)*(b_number_of_voxels*c_number_of_voxels)+(ib)*(c_number_of_voxels)+ic)
                     """Methana podi indeces prashnayak thiyeanwa. mokenda iterate karanna one i+1 da nattam i da kiyala"""
-                    r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec
+                    r_vec = get_r_vec(ia, ib, ic)
                     r_vec = r_vec - COC
                     r2 = np.dot(r_vec,r_vec)
                     r = np.sqrt(r2)
-                    dipole+=rho[ia, ib, ic]*r*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
-                    Qxx+= rho[ia, ib, ic]*(3*(r_vec[0])*(r_vec[0]) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
-                    Qyy+= rho[ia, ib, ic]*(3*(r_vec[1])*(r_vec[1]) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
-                    Qzz+= rho[ia, ib, ic]*(3*(r_vec[2])*(r_vec[2]) - r2)*c.elementary_charge*10**(-10)/(3.336*10**(-30)) 
-        
-        # Calculations happen here
+                    dipole+=rho[ia, ib, ic]*r_vec
+                    dipole_ionic+=rho_ionic[ia, ib, ic]*r_vec
+                    dipole_elect+=rho_elect[ia, ib, ic]*r_vec
+                    Qxx+= rho[ia, ib, ic]*(3*(r_vec[0])*(r_vec[0]) - r2)
+                    Qyy+= rho[ia, ib, ic]*(3*(r_vec[1])*(r_vec[1]) - r2)
+                    Qzz+= rho[ia, ib, ic]*(3*(r_vec[2])*(r_vec[2]) - r2)
+                    # Off axis elements
+                    Qxy+= rho[ia, ib, ic]*(3*(r_vec[0])*(r_vec[1]))
+                    Qxz+= rho[ia, ib, ic]*(3*(r_vec[0])*(r_vec[2]))
+                    Qyx+= rho[ia, ib, ic]*(3*(r_vec[1])*(r_vec[0]))
+                    Qyz+= rho[ia, ib, ic]*(3*(r_vec[1])*(r_vec[2]))
+                    Qzx+= rho[ia, ib, ic]*(3*(r_vec[2])*(r_vec[0]))
+                    Qzy+= rho[ia, ib, ic]*(3*(r_vec[2])*(r_vec[1]))
 
+        # Calculations happen here
         # Printing values out for now. Should make proper get methods.
         print("Origin", origin)
         print("numer of voxels", a_number_of_voxels, b_number_of_voxels, c_number_of_voxels)
         print("Full volume", full_volume)
         print("Half cell vector", voxel_midpoint_vec)
+        print("Voxel cell vector", r_voxel)
         print("elementary volume", d_V)
         print("elementary charge scipy", c.elementary_charge)
         print("Volume we should get", 25*1.023602*25*1.023602*25*1.653511 )
         print("check for debye", c.elementary_charge*10**(-10)/(3.336*10**(-30)))
         print("Denchar Volume", 13*13*21 )
-        print("dipole", dipole, "Debye")
+        print("dipole", dipole*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
+        print("dipole elec", dipole_elect*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
+        print("dipole ionic", dipole_ionic*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
+        print("dipole non binned", dipole_ionic_not_binned*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
         print("total_electrons", self.number_of_electrons)
         print("normalized electronic charge", total_electronic_charge)
         print("total ionic charge", total_ionic_charge)
         print("Total Charge", total_charge)
-        print("Qxx", Qxx, "Debye")
-        print("Qyy", Qyy, "Debye")
-        print("Qzz", Qzz, "Debye")
+        print("Qxx", Qxx*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
+        print("Qyy", Qyy*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
+        print("Qzz", Qzz*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
         # print("rrho rhoelectronic and rrho ionic", rrho, rho_elect, rho_ionic)
         print("shapes", np.shape(rrho), np.shape(rrho_elect), np.shape(rrho_ionic))
-        print("Centre of Charge (electronic, ionic, atomic)", COC_elect, COC_ionic, COC_atomic)
+        print("Centre of Charge (electronic, ionic, ionic_binned)", COC_elect, COC_ionic, COC_ionic_not_binned)
         print("Centre of Charge (ionic - elec)", COC_ionic - COC_elect)
 
         # Writing out the new data in a new file
