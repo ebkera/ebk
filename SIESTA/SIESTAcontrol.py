@@ -47,7 +47,6 @@ class Generatefdf:
         self.XC_Functional         = kwargs.get("XC_Functional", "LDA")
         self.XC_Authors            = kwargs.get("XC_Authors", "CA") # Exchange-correlation version (PBE for GGA, PW92 or CA for LDAs)
         self.LatticeVectors        = kwargs.get("LatticeVectors", [[0.0, 0.5, 0.5], [0.5, 0.0, 0.5], [0.5, 0.5,]])  # This only works if system_type == bulk
-        self.bands_block           = kwargs.get("bands_block", True)
         self.MPGrid                = kwargs.get("MPGrid", [10,10,10])
         self.PDOS                  = kwargs.get("PDOS", True)
         self.LDOS                  = kwargs.get("LDOS", False)
@@ -78,13 +77,17 @@ class Generatefdf:
         self.constrain_cell_vectors = kwargs.get("constrain_cell_vectors", False)
         self.UseStructFile         = kwargs.get("UseStructFile", False)
         self.NetCharge             = kwargs.get("NetCharge", None)
-        self.bands                 = kwargs.get("bands", False)
-        # Here we have all inputs for Denchar specifically
+        self.bands                 = kwargs.get("bands", True)
+        self.bands_path            = kwargs.get("bands_path", None)
+        self.WFS_to_write_range    = kwargs.get("WFS_to_write_range", [35,40])
+        self.MaxSCFIterations = kwargs.get("MaxSCFIterations", 0)  # Here ) will set the default value (will not be written to fdf file)
+        self.WriteForces           = kwargs.get("WriteForces", True)
         self.Write_Denchar         = kwargs.get("Write.Denchar", False)  # This will be in the siesta fdf
         self.WriteWaveFunctions    = kwargs.get("WriteWaveFunctions", False)  # This will be in the siesta fdf
         self.WriteMDHistory        = kwargs.get("WriteMDHistory", True)  # This will be in the siesta fdf
         self.WriteCoorStep         = kwargs.get("WriteCoorStep", False)  # This will be in the siesta fdf
-        self.WriteForces           = kwargs.get("WriteForces", True)
+        self.OpticalCalculation    = kwargs.get("OpticalCalculation", False)
+        # Here we have all inputs for Denchar specifically
         self.Denchar_TypeOfRun     = kwargs.get("Denchar.TypeOfRun", "3D")
         self.Denchar_PlotCharge    = kwargs.get("Denchar.PlotCharge ", True)
         self.Denchar_PlotWaveFunctions = kwargs.get("Denchar.PlotWaveFunctions", True)
@@ -100,8 +103,6 @@ class Generatefdf:
         self.Denchar_MinZ          = kwargs.get("Denchar.MinZ", "-6.5")
         self.Denchar_MaxZ          = kwargs.get("Denchar.MaxZ", "+6.5")  # data type is real length
         self.Denchar_PlaneGeneration = kwargs.get("Denchar.PlaneGeneration", "NormalVector")
-        self.WFS_to_write_range    = kwargs.get("WFS_to_write_range", [35,40])
-        self.MaxSCFIterations = kwargs.get("MaxSCFIterations", 0)  # Here ) will set the default value (will not be written to fdf file)
 
         if self.XC_Functional == "LDA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.479)
@@ -289,21 +290,6 @@ class Generatefdf:
                 fdf_file.write(f"%endblock PAO.Basis\n\n")
 
 
-            if self.bands_block:
-                fdf_file.write(f"\n# Band lines path\n")
-                fdf_file.write(f"BandLinesScale pi/a\n")
-                fdf_file.write(f"%block BandLines\n")
-                fdf_file.write(f" 1  0.0000   0.0000  0.0000  \Gamma\n")
-                fdf_file.write(f"40  0.0000   2.0000  0.0000  X\n")
-                fdf_file.write(f"40  1.0000   2.0000  0.0000  W\n")
-                fdf_file.write(f"40  1.0000   1.0000  1.0000  L\n")
-                fdf_file.write(f"40  0.0000   0.0000  0.0000  \Gamma\n")
-                fdf_file.write(f"40  1.5000   1.5000  0.0000  K\n")
-                fdf_file.write(f"40  1.0000   1.0000  1.0000  L\n")
-                fdf_file.write(f"40  0.0000   0.0000  0.0000  \Gamma\n")
-                fdf_file.write(f"40  0.0000   2.0000  0.0000  X\n")
-                fdf_file.write(f"%endblock BandLines\n\n")
-
             fdf_file.write(f"# Electronic optimization settings\n")
             if self.Spin: 
                 fdf_file.write(f"Spin                        {self.Spin}\n")
@@ -357,10 +343,10 @@ class Generatefdf:
 
             fdf_file.write(f"\n# IO settings\n")
             if self.UseStructFile == True:
-                fdf_file.write(f"UseStructFile              true\n")
+                fdf_file.write(f"UseStructFile               true\n")
             fdf_file.write(f"SaveTotalPotential          true\n")
             fdf_file.write(f"SaveElectrostaticPotential  true\n")
-            fdf_file.write(f"Write.DM                    true\n  # encouraged to have this flag true in case we have to restart or for post processing\n")
+            fdf_file.write(f"Write.DM                    true           # encouraged to have this flag true in case we have to restart or for post processing\n")
             if self.WriteForces:
                 fdf_file.write("WriteForces                 true\n")
             if self.Write_Denchar:
@@ -371,11 +357,13 @@ class Generatefdf:
                 fdf_file.write("COOP.Write                  true\n")
                 fdf_file.write("WriteWaveFunctions          true\n")
                 fdf_file.write("%block WaveFuncKPoints\n")
-                fdf_file.write("0.0 0.0 0.0 \t\t\t\t\t # If you want only specific EF per k point: 0.0 0.0 0.0 from 30 to 70\n")
+                fdf_file.write("0.0 0.0 0.0 \t\t\t\t\t                     # If you want only specific EF per k point: 0.0 0.0 0.0 from 30 to 70\n")
                 fdf_file.write("%endblock WaveFuncKPoints\n")
 
             if self.bands:
-                    fdf_file.write(f"\n# Band structure parameters\n")
+                # Use the quick bands setting to use well known band paths
+                fdf_file.write(f"\n# Band structure parameters and band lines path\n")
+                if self.bands_path == "2D":
                     fdf_file.write("BandLinesScale ReciprocalLatticeVectors\n")
                     fdf_file.write("%block BandLines\n")
                     fdf_file.write(" 1 0.3800000000   0.5000000000   0.0000000000     M \n")
@@ -385,6 +373,35 @@ class Generatefdf:
                     fdf_file.write("40 0.0000000000   0.5000000000   0.0000000000     Y \n")
                     fdf_file.write("40 0.0000000000   0.0000000000   0.0000000000     \GAMMA \n")
                     fdf_file.write("%endblock BandLines\n")
+
+                elif self.bands_path == "FCC":
+                    fdf_file.write(f"BandLinesScale pi/a\n")
+                    fdf_file.write(f"%block BandLines\n")
+                    fdf_file.write(f" 1  0.0000   0.0000  0.0000  \Gamma\n")
+                    fdf_file.write(f"40  0.0000   2.0000  0.0000  X\n")
+                    fdf_file.write(f"40  1.0000   2.0000  0.0000  W\n")
+                    fdf_file.write(f"40  1.0000   1.0000  1.0000  L\n")
+                    fdf_file.write(f"40  0.0000   0.0000  0.0000  \Gamma\n")
+                    fdf_file.write(f"40  1.5000   1.5000  0.0000  K\n")
+                    fdf_file.write(f"40  1.0000   1.0000  1.0000  L\n")
+                    fdf_file.write(f"40  0.0000   0.0000  0.0000  \Gamma\n")
+                    fdf_file.write(f"40  0.0000   2.0000  0.0000  X\n")
+                    fdf_file.write(f"%endblock BandLines\n")
+
+                else:
+                    # Try to leave this here for default behaviour and to make a Gamma point bands file in case for reading in some values like homo and lumo edge value for a molecule calculation
+                    fdf_file.write(f"BandLinesScale ReciprocalLatticeVectors\n")
+                    fdf_file.write(f"%block BandLines\n")
+                    fdf_file.write(f" 1  0.0000   0.0000  0.0000  \Gamma\n")
+                    fdf_file.write(f"%endblock BandLines\n")
+
+            if self.OpticalCalculation:
+                # Use the quick bands setting to use well known band paths
+                fdf_file.write(f"\n# Optical Property parameters\n")
+                fdf_file.write(f"OpticalCalculation true\n")
+                fdf_file.write("%block Optical.Mesh\n")
+                fdf_file.write("  5 5 5 \n")
+                fdf_file.write("%endblock Optical.Mesh\n")
                         
                 # fdf_file.write(f"MD.MaxForceTol         0.04\n")
                 # fdf_file.write(f"MD.VariableCell        T\n")  # Is false by default.
