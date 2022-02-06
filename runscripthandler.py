@@ -99,6 +99,7 @@ class RunScriptHandler():
         self.n_proj_boxes    = kwargs.get("n_proj_boxes", self.fft_grid[2])
         self.job_name        = kwargs.get("job_name", self.identifier)
         self.email_recipients= kwargs.get("email_recipients", ["ebk_era@hotmail.com"])  # List of strings
+        self.send_mail       = kwargs.get("send_mail", True)
 
         # Quantum espresso inits some other inits that need to be only set if explicitly given can be found below this.
         self.espresso_inputs = {"pseudopotentials": self.pseudopotentials,
@@ -718,8 +719,16 @@ class RunScriptHandler():
         """
         This script creates bash files so that you can run a batch of the runs that need to be done
         """
+        submit_file = open(f"{self.base_folder}/run_bash_jobs.sh", "w+")
+        submit_file.write(f'#!/bin/bash\n')
+        submit_file.write(f'dos2unix *job.sh\n')
+        submit_file.write(f'for f in *.job.sh\n')
+        submit_file.write(f'do\n')
+        submit_file.write(f'  . $f\n')
+        submit_file.write(f'done\n')
+        submit_file.close()
         print(f"create_bash_file: job_handler is set to: {self.job_handler}")
-        bash_file = open(f"{self.base_folder}/run_{self.identifier}.sh", "w+")
+        bash_file = open(f"{self.base_folder}/{self.identifier}.job.sh", "w+")
         bash_file.write(f"#!/bin/bash\n\n")
 
         bash_file.write(f'script_start_time=$(date +%s)\n')
@@ -754,13 +763,15 @@ class RunScriptHandler():
             bash_file.write(f"\n")
             bash_file.write(r'  echo "$mail_text" > email.txt')
             bash_file.write(f"\n")
-            bash_file.write(f"  sendmail -t < email.txt\n")
+            if self.send_mail:
+                bash_file.write(f"  sendmail -t < email.txt\n")
             bash_file.write(f'  mpirun -np {self.nodes*self.procs} siesta -in {self.identifier}.fdf | tee {self.identifier}.out\n')
             bash_file.write(f'  run_end_time=$(date +%s)\n')
             bash_file.write(f'  elapsed_run_time=$(( run_end_time - run_start_time ))\n')
             bash_file.write(f'  mail_text="${{email_header}} Calculation in folder $f has ended on $(date). Wall_time: $elapsed_run_time s. ${{email_footer}}"\n')
             bash_file.write(f'  echo "$mail_text" > email_end.txt\n')
-            bash_file.write(f'  sendmail -t < email_end.txt\n\n')
+            if self.send_mail:
+                bash_file.write(f'  sendmail -t < email_end.txt\n\n')
         else:
             if "scf" in self.calculation or "vc-relax" in self.calculation or "relax" in self.calculation:
                 bash_file.write(f'  echo "  Now working on: scf $(date)" >> ../run.log\n')
@@ -768,7 +779,8 @@ class RunScriptHandler():
                 bash_file.write(f"\n")
                 bash_file.write(r'  echo "$mail_text" > email.txt')
                 bash_file.write(f"\n")
-                bash_file.write(f"  sendmail -t < email.txt\n")
+                if self.send_mail:
+                    bash_file.write(f"  sendmail -t < email.txt\n")
                 bash_file.write(f'  mpirun -np {self.nodes*self.ntasks} pw.x -in {self.identifier}.scf.in | tee {self.identifier}.scf.out\n')
             if "nscf" in self.calculation:
                 bash_file.write(f'  echo "  Now working on: nscf $(date)" >> ../run.log\n')
@@ -815,7 +827,8 @@ class RunScriptHandler():
         bash_file.write(f"\n")
         bash_file.write(r'  echo "$mail_text" > email.txt')
         bash_file.write(f"\n")
-        bash_file.write(f"  sendmail -t < email.txt\n")
+        if self.send_mail:
+            bash_file.write(f"  sendmail -t < email.txt\n")
         bash_file.write(f'  cd ..\n')
         bash_file.write(f'echo "" >> run.log\n')
         bash_file.write(f'done\n')
