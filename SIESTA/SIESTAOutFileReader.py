@@ -1,6 +1,7 @@
 """
 This file reads the the file out_file_name.out and extracts/calculates data/values from it
 """
+from matplotlib.pyplot import get
 from numpy import char
 import scipy
 from ebk import progress_bar
@@ -396,15 +397,12 @@ class SiestaReadOut():
         if file_name == None:
             # Here we can default to open the normal output file from Dencahr
             f = open(f"{self.out_file_name}.RHO.cube", "r")
-            for line in f:
-                self.RHO_file.append(line)
-            f.close()
         else:
             read_file_name = file_name
             f = open(f"{read_file_name}", "r")
-            for line in f:
-                self.RHO_file.append(line)
-            f.close()
+        for line in f:
+            self.RHO_file.append(line)
+        f.close()
 
         origin_0 = []
         number_of_atoms = 0
@@ -501,7 +499,6 @@ class SiestaReadOut():
             c_voxel_vec = c_voxel_vec*0.529177249
             # Converting the atomic coordinates
             for atom in atoms_info:
-                # print(atom)
                 for i,v in enumerate(a_voxel_vec):
                     atom[3][i] = atom[3][i]*0.529177249
 
@@ -516,6 +513,7 @@ class SiestaReadOut():
             for y in range(b_number_of_voxels):
                 for z in range(c_number_of_voxels):
                     rho[x,y,z] = -rho[x,y,z]*factor
+                    # if rho[x,y,z] != 0: print(get_r_vec(x,y,z))
                     total_electronic_charge+=rho[x,y,z]
         rho_elect = rho.copy()
 
@@ -526,7 +524,9 @@ class SiestaReadOut():
         voxel_midpoint_vec = 0.5*a_voxel_vec+0.5*b_voxel_vec+0.5*c_voxel_vec
         def get_r_vec(x,y,z):
             # r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec  + voxel_midpoint_vec
-            r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec + origin
+            r_vec = x*a_voxel_vec+y*b_voxel_vec+z*c_voxel_vec + origin  + voxel_midpoint_vec
+            r_vec = x*a_voxel_vec+y*b_voxel_vec+z*c_voxel_vec + origin
+            # r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec + origin  + r_voxel
             return r_vec
 
         prog = progress_bar(len(atoms_info)*a_number_of_voxels*b_number_of_voxels*c_number_of_voxels, descriptor="Loading ions onto grid")
@@ -537,35 +537,34 @@ class SiestaReadOut():
             # r_atom = np.array([coordinates[0]-origin[0], coordinates[1]-origin[1], coordinates[2]-origin[2]])
             r_atom = np.array([coordinates[0], coordinates[1], coordinates[2]])
 
-            # Method 1
-            x_index = math.floor((r_atom[0])/r_voxel[0])
-            y_index = math.floor((r_atom[1])/r_voxel[1])
-            z_index = math.floor((r_atom[2])/r_voxel[2])
-            charge = atom[2]
-            total_ionic_charge += charge
-            rho[x_index, y_index, z_index] += charge
-            rho_ionic[x_index, y_index, z_index] += charge
-            rrho_ionic_not_binned += r_atom*charge
-            dipole_ionic_not_binned += charge*r_atom
-            # prog.get_progress(i_atom)
+            # # Method 1
+            # x_index = math.floor((r_atom[0])/r_voxel[0])
+            # y_index = math.floor((r_atom[1])/r_voxel[1])
+            # z_index = math.floor((r_atom[2])/r_voxel[2])
+            # charge = atom[2]
+            # total_ionic_charge += charge
+            # rho[x_index, y_index, z_index] += charge
+            # rho_ionic[x_index, y_index, z_index] += charge
+            # rrho_ionic_not_binned += r_atom*charge
+            # dipole_ionic_not_binned += charge*r_atom
+            # # prog.get_progress(i_atom)
 
-            # # Method 2 takes longer more accurate This is for safe keeping
-            # for ia in range(a_number_of_voxels):
-            #     for ib in range(b_number_of_voxels):
-            #         for ic in range(c_number_of_voxels):
-            #             prog.get_progress(i_atom*a_number_of_voxels*b_number_of_voxels*c_number_of_voxels+(ia)*(b_number_of_voxels*c_number_of_voxels)+(ib)*(c_number_of_voxels)+ic)
-            #             r_vec = get_r_vec(ia, ib, ic)
-            #             d_vec = abs(r_atom - r_vec)
-            #             if d_vec[0] <= voxel_midpoint_vec[0] and d_vec[1] <= voxel_midpoint_vec[1] and d_vec[2] <= voxel_midpoint_vec[2]:
-            #                 charge = atom[2]
-            #                 total_ionic_charge += charge
-            #                 rho[ia, ib, ic] += charge
-            #                 rho_ionic[ia, ib, ic] += charge
-            #                 rrho_ionic_not_binned += r_atom*charge
-            #                 dipole_ionic_not_binned += charge*r_atom
-            #                 break
+            # Method 2 takes longer more accurate This is for safe keeping
+            for ia in range(a_number_of_voxels):
+                for ib in range(b_number_of_voxels):
+                    for ic in range(c_number_of_voxels):
+                        prog.get_progress(i_atom*a_number_of_voxels*b_number_of_voxels*c_number_of_voxels+(ia)*(b_number_of_voxels*c_number_of_voxels)+(ib)*(c_number_of_voxels)+ic)
+                        r_vec = get_r_vec(ia, ib, ic)
+                        d_vec = abs(r_atom - r_vec)
+                        if d_vec[0] <= voxel_midpoint_vec[0] and d_vec[1] <= voxel_midpoint_vec[1] and d_vec[2] <= voxel_midpoint_vec[2]:
+                            charge = atom[2]
+                            total_ionic_charge += charge
+                            rho[ia, ib, ic] += charge
+                            rho_ionic[ia, ib, ic] += charge
+                            rrho_ionic_not_binned += r_atom*charge
+                            dipole_ionic_not_binned += charge*r_atom
+                            break
 
-        print("")
         Qxx = 0
         Qxy = 0
         Qxz = 0
@@ -633,35 +632,67 @@ class SiestaReadOut():
                     Qzx+= rho[ia, ib, ic]*(3*(r_vec[2])*(r_vec[0]))
                     Qzy+= rho[ia, ib, ic]*(3*(r_vec[2])*(r_vec[1]))
 
-        # Calculations happen here
-        # Printing values out for now. Should make proper get methods.
-        print("Origin", origin)
-        print("numer of voxels", a_number_of_voxels, b_number_of_voxels, c_number_of_voxels)
-        print("Normalization factor for electrons density", factor)
-        print("Total Unnormalized charge from cube file", total_unnormalized_charge)
-        print("Full volume", full_volume)
-        print("Half cell vector", voxel_midpoint_vec)
-        print("Voxel cell vector", r_voxel)
-        print("elementary volume", d_V)
-        print("elementary charge scipy", c.elementary_charge)
-        print("Volume we should get", 25*1.023602*25*1.023602*25*1.653511 )
-        print("check for debye", c.elementary_charge*10**(-10)/(3.336*10**(-30)))
-        print("Denchar Volume", 13*13*21 )
-        print("dipole", dipole*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
-        print("dipole elec", dipole_elect*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
-        print("dipole ionic", dipole_ionic*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
-        print("dipole non binned", dipole_ionic_not_binned*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
-        print("total_electrons", self.number_of_electrons)
-        print("normalized electronic charge", total_electronic_charge)
-        print("total ionic charge", total_ionic_charge)
-        print("Total Charge", total_charge)
-        print("Qxx", Qxx*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye.Angs")
-        print("Qyy", Qyy*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye.Angs")
-        print("Qzz", Qzz*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye.Angs")
-        # print("rrho rhoelectronic and rrho ionic", rrho, rho_elect, rho_ionic)
-        print("shapes", np.shape(rrho), np.shape(rrho_elect), np.shape(rrho_ionic))
-        print("Centre of Charge (electronic, ionic, ionic_not_binned)", COC_elect, COC_ionic, COC_ionic_not_binned)
-        # print("Centre of Charge (ionic - elec)", COC_ionic - COC_elect)
+        # # Calculations happen here
+        # # Printing values out for now. Should make proper get methods.
+        # print(f"numer of voxels                           ", a_number_of_voxels, b_number_of_voxels, c_number_of_voxels)
+        # print(f"Origin                                    ", origin)
+        # print(f"Normalization factor for electrons density", factor)
+        # print(f"Total Unnormalized charge from cube file  ", total_unnormalized_charge)
+        # print(f"Full volume                               ", full_volume)
+        # print(f"Half cell vector                          ", voxel_midpoint_vec)
+        # print(f"Voxel cell vector                         ", r_voxel)
+        # print(f"elementary volume                         ", d_V)
+        # print(f"elementary charge scipy                   ", c.elementary_charge)
+        # print(f"Volume we should get                      ", 25*1.023602*25*1.023602*25*1.653511 )
+        # print(f"check for debye                           ", c.elementary_charge*10**(-10)/(3.336*10**(-30)))
+        # print(f"Denchar Volume                            ", 13*13*21 )
+        # print(f"dipole                                    ", dipole*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
+        # print(f"dipole elec                               ", dipole_elect*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
+        # print(f"dipole ionic                              ", dipole_ionic*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
+        # print(f"dipole non binned                         ", dipole_ionic_not_binned*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye")
+        # print(f"total_electrons                           ", self.number_of_electrons)
+        # print(f"normalized electronic charge              ", total_electronic_charge)
+        # print(f"total ionic charge                        ", total_ionic_charge)
+        # print(f"Total Charge                              ", total_charge)
+        # print(f"Qxx                                       ", Qxx*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye.Angs")
+        # print(f"Qyy                                       ", Qyy*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye.Angs")
+        # print(f"Qzz                                       ", Qzz*c.elementary_charge*10**(-10)/(3.336*10**(-30)), "Debye.Angs")
+
+        # # print("rrho rhoelectronic and rrho ionic", rrho, rho_elect, rho_ionic)
+        # print("shapes                                     ", np.shape(rrho), np.shape(rrho_elect), np.shape(rrho_ionic))
+        # print("Centre of Charge (electronic, ionic, ionic_not_binned)", COC_elect, COC_ionic, COC_ionic_not_binned)
+        # # print("Centre of Charge (ionic - elec)", COC_ionic - COC_elect)
+
+        # Here we can write to output file and then delete the above if necessary for furture 
+        print(f"Writing the values to file {self.out_file_name}.electrostatics.out")
+        summary_file = open(f"{self.out_file_name}.electrostatics.out", "w")
+        summary_file.write(f"Summary fo the electrostatics calculationsf for file {self.out_file_name}\n\n")
+        summary_file.write(f"numer of voxels                            {a_number_of_voxels}, {b_number_of_voxels}, {c_number_of_voxels}\n")
+        summary_file.write(f"Origin                                     {origin}\n")
+        summary_file.write(f"Normalization factor for electrons density {factor}\n")
+        summary_file.write(f"Total Unnormalized charge from cube file   {total_unnormalized_charge}\n")
+        summary_file.write(f"Full volume                                {full_volume}\n")
+        summary_file.write(f"Half cell vector                           {voxel_midpoint_vec}\n")
+        summary_file.write(f"Voxel cell vector                          {r_voxel}\n")
+        summary_file.write(f"elementary volume                          {d_V}\n")
+        summary_file.write(f"elementary charge scipy                    {c.elementary_charge}\n")
+        summary_file.write(f"Volume we should get                       {25*1.023602*25*1.023602*25*1.653511 }\n")
+        summary_file.write(f"check for debye                            {c.elementary_charge*10**(-10)/(3.336*10**(-30))}\n")
+        summary_file.write(f"Denchar Volume                             {13*13*21 }\n")
+        summary_file.write(f"dipole                                     {dipole*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye\n")
+        summary_file.write(f"dipole elec                                {dipole_elect*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye\n")
+        summary_file.write(f"dipole ionic                               {dipole_ionic*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye\n")
+        summary_file.write(f"dipole non binned                          {dipole_ionic_not_binned*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye\n")
+        summary_file.write(f"total_electrons                            {self.number_of_electrons}\n")
+        summary_file.write(f"normalized electronic charge               {total_electronic_charge}\n")
+        summary_file.write(f"total ionic charge                         {total_ionic_charge}\n")
+        summary_file.write(f"Total Charge                               {total_charge}\n")
+        summary_file.write(f"Qxx                                        {Qxx*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye.Angs\n")
+        summary_file.write(f"Qyy                                        {Qyy*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye.Angs\n")
+        summary_file.write(f"Qzz                                        {Qzz*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye.Angs\n")
+        summary_file.write(f"shapes                                     {np.shape(rrho)}, {np.shape(rrho_elect)}, {np.shape(rrho_ionic)}\n")
+        summary_file.write(f"Centre of Charge (electronic, ionic, ionic_not_binned) {COC_elect}, {COC_ionic}, {COC_ionic_not_binned}\n")
+        summary_file.close()
 
         # Writing out the new data in a new file
         with open(f"{self.out_file_name}.electronicandionic.cube", "w+") as file:
