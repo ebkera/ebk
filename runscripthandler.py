@@ -422,7 +422,7 @@ class RunScriptHandler():
                 file_torque.write(f"    #PBS -l nodes={self.nodes}:ppn={self.procs}\n")
                 file_torque.write(f"    #PBS -l walltime={self.walltime_hours}:{self.walltime_mins}:{self.walltime_secs}\n")
                 # file.write(f"    #PBS -N {run_name}\n")
-                file_torque.write(f"    #PBS -A cnm72303\n")
+                file_torque.write(f"    #PBS -A cnm77824\n")
                 file_torque.write(f"    #  File names for stdout and stderr.  If not set here, the defaults\n")
                 file_torque.write(f"    #  are <JOBNAME>.o<JOBNUM> and <JOBNAME>.e<JOBNUM>\n")
                 # file.write(f"    #PBS -o job.out\n")
