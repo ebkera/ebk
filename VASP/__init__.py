@@ -197,7 +197,10 @@ for f in "${{folder_list[@]}}"; do\n\
     mpirun -np {np} vasp_ncl | tee era.out\n\
     run_end_time=$(date +%s)\n\
     elapsed_run_time=$(( run_end_time - run_start_time ))\n\
-    mail_text="${{email_header}} Calculation in folder $f has ended on $(date). Wall_time: $elapsed_run_time s. ${{email_footer}}"\n\
+    mail_text="${{email_header}} Calculation in folder $f has ended on $(date). Wall_time: $elapsed_run_time s."\n\
+    mail_text="${{mail_text}}\n\nLast lines of OUTCAR file:\n"\n\
+    mail_text="${{mail_text}}\n$(tail OUTCAR)"\n\
+    mail_text="${{mail_text}}${{email_footer}}"\n\
     echo "$mail_text" > email_end.txt\n\
     sendmail -t < email_end.txt\n\n\
     cd ..\n\
@@ -232,7 +235,7 @@ def get_relaxation_INCAR():
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
   # LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\n\
   # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
-  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2\n (Remember to diable LSORBIT)\
+  # MAGMOM = 12*0.6    # Default: MAGMOM 	= NIONS * 1.0 	for ISPIN=2 (Remember to diable LSORBIT)\
   # LASPH = .TRUE.     # (Default: LASPH = .FALSE.)  include non-spherical contributions related to the gradient of the density in the PAW spheres.\n\
   \n\
 # van der Waals\n\
