@@ -32,9 +32,15 @@ def populate_RELAX(folder_name = False, RELAX_DIR="1_RELAX"):
     contents = get_relaxation_KPOINTS()
     file.write(contents)
     file.close()
-
-    # shutil.copy(f"DEFAULTS/KPOINTS_SCF_TEMPLATE", f"{folder_name}/KPOINTS")
-    # shutil.copy(f"{RELAX_DIR}/CONTCAR", f"{folder_name}/POSCAR")
+    try:
+        shutil.copy(f"DEFAULTS/INCAR_RELAX_TEMPLATE", f"{folder_name}/INCAR")
+        print(f"INCAR for RELAX run loaded from template file in DEFAULTS")
+    except:
+        print(f"No template for INCAR for RELAX using original template from code")
+        file = open(f"{folder_name}/INCAR", "w+")
+        contents = get_scf_INCAR()
+        file.write(contents)
+        file.close()
 
 def populate_SCF(folder_name = False, RELAX_DIR="1_RELAX"):
     if folder_name == False:
@@ -710,3 +716,18 @@ LASPH = .TRUE.\n\
 "
 
     return content
+
+
+def vasp2xyz(file_name):
+    """
+    This function converts a VASP POSCAR file to a xyz file.
+    Inputs: filename (string): The file name to save the file. Should the given without the extension.
+    """
+    from ase.io import read, write
+    atoms = read(file_name, format="vasp")
+    print(f"vasp2xyz: VASP file imported: {atoms}")
+    file_name = file_name.split(".")
+    del file_name[-1]
+    file_write_name = ".".join(file_name)
+    write(f"{file_write_name}.xyz", atoms)
+    print(f"vasp2xyz: Written to .xyz file")
