@@ -768,7 +768,10 @@ class RunScriptHandler():
             bash_file.write(f'  mpirun -np {self.nodes*self.procs} siesta -in {self.identifier}.fdf | tee {self.identifier}.out\n')
             bash_file.write(f'  run_end_time=$(date +%s)\n')
             bash_file.write(f'  elapsed_run_time=$(( run_end_time - run_start_time ))\n')
-            bash_file.write(f'  mail_text="${{email_header}} Calculation in folder $f has ended on $(date). Wall_time: $elapsed_run_time s. ${{email_footer}}"\n')
+            bash_file.write(f'  mail_text="${{email_header}} Calculation in folder $f has ended on $(date). Wall_time: $elapsed_run_time s."\n')
+            bash_file.write(f'  mail_text="${{email_text}} Last lines of out file:"\n')
+            bash_file.write(f'  mail_text="${{email_text}} $(tail *.out)"\n')
+            bash_file.write(f'  mail_text="${{email_text}}${{email_footer}}"\n')
             bash_file.write(f'  echo "$mail_text" > email_end.txt\n')
             if self.send_mail:
                 bash_file.write(f'  sendmail -t < email_end.txt\n\n')
