@@ -22,6 +22,7 @@ class SiestaReadOut():
 
         # Here are defaults
         trigger_read_in_atoms = False
+        trigger_read_in_cell = False
 
         f = open(f"{self.out_file_name}.out", "r")
         for line in f:
@@ -73,6 +74,18 @@ class SiestaReadOut():
                 x = line.strip("siesta:         Total =")
                 x = x.split()
                 self.E_total = float(x[0])      
+
+            # Here we are reading in the Total energies
+            if "siesta: Automatic unit cell vectors (Ang):" in line:
+                trigger_read_in_cell = True
+                self.initial_cell_vectors = []
+                continue
+            if trigger_read_in_cell:
+                x = line.strip("siesta:")
+                x = x.split()
+                x = [float(i) for i in x]
+                self.initial_cell_vectors.append(x)
+                if len(self.initial_cell_vectors) == 3: trigger_read_in_cell = False
 
             # Here we are reading in the number of atoms and orbitals and projectors
             if "initatomlists: Number of atoms, orbitals, and projectors:" in line:
@@ -356,7 +369,7 @@ class SiestaReadOut():
                 self.E_total = float(x[0])
                 return self.E_total
 
-    def get_quadrupole_moments(self, file_name = None):
+    def get_quadrupole_moments(self, file_name = None, cell = [0., 0., 0.,]):
         """
         This part of the code is still under construction and should be moved up when done.
 
