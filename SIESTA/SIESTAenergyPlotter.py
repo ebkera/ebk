@@ -9,6 +9,8 @@ Multiple diagrams can be imported and then plotted together.
 from ebk.SIESTA.SIESTAOutFileReader import SiestaReadOut
 import matplotlib.pyplot as plt
 import os
+from matplotlib.offsetbox import TextArea, DrawingArea, OffsetImage, AnnotationBbox
+import matplotlib.image as mpimg
 # print(os.getcwd())
 
 class PlotEnergy():
@@ -53,10 +55,11 @@ class PlotEnergy():
         self.ylim_high = 0
         self.x_tick_font_size = 14
         self.xlabel = "Ligand"
+        self.picture_path = []
         if "x_ticks_rotation" in kwargs:
             self.x_ticks_rotation = kwargs.get("x_ticks_rotation", 0)
 
-    def load(self, file_name, pin_level, label = None, *args, **kwargs):
+    def load(self, file_name, pin_level, label = None, picture_path = None, *args, **kwargs):
         """
         Will load the relevent files and values and prep for plotting
         inputs:
@@ -152,6 +155,7 @@ class PlotEnergy():
         self.LUMOs.append(new)
         # print(Ef, old, new)
         self.kwargs_list.append(kwargs)
+        self.picture_path.append(picture_path)
 
         # Adjusting the HOMO and LUMO levels if IE and EA are present:
         if self.EAs[-1] != None and self.IEs[-1] !=None:
@@ -200,6 +204,20 @@ class PlotEnergy():
                 plt.plot([x_coordinates[1]+0.1, x_coordinates[1]+0.1], [self.HOMOs[x-1], self.HOMOs[x-1]], "<b", label="HOMO")
             if self.show_lumo:
                 plt.plot([x_coordinates[1]+0.1, x_coordinates[1]+0.1], [self.LUMOs[x-1], self.LUMOs[x-1]], "<g", label="LUMO")
+        
+            try:
+                arr_lena = mpimg.imread(self.picture_path[x-1])
+                imagebox = OffsetImage(arr_lena, zoom=0.2)
+                ab = AnnotationBbox(imagebox, (x,(self.HOMOs[x-1] + self.LUMOs[x-1])/2))
+                ax1.add_artist(ab)
+            except:
+                print("Plotting a ligand image can also be done need to specify image")
+
+        band_gaps = []
+        for i in range(0,len(self.HOMOs)):
+            band_gaps.append(self.LUMOs[i] - self.HOMOs[i])
+            self.labels[i] = f"{self.labels[i]} (Eg={band_gaps[i]:.3})"
+
         ax1.set_xticks(E)
         ax1.set_xticklabels(self.labels, fontsize=self.x_tick_font_size)
         ax1.set_xlabel(self.xlabel)
@@ -209,16 +227,6 @@ class PlotEnergy():
         plt.legend(by_label.values(), by_label.keys(), loc = 'upper right')
         if hasattr(self, "x_ticks_rotation"): plt.xticks(rotation=self.x_ticks_rotation, ha='right')
         ax1.set_title(f"{self.title}")
-
-        from matplotlib.offsetbox import TextArea, DrawingArea, OffsetImage, AnnotationBbox
-        import matplotlib.image as mpimg
-        arr_lena = mpimg.imread('Structure_NH2_3.png')
-        imagebox = OffsetImage(arr_lena, zoom=0.2)
-        ab = AnnotationBbox(imagebox, (0.4, 0.6))
-        ax1.add_artist(ab)
-        
-
-
 
 
         plt.tight_layout()
