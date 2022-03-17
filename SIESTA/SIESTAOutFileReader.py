@@ -127,7 +127,6 @@ class SiestaReadOut():
             # Here we read in the total charge
             if "Total ionic charge" in line:
                 self.total_ionic_charge = float(line.split()[3])
-            
 
 # Here we are parsing in the .EIG file
         for i,line in enumerate(self.EIG_file):
@@ -291,6 +290,10 @@ class SiestaReadOut():
     def get_total_ionic_charge(self):
         """Returns the total ionic charge of the system"""
         return self.total_ionic_charge
+
+    def get_initial_cell_vectors(self):
+        """Returns the un relaxed initial cell vectors"""
+        return self.initial_cell_vectors
 
     def plot_band_structure(self, **kwargs):
         """Plots the """
