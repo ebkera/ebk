@@ -93,9 +93,9 @@ class Generatefdf:
         self.Denchar_PlotWaveFunctions = kwargs.get("Denchar.PlotWaveFunctions", True)
         self.Denchar_CoorUnits     = kwargs.get("Denchar.CoorUnits", "Ang")  # Can also be Bohr
         self.Denchar_DensityUnits  = kwargs.get("Denchar.DensityUnits ", "Ele/Ang**3")
-        self.Denchar_NumberPointsX = kwargs.get("Denchar.NumberPointsX", "25")
-        self.Denchar_NumberPointsY = kwargs.get("Denchar.NumberPointsX", "25")
-        self.Denchar_NumberPointsZ = kwargs.get("Denchar.NumberPointsX", "25")
+        self.Denchar_NumberPointsX = kwargs.get("Denchar.NumberPointsX", "26")
+        self.Denchar_NumberPointsY = kwargs.get("Denchar.NumberPointsX", "26")
+        self.Denchar_NumberPointsZ = kwargs.get("Denchar.NumberPointsX", "26")
         self.Denchar_MinX          = kwargs.get("Denchar.MinX", "-6.5")
         self.Denchar_MaxX          = kwargs.get("Denchar.MaxX", "+6.5")
         self.Denchar_MinY          = kwargs.get("Denchar.MinY", "-6.5")
@@ -314,7 +314,7 @@ class Generatefdf:
                 fdf_file.write(f"\n# Relaxation and Molecular Dynamics Settings\n")
                 fdf_file.write(f"MD.TypeOfRun                {self.MD_TypeOfRun}\t\t\t\t\t\t # default: CG\n")
                 if self.MD_TypeOfRun == "Broyden":
-                    fdf_file.write(f"MD.Broyden.History.Steps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t # default: 5\n")
+                    fdf_file.write(f"MD.Broyden.History.Denchar_NumberPointsZSteps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t # default: 5\n")
                 fdf_file.write(f"MD.Steps                    {self.MD_Steps}    \t\t\t\t # default: 0\n")
                 fdf_file.write(f"MD.MaxForceTol              {self.MD_MaxForceTol} eV/Ang\t\t # default: 0.04eV/Ang\n")
                 if self.MD_VariableCell:
