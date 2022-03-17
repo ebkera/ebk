@@ -12,7 +12,7 @@ def make_folder_structure():
     except OSError as error:
         print(error)
 
-def populate_RELAX(folder_name = False, RELAX_DIR="1_RELAX"):
+def populate_RELAX(folder_name = False, RELAX_DIR="1_RELAX", **kwargs):
     if folder_name == False:
         folder_name = RELAX_DIR
     else:
@@ -25,7 +25,7 @@ def populate_RELAX(folder_name = False, RELAX_DIR="1_RELAX"):
     # shutil.copy(f"DEFAULTS/INCAR__TEMPLATE", f"{folder_name}/INCAR")
     # Lets make the INCAR file
     file = open(f"{folder_name}/INCAR", "w+")
-    contents = get_relaxation_INCAR()
+    contents = get_relaxation_INCAR(**kwargs)
     file.write(contents)
     # Lets make the KPOINTS file
     file = open(f"{folder_name}/KPOINTS", "w+")
@@ -38,7 +38,7 @@ def populate_RELAX(folder_name = False, RELAX_DIR="1_RELAX"):
     except:
         print(f"No template for INCAR for RELAX using original template from code")
         file = open(f"{folder_name}/INCAR", "w+")
-        contents = get_scf_INCAR()
+        contents = get_relaxation_INCAR(**kwargs)
         file.write(contents)
         file.close()
 
