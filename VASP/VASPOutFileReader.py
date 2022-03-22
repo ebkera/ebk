@@ -12,6 +12,7 @@ class VASPReadOut():
         self.bands = []
         self.kpoints = []
         trigger = False
+        lattice_vectors_trigger = False
         self.k_dist=[0]
         self.highest_valance = [0, -500]    # Will contain [[kpath_index],E]
         self.lowest_conduction = [0, 500]  # Will contain [[kpath_index],E]
@@ -28,6 +29,8 @@ class VASPReadOut():
         self.consider_actual_k_distance = False  # important when we want actual K distance like when calculating electron and hole masses
         self.kpoints_read_from = kwargs.get("kpoints_read_from", 1)  # This is when you want to ignore some of the first k points for exxample in a HSE calculation grid k points not requried for band structure calculations
         self.reset_k_dist = kwargs.get("reset_k_dist", [])   # This is when there is a discontinuity in the K path like U|K
+        self.lattice_vectors = []
+        self.reciprocal_lattice_vectors = []
         
         with open(f"{self.out_folder}/OUTCAR", "r+") as OUTCAR:
             for line in OUTCAR:
@@ -105,6 +108,7 @@ class VASPReadOut():
 
                 if trigger == True and len(line.split()) == 3:
                     f=line.split()
+                    # print(f)
                     band_label = int(f[0])-1
                     E = float(f[1])-E_fermi
                     # E = float(f[1])  # if we want to not shift by Ef
@@ -133,7 +137,15 @@ class VASPReadOut():
                             self.lowest_conduction[0] = current_kpoint - 1
                             self.conduction_band_label_index = band_label
                             # print(E)
-               
+
+                if "direct lattice vectors" in line and "reciprocal lattice vectors" in line: 
+                    lattice_vectors_trigger = True
+                    self.lattice_vectors = []
+                if lattice_vectors_trigger == True and "direct lattice vectors" not in line:
+                    parsed = line.split()
+                    self.lattice_vectors.append([float(parsed[0]), float(parsed[1]), float(parsed[2])])
+                    self.reciprocal_lattice_vectors.append([float(parsed[3]), float(parsed[4]), float(parsed[5])])
+                    if len(self.lattice_vectors) == 3: lattice_vectors_trigger = False
 
         for x in range(1,len(self.kpoints)):
             dist_v=[0, 0, 0]
@@ -158,35 +170,40 @@ class VASPReadOut():
                 
         self.Eg = self.lowest_conduction[1] - self.highest_valance[1]
 
-        with open(f"{self.out_folder}/KPOINTS", "r+") as KPOINTS:
-            hss_old = "empty"
-            for line in KPOINTS:
-                line_s = line.split()
+        try:
+            with open(f"{self.out_folder}/KPOINTS", "r+") as KPOINTS:
+                hss_old = "empty"
+                for line in KPOINTS:
+                    line_s = line.split()
 
-                if len(line_s) == 1:
-                    try:
-                        self.k_point_density = int(line_s[0])
-                    except: pass
+                    if len(line_s) == 1:
+                        try:
+                            self.k_point_density = int(line_s[0])
+                        except: pass
 
-                # This will check for actual K points
-                try: 
-                    float(line_s[0])
-                except: 
-                    continue
+                    # This will check for actual K points
+                    try: 
+                        float(line_s[0])
+                    except: 
+                        continue
 
-                if len(line_s) == 4:
-                    hss = line_s[3]
-                    if hss == hss_old: continue
-                    hss_old = hss
-                    self.hss.append(hss)
+                    if len(line_s) == 4:
+                        hss = line_s[3]
+                        if hss == hss_old: continue
+                        hss_old = hss
+                        self.hss.append(hss)
 
-                    for i,v in enumerate(self.hss):
-                        if v.lower() == "gamma" or v.lower() == "g":
-                            self.hss[i] = "$\Gamma$"
-            self.hsp.append(self.k_dist[0])
+                        for i,v in enumerate(self.hss):
+                            if v.lower() == "gamma" or v.lower() == "g":
+                                self.hss[i] = "$\Gamma$"
+                self.hsp.append(self.k_dist[0])
 
-            for x in range(1,len(self.hss)):
-                self.hsp.append(self.k_dist[self.k_point_density*x-1])
+                for x in range(1,len(self.hss)):
+                    self.hsp.append(self.k_dist[self.k_point_density*x-1])
+        except:
+            print(f"Could not find KPOINTS file forQxx                                        2.827239 Debye.Angs
+Qyy                                        2.827239 Debye.Angs
+Qzz                                        -5.654478 Debye.Angs : {self.out_folder}/KPOINTS")
 
     def get_dos(self, DOS_DIR):
         self.dos_MIN_E = 0
@@ -211,6 +228,10 @@ class VASPReadOut():
         import matplotlib.pyplot as plt
         plt.plot(self.dos_E, self.dos_D)
         plt.show()
+
+    def get_final_volume(self):
+        import numpy as np
+        return np.dot(self.lattice_vectors[2], np.cross(self.lattice_vectors[0],self.lattice_vectors[1]))
 
 
     def get_band_gap(self):
