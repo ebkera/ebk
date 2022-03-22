@@ -201,9 +201,7 @@ class VASPReadOut():
                 for x in range(1,len(self.hss)):
                     self.hsp.append(self.k_dist[self.k_point_density*x-1])
         except:
-            print(f"Could not find KPOINTS file forQxx                                        2.827239 Debye.Angs
-Qyy                                        2.827239 Debye.Angs
-Qzz                                        -5.654478 Debye.Angs : {self.out_folder}/KPOINTS")
+            print(f"Could not find KPOINTS file for : {self.out_folder}/KPOINTS")
 
     def get_dos(self, DOS_DIR):
         self.dos_MIN_E = 0
