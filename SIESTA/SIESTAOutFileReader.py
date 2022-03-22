@@ -571,10 +571,9 @@ class SiestaReadOut():
             for y in range(b_number_of_voxels):
                 for z in range(c_number_of_voxels):
                     rho[x,y,z] = -rho[x,y,z]*factor
-                    # if rho[x,y,z] != 0: print(get_r_vec(x,y,z))
                     total_electronic_charge+=rho[x,y,z]
-        rho_elect_binned = rho.copy()
-        rho_binned = rho.copy()
+        rho_elect_binned = rho.copy()      # This is for only keeping account of the electronic part and not the ionic part
+        rho_binned = rho.copy()            # This is for keeping both the electronic and the binned ionic charge
 
         # Adding the ionic components and the dipole part for the the non binned ionic part
         total_ionic_charge = 0
