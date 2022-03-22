@@ -5,6 +5,7 @@ from ast import parse
 from copy import copy
 from numbers import Rational
 from posixpath import split
+from matplotlib import units
 from matplotlib.pyplot import get
 from numpy import char
 import scipy
@@ -419,7 +420,7 @@ class SiestaReadOut():
         """
         import numpy as np
         from scipy import constants as c
-        print("Calculating the dipoles and quadrupoles...")
+        print("\nCalculating the dipoles and quadrupoles...")
 
         if file_name == None:
             # Here we can default to open the normal output file from Dencahr
@@ -432,7 +433,7 @@ class SiestaReadOut():
             self.RHO_file.append(line)
         f.close()
 
-        print(cell)
+        # print(cell)
         cell_negative = []
         cell_positive = []
         for direc in cell:
@@ -445,9 +446,6 @@ class SiestaReadOut():
 
         origin_0 = []
         number_of_atoms = 0
-        a_voxel_counter = 0
-        b_voxel_counter = 0
-        c_voxel_counter = 0
         full_volume = 0
         a_number_of_voxels = 0
         b_number_of_voxels = 0
@@ -455,6 +453,9 @@ class SiestaReadOut():
         a_voxel_vec = 0
         b_voxel_vec = 0
         c_voxel_vec = 0
+        a_voxel_counter = 0
+        b_voxel_counter = 0
+        c_voxel_counter = 0
         original_units = "Angs"
         atom_coordinates_trigger = False
         total_unnormalized_charge = 0
@@ -508,15 +509,21 @@ class SiestaReadOut():
                 atomic_number = int(parsed[0])
                 charge = float(parsed[1])
                 atoms_left_to_add-=1
-                if atomic_number == 1:
+                if atomic_number == 1:               # H
                     valance_electrons = 1 
-                if atomic_number == 6:
+                if atomic_number == 6:               # O
                     valance_electrons = 4 
+                if atomic_number == 7:               # N
+                    valance_electrons = 5 
                 if atomic_number == 8:
                     valance_electrons = 6
                 if atomic_number == 9:
                     valance_electrons = 7 
-                if atomic_number == 50:
+                if atomic_number == 16:              # S
+                    valance_electrons = 6 
+                if atomic_number == 26:
+                    valance_electrons = 7 
+                if atomic_number == 50:              # Sn
                     valance_electrons = 4 
                 atoms_info.append([atomic_number, charge, valance_electrons, [float(parsed[2]), float(parsed[3]), float(parsed[4])]])
                 # print(atoms_info[-1])
@@ -524,11 +531,8 @@ class SiestaReadOut():
             # Here we load the volumetric data
             if not atom_coordinates_trigger and i>5:
                 parsed = line.split()
-                # print("mokakda manda methana wenne ", i, parsed)
                 for val in parsed:
-                    # print(a_voxel_counter, b_voxel_counter, c_voxel_counter)
                     rho[a_voxel_counter, b_voxel_counter, c_voxel_counter] = float(val)
-                    # if float(val) != 0: print("adding non zero charge at: ", a_voxel_counter,b_voxel_counter,c_voxel_counter)
                     total_unnormalized_charge+= float(val)
                     c_voxel_counter+=1
                     if c_voxel_counter == c_number_of_voxels: 
@@ -537,11 +541,11 @@ class SiestaReadOut():
                         if b_voxel_counter == b_number_of_voxels:
                             b_voxel_counter=0
                             a_voxel_counter+=1
-
         # All data is loaded by this point
 
         # Possible unit conversions are handled here.
         if a_number_of_voxels > 0 and b_number_of_voxels > 0 and c_number_of_voxels > 0:
+            print("Units are detected to be Bohr and are converted into Angstroms")
             # This case means that the units are in Bohr and we have to convert to angstroms
             original_units = "Bohr"
             # Converting the origin and cell vectors into angstroms
@@ -760,12 +764,6 @@ class SiestaReadOut():
             Qzx_non_traceless+= charge*(r_vec[2])*(r_vec[0])
             Qzy_non_traceless+= charge*(r_vec[2])*(r_vec[1])
 
-
-
-
-
-
-
             total_charge += charge
             # if charge != 0:
             #     print(r_vec, r_atom, charge)
@@ -780,6 +778,13 @@ class SiestaReadOut():
         # print("Centre of Charge (electronic, ionic, ionic_not_binned)", COC_elect, COC_ionic, COC_ionic_not_binned)
         # # print("Centre of Charge (ionic - elec)", COC_ionic - COC_elect)
 
+        # Some units
+        unit_factor_Debye = c.elementary_charge*10**(-10)/(3.33564*10**(-30))
+        # unit_factor_Debye = 1*10**(10)/(3.33564*10**(-30))
+        unit_factor_esuA = unit_factor_Debye*10**(-10)
+        unit_factor_Cmm = c.elementary_charge*10**(-20)
+
+
         # Here we can write to output file and then delete the above if necessary for furture 
         print(f"Writing the values to file {self.out_file_name}.electrostatics.out")
         summary_file = open(f"{self.out_file_name}.electrostatics.out", "w")
@@ -793,7 +798,7 @@ class SiestaReadOut():
         summary_file.write(f"elementary volume                          {d_V:<5f}\n")
         # summary_file.write(f"elementary charge scipy                    {c.elementary_charge}\n")
         # summary_file.write(f"Volume we should get                       {25*1.023602*25*1.023602*25*1.653511 }\n")
-        # summary_file.write(f"check for debye                            {c.elementary_charge*10**(-10)/(3.336*10**(-30))}\n")
+        # summary_file.write(f"check for debye                            {unit_factor_Debye}\n")
         # summary_file.write(f"Denchar Volume                             {13*13*21 }\n")
         summary_file.write(f"shapes (rho), (rrho)                       {np.shape(rho)}, {np.shape(rrho)}\n")
         summary_file.write(f"total_electrons (from siesta)              {self.number_of_electrons}\n")
@@ -802,34 +807,70 @@ class SiestaReadOut():
         summary_file.write(f"Total Charge                               {total_charge}\n")
         summary_file.write(f"Normalization factor for electron density  {factor:<5f}\n")
         summary_file.write(f"Total Unnormalized charge from cube file   {total_unnormalized_charge:<5f}\n")
-        summary_file.write(f"dipole                                     {dipole*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye\n")
+        summary_file.write(f"dipole                                     {dipole*unit_factor_Debye} Debye\n")
         summary_file.write(f"dipole unadjusted to C.O.C                 {dipole_unadjustedtococ} in q.r numofelectrons.angs\n")
-        summary_file.write(f"dipole unadjusted to C.O.C                 {dipole_unadjustedtococ*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye\n")
-        summary_file.write(f"dipole elec  (binned)                      {dipole_elect_binned*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye\n")
-        summary_file.write(f"dipole ionic (binned)                      {dipole_ionic_binned*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye\n")
-        summary_file.write(f"dipole ionic (not non binned)              {dipole_ionic_not_binned*c.elementary_charge*10**(-10)/(3.336*10**(-30))} Debye\n")
+        summary_file.write(f"dipole unadjusted to C.O.C                 {dipole_unadjustedtococ*unit_factor_Debye} Debye\n")
+        summary_file.write(f"dipole elec  (binned)                      {dipole_elect_binned*unit_factor_Debye} Debye\n")
+        summary_file.write(f"dipole ionic (binned)                      {dipole_ionic_binned*unit_factor_Debye} Debye\n")
+        summary_file.write(f"dipole ionic (not non binned)              {dipole_ionic_not_binned*unit_factor_Debye} Debye\n")
         summary_file.write(f"dipole                                     {dipole} in q.r numofelectrons.angs\n")
         summary_file.write(f"dipole elec  (binned)                      {dipole_elect_binned} in q.r numofelectrons.angs\n")
         summary_file.write(f"dipole ionic (binned)                      {dipole_ionic_binned} in q.r numofelectrons.angs\n")
         summary_file.write(f"dipole ionic (not non binned)              {dipole_ionic_not_binned} in q.r numofelectrons.angs\n")
-        summary_file.write(f"Qxx                                        {Qxx*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qyy                                        {Qyy*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qzz                                        {Qzz*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qxy                                        {Qxy*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qxz                                        {Qxz*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qyx                                        {Qyx*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qyz                                        {Qyz*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qzx                                        {Qzx*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qzy                                        {Qzy*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qxx  (in the non-traceless from)           {Qxx_non_traceless*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qyy  (in the non-traceless from)           {Qyy_non_traceless*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qzz  (in the non-traceless from)           {Qzz_non_traceless*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qxy  (in the non-traceless from)           {Qxy_non_traceless*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qxz  (in the non-traceless from)           {Qxz_non_traceless*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qyx  (in the non-traceless from)           {Qyx_non_traceless*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qyz  (in the non-traceless from)           {Qyz_non_traceless*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qzx  (in the non-traceless from)           {Qzx_non_traceless*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
-        summary_file.write(f"Qzy  (in the non-traceless from)           {Qzy_non_traceless*c.elementary_charge*10**(-10)/(3.336*10**(-30)):<5f} Debye.Angs\n")
+        summary_file.write(f"Qxx                                        {Qxx*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qyy                                        {Qyy*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qzz                                        {Qzz*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qxy                                        {Qxy*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qxz                                        {Qxz*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qyx                                        {Qyx*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qyz                                        {Qyz*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qzx                                        {Qzx*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qzy                                        {Qzy*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qxx  (in the non-traceless from)           {Qxx_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qyy  (in the non-traceless from)           {Qyy_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qzz  (in the non-traceless from)           {Qzz_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qxy  (in the non-traceless from)           {Qxy_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qxz  (in the non-traceless from)           {Qxz_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qyx  (in the non-traceless from)           {Qyx_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qyz  (in the non-traceless from)           {Qyz_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qzx  (in the non-traceless from)           {Qzx_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qzy  (in the non-traceless from)           {Qzy_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
+        summary_file.write(f"Qxx                                        {Qxx*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qyy                                        {Qyy*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qzz                                        {Qzz*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qxy                                        {Qxy*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qxz                                        {Qxz*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qyx                                        {Qyx*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qyz                                        {Qyz*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qzx                                        {Qzx*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qzy                                        {Qzy*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qxx  (in the non-traceless from)           {Qxx_non_traceless*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qyy  (in the non-traceless from)           {Qyy_non_traceless*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qzz  (in the non-traceless from)           {Qzz_non_traceless*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qxy  (in the non-traceless from)           {Qxy_non_traceless*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qxz  (in the non-traceless from)           {Qxz_non_traceless*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qyx  (in the non-traceless from)           {Qyx_non_traceless*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qyz  (in the non-traceless from)           {Qyz_non_traceless*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qzx  (in the non-traceless from)           {Qzx_non_traceless*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qzy  (in the non-traceless from)           {Qzy_non_traceless*unit_factor_Cmm} Cm^2\n")
+        summary_file.write(f"Qxx                                        {Qxx*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qyy                                        {Qyy*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qzz                                        {Qzz*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qxy                                        {Qxy*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qxz                                        {Qxz*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qyx                                        {Qyx*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qyz                                        {Qyz*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qzx                                        {Qzx*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qzy                                        {Qzy*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qxx  (in the non-traceless from)           {Qxx_non_traceless*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qyy  (in the non-traceless from)           {Qyy_non_traceless*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qzz  (in the non-traceless from)           {Qzz_non_traceless*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qxy  (in the non-traceless from)           {Qxy_non_traceless*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qxz  (in the non-traceless from)           {Qxz_non_traceless*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qyx  (in the non-traceless from)           {Qyx_non_traceless*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qyz  (in the non-traceless from)           {Qyz_non_traceless*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qzx  (in the non-traceless from)           {Qzx_non_traceless*unit_factor_esuA} esu.Angs\n")
+        summary_file.write(f"Qzy  (in the non-traceless from)           {Qzy_non_traceless*unit_factor_esuA} esu.Angs\n")
         summary_file.write(f"Qxx                                        {Qxx:<5f} in q.r^2 numofelectrons.angs^2\n")
         summary_file.write(f"Qyy                                        {Qyy:<5f} in q.r^2 numofelectrons.angs^2\n")
         summary_file.write(f"Qzz                                        {Qzz:<5f} in q.r^2 numofelectrons.angs^2\n")
@@ -851,6 +892,8 @@ class SiestaReadOut():
         summary_file.write(f"C.O.C (if no ions then binned electronic)  {COC}\n")
         summary_file.write(f"C.O.C (electronic_binned, ionic, ionic_not_binned) {COC_elect_binned}, {COC_ionic_binned}, {COC_ionic_not_binned}\n")
         summary_file.close()
+
+        print("a Debye is (ANSWER SHOUDL BE 1 ", 14.318*10**-40*unit_factor_Debye)
 
         # Writing out the new data in a new file
         with open(f"{self.out_file_name}.electronicandionic.cube", "w+") as file:
@@ -882,7 +925,7 @@ class SiestaReadOut():
                     file.write("\n")
 
         return_dict = {}
-        return_dict.update({"Qzz":Qzz*c.elementary_charge*10**(-10)/(3.336*10**(-30))})
+        return_dict.update({"Qzz":Qzz*unit_factor_Debye})
         return return_dict
 
     def load_quadrupole_moments(self, file_name = None, cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
