@@ -591,7 +591,7 @@ class SiestaReadOut():
             for i,v in vec:
                 if abs(v) >= np.sqrt(cell_positive[i][0]**2+cell_positive[i][1]**2+cell_positive[i][2]**2): result=True
             return result
-            
+
         prog = progress_bar(len(atoms_info)*a_number_of_voxels*b_number_of_voxels*c_number_of_voxels, descriptor="Loading ions onto grid")
         for i_atom, atom in enumerate(atoms_info):
             # Have to remember that the coordinates are now changed (origin has changed) so we have to use the cube file coordinates
@@ -811,11 +811,11 @@ class SiestaReadOut():
         summary_file.write(f"dipole unadjusted to C.O.C                 {dipole_unadjustedtococ*unit_factor_Debye} Debye\n")
         summary_file.write(f"dipole elec  (binned)                      {dipole_elect_binned*unit_factor_Debye} Debye\n")
         summary_file.write(f"dipole ionic (binned)                      {dipole_ionic_binned*unit_factor_Debye} Debye\n")
-        summary_file.write(f"dipole ionic (not non binned)              {dipole_ionic_not_binned*unit_factor_Debye} Debye\n")
+        summary_file.write(f"dipole ionic (not binned)                  {dipole_ionic_not_binned*unit_factor_Debye} Debye\n")
         summary_file.write(f"dipole                                     {dipole} in q.r numofelectrons.angs\n")
         summary_file.write(f"dipole elec  (binned)                      {dipole_elect_binned} in q.r numofelectrons.angs\n")
         summary_file.write(f"dipole ionic (binned)                      {dipole_ionic_binned} in q.r numofelectrons.angs\n")
-        summary_file.write(f"dipole ionic (not non binned)              {dipole_ionic_not_binned} in q.r numofelectrons.angs\n")
+        summary_file.write(f"dipole ionic (not binned)                  {dipole_ionic_not_binned} in q.r numofelectrons.angs\n")
         summary_file.write(f"Qxx                                        {Qxx*unit_factor_Debye:<5f} Debye.Angs\n")
         summary_file.write(f"Qyy                                        {Qyy*unit_factor_Debye:<5f} Debye.Angs\n")
         summary_file.write(f"Qzz                                        {Qzz*unit_factor_Debye:<5f} Debye.Angs\n")
