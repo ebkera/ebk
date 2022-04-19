@@ -73,6 +73,11 @@ class SiestaReadOut():
                 x = x.split()
                 self.Ef = float(x[0])
 
+            if "siesta: Electric dipole (Debye) =" in line:
+                x = line.strip("siesta: Electric dipole (Debye) =")
+                x = x.split()
+                self.dipole_siesta = [float(x[0]), float(x[1]), float(x[2])]
+
             # Here we are reading in the Total energies
             if "siesta:         Total =" in line:
                 x = line.strip("siesta:         Total =")
@@ -521,6 +526,8 @@ class SiestaReadOut():
                     valance_electrons = 7 
                 if atomic_number == 16:              # S
                     valance_electrons = 6 
+                if atomic_number == 17:              # Cl
+                    valance_electrons = 7 
                 if atomic_number == 26:
                     valance_electrons = 7 
                 if atomic_number == 50:              # Sn
@@ -532,8 +539,9 @@ class SiestaReadOut():
             if not atom_coordinates_trigger and i>5:
                 parsed = line.split()
                 for val in parsed:
-                    rho[a_voxel_counter, b_voxel_counter, c_voxel_counter] = float(val)
-                    total_unnormalized_charge+= float(val)
+                    val_read = float(val)
+                    rho[a_voxel_counter, b_voxel_counter, c_voxel_counter] = val_read
+                    total_unnormalized_charge+= val_read
                     c_voxel_counter+=1
                     if c_voxel_counter == c_number_of_voxels: 
                         c_voxel_counter = 0
@@ -580,10 +588,10 @@ class SiestaReadOut():
         dipole_ionic_not_binned = 0
         voxel_midpoint_vec = 0.5*a_voxel_vec+0.5*b_voxel_vec+0.5*c_voxel_vec
         def get_r_vec(x,y,z):
-            # r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec  + voxel_midpoint_vec
             # r_vec = x*a_voxel_vec+y*b_voxel_vec+z*c_voxel_vec + origin  + voxel_midpoint_vec
+            # r_vec = x*a_voxel_vec+y*b_voxel_vec+z*c_voxel_vec + voxel_midpoint_vec
             r_vec = x*a_voxel_vec+y*b_voxel_vec+z*c_voxel_vec + origin
-            # r_vec = ia*a_voxel_vec+ib*b_voxel_vec+ic*c_voxel_vec + origin  + r_voxel
+            # r_vec = x*a_voxel_vec+y*b_voxel_vec+z*c_voxel_vec + origin + r_voxel
             return r_vec
 
         def is_inside_cell(vec):
@@ -613,6 +621,7 @@ class SiestaReadOut():
             # # prog.get_progress(i_atom)
 
             # Method 2 takes longer more accurate This is for safe keeping
+            # This is for the binned casea and loading in the ions for the bins and keeping them seperate.
             for ia in range(a_number_of_voxels):
                 for ib in range(b_number_of_voxels):
                     for ic in range(c_number_of_voxels):
@@ -666,7 +675,7 @@ class SiestaReadOut():
                     r_vec = get_r_vec(ia, ib, ic)
                     r2 = np.dot(r_vec,r_vec)
                     r = np.sqrt(r2)
-                    rrho += rho[ia, ib, ic]*r_vec    # this does noc still contain the ionic data and will be added during the calculation of the dipole
+                    rrho += rho[ia, ib, ic]*r_vec    # this does not still contain the ionic data and will be added next
                     rrho_binned += rho_binned[ia, ib, ic]*r_vec
                     rrho_elect_binned += rho_elect_binned[ia, ib, ic]*r_vec
                     total_charge+=rho[ia, ib, ic]
@@ -674,9 +683,8 @@ class SiestaReadOut():
                     # if rho[ia, ib, ic] != 0:
                         # print(r_vec/0.529177249, ia, ib, ic, "  ")
 
-        # Centre of Charge calculations
-        # print("total ionic charge", total_ionic_charge, rho_binned, rrho_binned)
-        # print(total_electronic_charge)
+
+        rrho = rrho+rrho_ionic_not_binned
         if total_electronic_charge !=0:
             COC = rrho/(total_charge)     # This might just be the electronic data since we did not add the ionic data yet so same as COC_electo
             COC_elect_binned = rrho_elect_binned/total_electronic_charge
@@ -684,7 +692,7 @@ class SiestaReadOut():
         if total_ionic_charge != 0:
             COC_ionic_binned = rrho_binned/total_ionic_charge
             COC_ionic_not_binned = rrho_ionic_not_binned/total_ionic_charge
-            COC = COC_ionic_not_binned # This should be set so that it can change.
+            # COC = COC_ionic_not_binned # This should be set so that it can change.
         else:
             COC_ionic_binned = "{Contains no positive charges}"
             COC_ionic_not_binned = "{Contains no positive charges}"
@@ -693,7 +701,7 @@ class SiestaReadOut():
         for ia in range(a_number_of_voxels):
             for ib in range(b_number_of_voxels):
                 for ic in range(c_number_of_voxels):
-                    # prog.get_progress((ia)*(b_number_of_voxels*c_number_of_voxels)+(ib)*(c_number_of_voxels)+ic)
+                    prog.get_progress((ia)*(b_number_of_voxels*c_number_of_voxels)+(ib)*(c_number_of_voxels)+ic)
                     """Methana podi indeces prashnayak thiyeanwa. mokenda iterate karanna one i+1 da nattam i da kiyala"""
                     r_vec0 = get_r_vec(ia, ib, ic)
                     r_vec = r_vec0 - COC
@@ -737,6 +745,7 @@ class SiestaReadOut():
             # print("charge",charge)
             r_atom = np.array([coordinates[0], coordinates[1], coordinates[2]])
             r_vec = r_atom - COC
+            # print("rvec",r_vec)
             r2 = np.dot(r_vec,r_vec)
             dipole += charge*r_vec
             dipole_unadjustedtococ += charge*r_atom
@@ -769,7 +778,6 @@ class SiestaReadOut():
             #     # print(dipole, dipole_unadjustedtococ) 
             #     print("Qxx", Qxx, charge*(3*(r_vec[0])*(r_vec[0]) - r2)) 
 
-
         # # Calculations happen here
 
         # # print("rrho rhoelectronic and rrho ionic", rrho, rho_elect, rho_binned)
@@ -778,7 +786,7 @@ class SiestaReadOut():
         # # print("Centre of Charge (ionic - elec)", COC_ionic - COC_elect)
 
         # Some units
-        unit_factor_Debye = c.elementary_charge*10**(-10)/(3.33564*10**(-30))
+        unit_factor_Debye = 1/0.2081943 #(same as c.elementary_charge*10**(-10)/(3.33564*10**(-30)))
         # unit_factor_Debye = 1*10**(10)/(3.33564*10**(-30))
         unit_factor_esuA = unit_factor_Debye*10**(-10)
         unit_factor_Cmm = c.elementary_charge*10**(-20)
@@ -807,8 +815,8 @@ class SiestaReadOut():
         summary_file.write(f"Normalization factor for electron density  {factor:<5f}\n")
         summary_file.write(f"Total Unnormalized charge from cube file   {total_unnormalized_charge:<5f}\n")
         summary_file.write(f"dipole                                     {dipole*unit_factor_Debye} Debye\n")
-        summary_file.write(f"dipole unadjusted to C.O.C                 {dipole_unadjustedtococ} in q.r numofelectrons.angs\n")
         summary_file.write(f"dipole unadjusted to C.O.C                 {dipole_unadjustedtococ*unit_factor_Debye} Debye\n")
+        summary_file.write(f"dipole unadjusted to C.O.C                 {dipole_unadjustedtococ} in q.r numofelectrons.angs\n")
         summary_file.write(f"dipole elec  (binned)                      {dipole_elect_binned*unit_factor_Debye} Debye\n")
         summary_file.write(f"dipole ionic (binned)                      {dipole_ionic_binned*unit_factor_Debye} Debye\n")
         summary_file.write(f"dipole ionic (not binned)                  {dipole_ionic_not_binned*unit_factor_Debye} Debye\n")
@@ -944,7 +952,13 @@ class SiestaReadOut():
         f = open(f"{read_file_name}", "r")
         for line in f:
             if "dipole" in line and "Debye" in line and "unadjusted" not in line and "binned" not in line:
+                line = line.strip("[")
+                line = line.strip("]")
+                print(line)
                 parsed = line.split()
+                if "[" in parsed : parsed.remove("[")
+                if "]" in parsed : parsed.remove("]")
+                print(parsed)
                 self.dipole = [ float(parsed[-4].strip("[")), float(parsed[-3]), float(parsed[-2].strip("]")) ]
             if "Qxx" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
                 parsed = line.split()
@@ -974,22 +988,38 @@ class SiestaReadOut():
                 parsed = line.split()
                 self.Qzy = float(parsed[1])
 
-
-
-
-
-
-
-
+            if "Qxx" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
+                parsed = line.split() 
+                # print(parsed)
+                self.Qxx_non_traceless = float(parsed[5])
+            if "Qyy" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
+                parsed = line.split()
+                self.Qyy_non_traceless = float(parsed[5])
+            if "Qzz" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
+                parsed = line.split()
+                self.Qzz_non_traceless = float(parsed[5])
+            if "Qxy" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
+                parsed = line.split()
+                self.Qxy_non_traceless = float(parsed[5])
+            if "Qxz" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
+                parsed = line.split()
+                self.Qxz_non_traceless = float(parsed[5])
+            if "Qyx" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
+                parsed = line.split()
+                self.Qyx_non_traceless = float(parsed[5])
+            if "Qyz" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
+                parsed = line.split()
+                self.Qyz_non_traceless = float(parsed[5])
+            if "Qzx" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
+                parsed = line.split()
+                self.Qzx_non_traceless = float(parsed[5])
+            if "Qzy" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
+                parsed = line.split()
+                self.Qzy_non_traceless = float(parsed[5])
 
             if "C.O.C (if no ions then binned electronic)" in line:
                 parsed = line.split()
                 self.COC = [ float(parsed[-3].strip("[")), float(parsed[-2]), float(parsed[-1].strip("]")) ]
-
-
-
-
-
         f.close()
 
 
