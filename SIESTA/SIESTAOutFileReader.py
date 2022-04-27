@@ -685,8 +685,12 @@ class SiestaReadOut():
 
 
         rrho = rrho+rrho_ionic_not_binned
+        # rrho_ionic = rrho+rrho_ionic_not_binned
+        # rrho_ele = rrho+rrho_ionic_not_binned
+        # rrho = rrho_ionic_not_binned
         if total_electronic_charge !=0:
             COC = rrho/(total_charge)     # This might just be the electronic data since we did not add the ionic data yet so same as COC_electo
+            # COC = rrho/(total_ionic_charge)     # This might just be the electronic data since we did not add the ionic data yet so same as COC_electo
             COC_elect_binned = rrho_elect_binned/total_electronic_charge
         else: COC_elect_binned = np.array([0,0,0])
         if total_ionic_charge != 0:
@@ -694,8 +698,9 @@ class SiestaReadOut():
             COC_ionic_not_binned = rrho_ionic_not_binned/total_ionic_charge
             # COC = COC_ionic_not_binned # This should be set so that it can change.
         else:
-            COC_ionic_binned = "{Contains no positive charges}"
-            COC_ionic_not_binned = "{Contains no positive charges}"
+            COC_ionic_binned =  np.array([0,0,0])
+            COC_ionic_not_binned =  np.array([0,0,0])
+        COC = (COC_elect_binned + COC_ionic_not_binned)/2
 
         prog = progress_bar(a_number_of_voxels*b_number_of_voxels*c_number_of_voxels, descriptor="Analyzing for moments")
         for ia in range(a_number_of_voxels):
@@ -725,6 +730,8 @@ class SiestaReadOut():
                     Qxx_non_traceless+= rho[ia, ib, ic]*(r_vec[0])*(r_vec[0])
                     Qyy_non_traceless+= rho[ia, ib, ic]*(r_vec[1])*(r_vec[1])
                     Qzz_non_traceless+= rho[ia, ib, ic]*(r_vec[2])*(r_vec[2])
+                    # if rho[ia, ib, ic] != 0:
+                    #     print("Qzz_e",Qzz_non_traceless, rho[ia, ib, ic], r_vec[2], rho[ia, ib, ic]*(r_vec[2])*(r_vec[2]))
                     # Off axis elements
                     Qxy_non_traceless+= rho[ia, ib, ic]*(r_vec[0])*(r_vec[1])
                     Qxz_non_traceless+= rho[ia, ib, ic]*(r_vec[0])*(r_vec[2])
@@ -764,6 +771,7 @@ class SiestaReadOut():
             Qxx_non_traceless+= charge*(r_vec[0])*(r_vec[0])
             Qyy_non_traceless+= charge*(r_vec[1])*(r_vec[1])
             Qzz_non_traceless+= charge*(r_vec[2])*(r_vec[2])
+            # print("Qzz_atom",Qzz_non_traceless, charge, r_vec[2], charge*(r_vec[2])*(r_vec[2]))
             # Off axis elements
             Qxy_non_traceless+= charge*(r_vec[0])*(r_vec[1])
             Qxz_non_traceless+= charge*(r_vec[0])*(r_vec[2])
