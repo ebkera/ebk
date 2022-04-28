@@ -1,11 +1,8 @@
 """
 This file reads the the file out_file_name.out and extracts/calculates data/values from it
 """
-
-from numpy import char
-import scipy
 from ebk import progress_bar
-from scipy.misc import electrocardiogram
+from numpy import char
 class SiestaReadOut():
     def __init__(self, out_file_name):
         self.out_file_name = out_file_name
@@ -444,16 +441,8 @@ class SiestaReadOut():
             cell_negative.append(comp)
         # print(cell_negative, cell_positive)
 
-
-        origin_0 = []
         number_of_atoms = 0
         full_volume = 0
-        a_number_of_voxels = 0
-        b_number_of_voxels = 0
-        c_number_of_voxels = 0
-        a_voxel_vec = 0
-        b_voxel_vec = 0
-        c_voxel_vec = 0
         a_voxel_counter = 0
         b_voxel_counter = 0
         c_voxel_counter = 0
@@ -463,13 +452,6 @@ class SiestaReadOut():
         atoms_info = []# atomic_number, charge, valance_electrons, [x,y,z]
         first_lines_of_file = []
         rrho = 0          # The summation of the binned electronic and the non-binned ionic    # The summation for the r times rho that we need to calculate the centre of charge.
-        rrho_binned = 0   # The summation of the binned electronic and the binned ionic
-        rrho_elect_binned = 0    # The summation of just the binned electronic  
-        rrho_ionic_binned = 0 # The summation of the binned electronic and the non-binned ionic  
-        rrho_ionic_not_binned = 0    # The summation of the non-binned ionic  
-        COC = []  # Centre of charge (vector)
-        COC_elect = []
-        COC_ionic = []
 
         for i,line in enumerate(self.RHO_file):
             if i == 2:
@@ -477,8 +459,7 @@ class SiestaReadOut():
                 parsed = line.split()
                 number_of_atoms = int(parsed[0])
                 atoms_left_to_add = number_of_atoms
-                for x in range(1,len(parsed)):
-                    origin_0.append(float(parsed[x])) # unit conversions are handled seperalty see below
+                origin = np.array([float(parsed[1]),float(parsed[2]),float(parsed[3])]) # unit conversions are handled seperalty see below
             if i == 3:
                 first_lines_of_file.append(line)
                 parsed = line.split()
@@ -495,10 +476,7 @@ class SiestaReadOut():
                 c_number_of_voxels = int(parsed[0])
                 c_voxel_vec = np.array([float(parsed[1]),float(parsed[2]),float(parsed[3])])
                 rho = np.zeros((a_number_of_voxels, b_number_of_voxels, c_number_of_voxels))  # This is the normalized charge density in terms of the number of electrons. It will later be converted into charge in Coulombs.
-                rho_binned = np.zeros((a_number_of_voxels, b_number_of_voxels, c_number_of_voxels))  # This is the normalized charge density in terms of the number of electrons. It will later be converted into charge in Coulombs.
-                rho_ionic_binned = np.zeros((a_number_of_voxels, b_number_of_voxels, c_number_of_voxels))  # This is the normalized charge density in terms of the number of electrons. It will later be converted into charge in Coulombs.
-            origin = np.array(origin_0)
-
+            
             # Here we load in the atoms from the cube file to
             if i == 6: atom_coordinates_trigger = True
             if atom_coordinates_trigger:
@@ -576,12 +554,9 @@ class SiestaReadOut():
                 for z in range(c_number_of_voxels):
                     rho[x,y,z] = -rho[x,y,z]*factor
                     total_electronic_charge+=rho[x,y,z]
-        rho_elect_binned = rho.copy()      # This is for only keeping account of the electronic part and not the ionic part
-        rho_binned = rho.copy()            # This is for keeping both the electronic and the binned ionic charge
 
         # Adding the ionic components and the dipole part for the the non binned ionic part
         total_ionic_charge = 0
-        dipole_ionic_not_binned = 0
         voxel_midpoint_vec = 0.5*a_voxel_vec+0.5*b_voxel_vec+0.5*c_voxel_vec
         def get_r_vec(x,y,z):
             # r_vec = x*a_voxel_vec+y*b_voxel_vec+z*c_voxel_vec + origin  + voxel_midpoint_vec
@@ -595,34 +570,6 @@ class SiestaReadOut():
             for i,v in vec:
                 if abs(v) >= np.sqrt(cell_positive[i][0]**2+cell_positive[i][1]**2+cell_positive[i][2]**2): result=True
             return result
-
-        prog = progress_bar(len(atoms_info)*a_number_of_voxels*b_number_of_voxels*c_number_of_voxels, descriptor="Loading ions onto grid")
-        for i_atom, atom in enumerate(atoms_info):
-            # Have to remember that the coordinates are now changed (origin has changed) so we have to use the cube file coordinates
-            import math
-            coordinates = atom[3]
-            # r_atom = np.array([coordinates[0]-origin[0], coordinates[1]-origin[1], coordinates[2]-origin[2]])
-            r_atom = np.array([coordinates[0], coordinates[1], coordinates[2]])
-
-            # Method 2 takes longer more accurate This is for safe keeping
-            # This is for the binned casea and loading in the ions for the bins and keeping them seperate.
-            for ia in range(a_number_of_voxels):
-                for ib in range(b_number_of_voxels):
-                    for ic in range(c_number_of_voxels):
-                        prog.get_progress(i_atom*a_number_of_voxels*b_number_of_voxels*c_number_of_voxels+(ia)*(b_number_of_voxels*c_number_of_voxels)+(ib)*(c_number_of_voxels)+ic)
-                        r_vec = get_r_vec(ia, ib, ic)
-                        d_vec = abs(r_atom - r_vec)
-                        # print(r_vec, d_vec, r_atom)
-                        # d_vec = (0,0,0)
-                        if d_vec[0] <= voxel_midpoint_vec[0] and d_vec[1] <= voxel_midpoint_vec[1] and d_vec[2] <= voxel_midpoint_vec[2]:
-                            charge = atom[2]
-                            total_ionic_charge += charge
-                            # rho[ia, ib, ic] += charge  # this will not be done since the ionic part is to be not binned
-                            rho_binned[ia, ib, ic] += charge
-                            rho_ionic_binned[ia, ib, ic] += charge
-                            rrho_ionic_not_binned += r_atom*charge
-                            # dipole_ionic_not_binned += charge*r_atom
-                            break
 
         Qxx = 0
         Qxy = 0
@@ -642,49 +589,11 @@ class SiestaReadOut():
         Qzx_non_traceless = 0
         Qzy_non_traceless = 0
         Qzz_non_traceless = 0
-        dipole_ionic_binned = 0
-        dipole_ionic_not_binned = 0
-        dipole_elect_binned = 0
         total_charge = 0
         dipole = 0
-        dipole_unadjustedtococ = 0
 
-        # This set of for loops does preliminary calculations that would be required.
-        prog = progress_bar(a_number_of_voxels*b_number_of_voxels*c_number_of_voxels, descriptor="Preliminary calculations")
-        for ia in range(a_number_of_voxels):
-            for ib in range(b_number_of_voxels):
-                for ic in range(c_number_of_voxels):
-                    prog.get_progress((ia)*(b_number_of_voxels*c_number_of_voxels)+(ib)*(c_number_of_voxels)+ic)
-                    """Methana podi indeces proshnayak thiyeanwa. mokenda iterate karanna one i+1 da nattam i da kiyala"""
-                    r_vec = get_r_vec(ia, ib, ic)
-                    r2 = np.dot(r_vec,r_vec)
-                    r = np.sqrt(r2)
-                    rrho += rho[ia, ib, ic]*r_vec    # this does not still contain the ionic data and will be added next
-                    rrho_binned += rho_binned[ia, ib, ic]*r_vec
-                    rrho_elect_binned += rho_elect_binned[ia, ib, ic]*r_vec
-                    total_charge+=rho[ia, ib, ic]
-                    full_volume+=d_V
-                    # if rho[ia, ib, ic] != 0:
-                        # print(r_vec/0.529177249, ia, ib, ic, "  ")
-
-
-        rrho = rrho+rrho_ionic_not_binned
-        # rrho_ionic = rrho+rrho_ionic_not_binned
-        # rrho_ele = rrho+rrho_ionic_not_binned
-        # rrho = rrho_ionic_not_binned
-        if total_electronic_charge !=0:
-            COC = rrho/(total_charge)     # This might just be the electronic data since we did not add the ionic data yet so same as COC_electo
-            # COC = rrho/(total_ionic_charge)     # This might just be the electronic data since we did not add the ionic data yet so same as COC_electo
-            COC_elect_binned = rrho_elect_binned/total_electronic_charge
-        else: COC_elect_binned = np.array([0,0,0])
-        if total_ionic_charge != 0:
-            COC_ionic_binned = rrho_binned/total_ionic_charge
-            COC_ionic_not_binned = rrho_ionic_not_binned/total_ionic_charge
-            # COC = COC_ionic_not_binned # This should be set so that it can change.
-        else:
-            COC_ionic_binned =  np.array([0,0,0])
-            COC_ionic_not_binned =  np.array([0,0,0])
-        COC = (COC_elect_binned + COC_ionic_not_binned)/2
+        COC = origin
+        COC = np.array([0,0,0])
 
         prog = progress_bar(a_number_of_voxels*b_number_of_voxels*c_number_of_voxels, descriptor="Analyzing for moments")
         for ia in range(a_number_of_voxels):
@@ -696,10 +605,10 @@ class SiestaReadOut():
                     r_vec = r_vec0 - COC
                     r2 = np.dot(r_vec,r_vec)
                     r = np.sqrt(r2)
-                    dipole_ionic_binned+=rho_ionic_binned[ia, ib, ic]*r_vec
-                    dipole_elect_binned+=rho_elect_binned[ia, ib, ic]*r_vec
+                    rrho += rho[ia, ib, ic]*r_vec    # this does not still contain the ionic data and will be added next
+                    total_charge+=rho[ia, ib, ic]
+                    full_volume+=d_V
                     dipole+=rho[ia, ib, ic]*r_vec
-                    dipole_unadjustedtococ += rho[ia, ib, ic]*r_vec0
                     Qxx+= rho[ia, ib, ic]*(3*(r_vec[0])*(r_vec[0]) - r2)
                     Qyy+= rho[ia, ib, ic]*(3*(r_vec[1])*(r_vec[1]) - r2)
                     Qzz+= rho[ia, ib, ic]*(3*(r_vec[2])*(r_vec[2]) - r2)
@@ -714,8 +623,6 @@ class SiestaReadOut():
                     Qxx_non_traceless+= rho[ia, ib, ic]*(r_vec[0])*(r_vec[0])
                     Qyy_non_traceless+= rho[ia, ib, ic]*(r_vec[1])*(r_vec[1])
                     Qzz_non_traceless+= rho[ia, ib, ic]*(r_vec[2])*(r_vec[2])
-                    # if rho[ia, ib, ic] != 0:
-                    #     print("Qzz_e",Qzz_non_traceless, rho[ia, ib, ic], r_vec[2], rho[ia, ib, ic]*(r_vec[2])*(r_vec[2]))
                     # Off axis elements
                     Qxy_non_traceless+= rho[ia, ib, ic]*(r_vec[0])*(r_vec[1])
                     Qxz_non_traceless+= rho[ia, ib, ic]*(r_vec[0])*(r_vec[2])
@@ -723,11 +630,6 @@ class SiestaReadOut():
                     Qyz_non_traceless+= rho[ia, ib, ic]*(r_vec[1])*(r_vec[2])
                     Qzx_non_traceless+= rho[ia, ib, ic]*(r_vec[2])*(r_vec[0])
                     Qzy_non_traceless+= rho[ia, ib, ic]*(r_vec[2])*(r_vec[1])
-                    # Some checks that can help in debugging
-                    # if rho[ia, ib, ic] != 0:
-                    #     print(r_vec, r_vec0, rho[ia, ib, ic])
-                    #     print(dipole, dipole_unadjustedtococ) 
-                    #     print("Qxx", Qxx) 
 
         # This part adds in the ionic non binned part to the quadrupoles and the dipoles
         for i_atom, atom in enumerate(atoms_info):
@@ -739,8 +641,6 @@ class SiestaReadOut():
             # print("rvec",r_vec)
             r2 = np.dot(r_vec,r_vec)
             dipole += charge*r_vec
-            dipole_unadjustedtococ += charge*r_atom
-            dipole_ionic_not_binned += charge*r_vec
             Qxx+= charge*(3*(r_vec[0])*(r_vec[0]) - r2)
             Qyy+= charge*(3*(r_vec[1])*(r_vec[1]) - r2)
             Qzz+= charge*(3*(r_vec[2])*(r_vec[2]) - r2)
@@ -763,26 +663,15 @@ class SiestaReadOut():
             Qyz_non_traceless+= charge*(r_vec[1])*(r_vec[2])
             Qzx_non_traceless+= charge*(r_vec[2])*(r_vec[0])
             Qzy_non_traceless+= charge*(r_vec[2])*(r_vec[1])
-
+            total_ionic_charge+=charge
             total_charge += charge
-            # if charge != 0:
-            #     print(r_vec, r_atom, charge)
-            #     # print(dipole, dipole_unadjustedtococ) 
-            #     print("Qxx", Qxx, charge*(3*(r_vec[0])*(r_vec[0]) - r2)) 
-
-        # # Calculations happen here
-
-        # # print("rrho rhoelectronic and rrho ionic", rrho, rho_elect, rho_binned)
-        # print("shapes                                     ", np.shape(rrho), np.shape(rrho_elect), np.shape(rrho_binned))
-        # print("Centre of Charge (electronic, ionic, ionic_not_binned)", COC_elect, COC_ionic, COC_ionic_not_binned)
-        # # print("Centre of Charge (ionic - elec)", COC_ionic - COC_elect)
 
         # Some units
         unit_factor_Debye = 1/0.2081943 #(same as c.elementary_charge*10**(-10)/(3.33564*10**(-30)))
         # unit_factor_Debye = 1*10**(10)/(3.33564*10**(-30))
         unit_factor_esuA = unit_factor_Debye*10**(-10)
         unit_factor_Cmm = c.elementary_charge*10**(-20)
-
+        conversions = {"Debye.Angs":unit_factor_Debye, "Cm^2":unit_factor_Cmm,"esu.Angs":unit_factor_esuA, "in q.r^2 numofelectrons.angs^2":1}
 
         # Here we can write to output file and then delete the above if necessary for furture 
         print(f"Writing the values to file {self.out_file_name}.electrostatics.out")
@@ -791,14 +680,11 @@ class SiestaReadOut():
         summary_file.write(f"numer of voxels                            {a_number_of_voxels}, {b_number_of_voxels}, {c_number_of_voxels}\n")
         summary_file.write(f"Voxel vectors                              {a_voxel_vec}, {b_voxel_vec}, {c_voxel_vec}\n")
         summary_file.write(f"Origin                                     {origin}\n")
+        summary_file.write(f"Original Units                             {original_units}\n")
         summary_file.write(f"Full volume                                {full_volume:<5f}\n")
         summary_file.write(f"Half cell vector                           {voxel_midpoint_vec}\n")
         summary_file.write(f"Voxel cell vector                          {r_voxel}\n")
         summary_file.write(f"elementary volume                          {d_V:<5f}\n")
-        # summary_file.write(f"elementary charge scipy                    {c.elementary_charge}\n")
-        # summary_file.write(f"Volume we should get                       {25*1.023602*25*1.023602*25*1.653511 }\n")
-        # summary_file.write(f"check for debye                            {unit_factor_Debye}\n")
-        # summary_file.write(f"Denchar Volume                             {13*13*21 }\n")
         summary_file.write(f"shapes (rho), (rrho)                       {np.shape(rho)}, {np.shape(rrho)}\n")
         summary_file.write(f"total_electrons (from siesta)              {self.number_of_electrons}\n")
         summary_file.write(f"normalized total electronic charge         {total_electronic_charge}\n")
@@ -807,92 +693,28 @@ class SiestaReadOut():
         summary_file.write(f"Normalization factor for electron density  {factor:<5f}\n")
         summary_file.write(f"Total Unnormalized charge from cube file   {total_unnormalized_charge:<5f}\n")
         summary_file.write(f"dipole                                     {dipole*unit_factor_Debye} Debye\n")
-        summary_file.write(f"dipole unadjusted to C.O.C                 {dipole_unadjustedtococ*unit_factor_Debye} Debye\n")
-        summary_file.write(f"dipole unadjusted to C.O.C                 {dipole_unadjustedtococ} in q.r numofelectrons.angs\n")
-        summary_file.write(f"dipole elec  (binned)                      {dipole_elect_binned*unit_factor_Debye} Debye\n")
-        summary_file.write(f"dipole ionic (binned)                      {dipole_ionic_binned*unit_factor_Debye} Debye\n")
-        summary_file.write(f"dipole ionic (not binned)                  {dipole_ionic_not_binned*unit_factor_Debye} Debye\n")
         summary_file.write(f"dipole                                     {dipole} in q.r numofelectrons.angs\n")
-        summary_file.write(f"dipole elec  (binned)                      {dipole_elect_binned} in q.r numofelectrons.angs\n")
-        summary_file.write(f"dipole ionic (binned)                      {dipole_ionic_binned} in q.r numofelectrons.angs\n")
-        summary_file.write(f"dipole ionic (not binned)                  {dipole_ionic_not_binned} in q.r numofelectrons.angs\n")
-        summary_file.write(f"Qxx                                        {Qxx*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qyy                                        {Qyy*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qzz                                        {Qzz*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qxy                                        {Qxy*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qxz                                        {Qxz*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qyx                                        {Qyx*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qyz                                        {Qyz*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qzx                                        {Qzx*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qzy                                        {Qzy*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qxx  (in the non-traceless from)           {Qxx_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qyy  (in the non-traceless from)           {Qyy_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qzz  (in the non-traceless from)           {Qzz_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qxy  (in the non-traceless from)           {Qxy_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qxz  (in the non-traceless from)           {Qxz_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qyx  (in the non-traceless from)           {Qyx_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qyz  (in the non-traceless from)           {Qyz_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qzx  (in the non-traceless from)           {Qzx_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qzy  (in the non-traceless from)           {Qzy_non_traceless*unit_factor_Debye:<5f} Debye.Angs\n")
-        summary_file.write(f"Qxx                                        {Qxx*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qyy                                        {Qyy*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qzz                                        {Qzz*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qxy                                        {Qxy*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qxz                                        {Qxz*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qyx                                        {Qyx*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qyz                                        {Qyz*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qzx                                        {Qzx*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qzy                                        {Qzy*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qxx  (in the non-traceless from)           {Qxx_non_traceless*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qyy  (in the non-traceless from)           {Qyy_non_traceless*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qzz  (in the non-traceless from)           {Qzz_non_traceless*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qxy  (in the non-traceless from)           {Qxy_non_traceless*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qxz  (in the non-traceless from)           {Qxz_non_traceless*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qyx  (in the non-traceless from)           {Qyx_non_traceless*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qyz  (in the non-traceless from)           {Qyz_non_traceless*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qzx  (in the non-traceless from)           {Qzx_non_traceless*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qzy  (in the non-traceless from)           {Qzy_non_traceless*unit_factor_Cmm} Cm^2\n")
-        summary_file.write(f"Qxx                                        {Qxx*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qyy                                        {Qyy*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qzz                                        {Qzz*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qxy                                        {Qxy*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qxz                                        {Qxz*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qyx                                        {Qyx*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qyz                                        {Qyz*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qzx                                        {Qzx*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qzy                                        {Qzy*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qxx  (in the non-traceless from)           {Qxx_non_traceless*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qyy  (in the non-traceless from)           {Qyy_non_traceless*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qzz  (in the non-traceless from)           {Qzz_non_traceless*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qxy  (in the non-traceless from)           {Qxy_non_traceless*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qxz  (in the non-traceless from)           {Qxz_non_traceless*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qyx  (in the non-traceless from)           {Qyx_non_traceless*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qyz  (in the non-traceless from)           {Qyz_non_traceless*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qzx  (in the non-traceless from)           {Qzx_non_traceless*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qzy  (in the non-traceless from)           {Qzy_non_traceless*unit_factor_esuA} esu.Angs\n")
-        summary_file.write(f"Qxx                                        {Qxx:<5f} in q.r^2 numofelectrons.angs^2\n")
-        summary_file.write(f"Qyy                                        {Qyy:<5f} in q.r^2 numofelectrons.angs^2\n")
-        summary_file.write(f"Qzz                                        {Qzz:<5f} in q.r^2 numofelectrons.angs^2\n")
-        summary_file.write(f"Qxy                                        {Qxy:<5f} in q.r^2 numofelectrons.angs^2\n")
-        summary_file.write(f"Qxz                                        {Qxz:<5f} in q.r^2 numofelectrons.angs^2\n")
-        summary_file.write(f"Qyx                                        {Qyx:<5f} in q.r^2 numofelectrons.angs^2\n")
-        summary_file.write(f"Qyz                                        {Qyz:<5f} in q.r^2 numofelectrons.angs^2\n")
-        summary_file.write(f"Qzx                                        {Qzx:<5f} in q.r^2 numofelectrons.angs^2\n")
-        summary_file.write(f"Qzy                                        {Qzy:<5f} in q.r^2 numofelectrons.angs^2\n")
-        summary_file.write(f"Qxx  (in the non-traceless from)           {Qxx_non_traceless:<5f} numberofelectrons.angs^2\n")
-        summary_file.write(f"Qyy  (in the non-traceless from)           {Qyy_non_traceless:<5f} numberofelectrons.angs^2\n")
-        summary_file.write(f"Qzz  (in the non-traceless from)           {Qzz_non_traceless:<5f} numberofelectrons.angs^2\n")
-        summary_file.write(f"Qxy  (in the non-traceless from)           {Qxy_non_traceless:<5f} numberofelectrons.angs^2\n")
-        summary_file.write(f"Qxz  (in the non-traceless from)           {Qxz_non_traceless:<5f} numberofelectrons.angs^2\n")
-        summary_file.write(f"Qyx  (in the non-traceless from)           {Qyx_non_traceless:<5f} numberofelectrons.angs^2\n")
-        summary_file.write(f"Qyz  (in the non-traceless from)           {Qyz_non_traceless:<5f} numberofelectrons.angs^2\n")
-        summary_file.write(f"Qzx  (in the non-traceless from)           {Qzx_non_traceless:<5f} numberofelectrons.angs^2\n")
-        summary_file.write(f"Qzy  (in the non-traceless from)           {Qzy_non_traceless:<5f} numberofelectrons.angs^2\n")
+        for i,(k,v)in enumerate(conversions.items()):
+            summary_file.write(f"Qxx                                        {Qxx*v:<5f} {k}\n")
+            summary_file.write(f"Qyy                                        {Qyy*v:<5f} {k}\n")
+            summary_file.write(f"Qzz                                        {Qzz*v:<5f} {k}\n")
+            summary_file.write(f"Qxy                                        {Qxy*v:<5f} {k}\n")
+            summary_file.write(f"Qxz                                        {Qxz*v:<5f} {k}\n")
+            summary_file.write(f"Qyx                                        {Qyx*v:<5f} {k}\n")
+            summary_file.write(f"Qyz                                        {Qyz*v:<5f} {k}\n")
+            summary_file.write(f"Qzx                                        {Qzx*v:<5f} {k}\n")
+            summary_file.write(f"Qzy                                        {Qzy*v:<5f} {k}\n")
+            summary_file.write(f"Qxx  (in the non-traceless from)           {Qxx_non_traceless*v:<5f} {k}\n")
+            summary_file.write(f"Qyy  (in the non-traceless from)           {Qyy_non_traceless*v:<5f} {k}\n")
+            summary_file.write(f"Qzz  (in the non-traceless from)           {Qzz_non_traceless*v:<5f} {k}\n")
+            summary_file.write(f"Qxy  (in the non-traceless from)           {Qxy_non_traceless*v:<5f} {k}\n")
+            summary_file.write(f"Qxz  (in the non-traceless from)           {Qxz_non_traceless*v:<5f} {k}\n")
+            summary_file.write(f"Qyx  (in the non-traceless from)           {Qyx_non_traceless*v:<5f} {k}\n")
+            summary_file.write(f"Qyz  (in the non-traceless from)           {Qyz_non_traceless*v:<5f} {k}\n")
+            summary_file.write(f"Qzx  (in the non-traceless from)           {Qzx_non_traceless*v:<5f} {k}\n")
+            summary_file.write(f"Qzy  (in the non-traceless from)           {Qzy_non_traceless*v:<5f} {k}\n")
         summary_file.write(f"C.O.C (if no ions then binned electronic)  {COC}\n")
-        summary_file.write(f"C.O.C (electronic_binned, ionic, ionic_not_binned) {COC_elect_binned}, {COC_ionic_binned}, {COC_ionic_not_binned}\n")
         summary_file.close()
-
-        print("a Debye is (ANSWER SHOUDL BE 1 ", 14.318*10**-40*unit_factor_Debye)
 
         # Writing out the new data in a new file
         with open(f"{self.out_file_name}.electronicandionic.cube", "w+") as file:
@@ -908,21 +730,6 @@ class SiestaReadOut():
                          file.write("\n")
                     file.write("\n")
     
-
-        # Writing out the new data in a new file
-        with open(f"{self.out_file_name}.ionic.cube", "w+") as file:
-            file.write("Produced by Eranjan\n")
-            file.write(f"For ionic charge for system: {self.out_file_name}\n")
-            for line in first_lines_of_file:
-                file.write(line)
-            for x in range(a_number_of_voxels):
-                for y in range(b_number_of_voxels):
-                    for z in range(c_number_of_voxels):            
-                        file.write(f"{rho_binned[x][y][z]:1.5E} ")
-                        if (z % 6 == 5):
-                         file.write("\n")
-                    file.write("\n")
-
         return_dict = {}
         return_dict.update({"Qzz":Qzz*unit_factor_Debye})
         return return_dict
@@ -1013,12 +820,6 @@ class SiestaReadOut():
                 parsed = line.split()
                 self.COC = [ float(parsed[-3].strip("[")), float(parsed[-2]), float(parsed[-1].strip("]")) ]
         f.close()
-
-
-
-
-
-
 
 if __name__ == "__main__":
     vac = SiestaReadOut("Fe")
