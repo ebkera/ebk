@@ -1,12 +1,7 @@
 """
 This file reads the the file out_file_name.out and extracts/calculates data/values from it
 """
-from ast import parse
-from copy import copy
-from numbers import Rational
-from posixpath import split
-from matplotlib import units
-from matplotlib.pyplot import get
+
 from numpy import char
 import scipy
 from ebk import progress_bar
@@ -439,6 +434,7 @@ class SiestaReadOut():
         f.close()
 
         # print(cell)
+        # Me kalla mokakda kiyala danne ne 
         cell_negative = []
         cell_positive = []
         for direc in cell:
