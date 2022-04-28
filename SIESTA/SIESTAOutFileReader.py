@@ -604,18 +604,6 @@ class SiestaReadOut():
             # r_atom = np.array([coordinates[0]-origin[0], coordinates[1]-origin[1], coordinates[2]-origin[2]])
             r_atom = np.array([coordinates[0], coordinates[1], coordinates[2]])
 
-            # # Method 1
-            # x_index = math.floor((r_atom[0])/r_voxel[0])
-            # y_index = math.floor((r_atom[1])/r_voxel[1])
-            # z_index = math.floor((r_atom[2])/r_voxel[2])
-            # charge = atom[2]
-            # total_ionic_charge += charge
-            # rho[x_index, y_index, z_index] += charge
-            # rho_binned[x_index, y_index, z_index] += charge
-            # rrho_ionic_not_binned += r_atom*charge
-            # dipole_ionic_not_binned += charge*r_atom
-            # # prog.get_progress(i_atom)
-
             # Method 2 takes longer more accurate This is for safe keeping
             # This is for the binned casea and loading in the ions for the bins and keeping them seperate.
             for ia in range(a_number_of_voxels):
