@@ -486,8 +486,10 @@ class SiestaReadOut():
                 first_lines_of_file.append(line)
                 parsed = line.split()
                 atomic_number = int(parsed[0])
-                charge = float(parsed[1])
+                charge = float(parsed[1])            # This is not used anywhere in the code and is not needed for our cases.
                 atoms_left_to_add-=1
+                if atomic_number == 1000:            # For testing code
+                    valance_electrons = 0.058874798240219241 
                 if atomic_number == 1:               # H
                     valance_electrons = 1 
                 if atomic_number == 6:               # O
@@ -547,6 +549,7 @@ class SiestaReadOut():
         # Normalizing the charge
         if total_unnormalized_charge !=0:
             factor = self.number_of_electrons/total_unnormalized_charge  # To get around the devide by zero error for the zero charge case
+            factor = 1
         else: factor = 0   
         total_electronic_charge = 0
         for x in range(a_number_of_voxels):
@@ -592,9 +595,6 @@ class SiestaReadOut():
         total_charge = 0
         dipole = 0
 
-        COC = origin
-        COC = np.array([0,0,0])
-
         prog = progress_bar(a_number_of_voxels*b_number_of_voxels*c_number_of_voxels, descriptor="Analyzing for moments")
         for ia in range(a_number_of_voxels):
             for ib in range(b_number_of_voxels):
@@ -602,13 +602,16 @@ class SiestaReadOut():
                     prog.get_progress((ia)*(b_number_of_voxels*c_number_of_voxels)+(ib)*(c_number_of_voxels)+ic)
                     """Methana podi indeces prashnayak thiyeanwa. mokenda iterate karanna one i+1 da nattam i da kiyala"""
                     r_vec0 = get_r_vec(ia, ib, ic)
-                    r_vec = r_vec0 - COC
+                    # r_vec = r_vec0 - COC
+                    r_vec = r_vec0
                     r2 = np.dot(r_vec,r_vec)
                     r = np.sqrt(r2)
                     rrho += rho[ia, ib, ic]*r_vec    # this does not still contain the ionic data and will be added next
                     total_charge+=rho[ia, ib, ic]
                     full_volume+=d_V
                     dipole+=rho[ia, ib, ic]*r_vec
+
+                    # For the traceless part
                     Qxx+= rho[ia, ib, ic]*(3*(r_vec[0])*(r_vec[0]) - r2)
                     Qyy+= rho[ia, ib, ic]*(3*(r_vec[1])*(r_vec[1]) - r2)
                     Qzz+= rho[ia, ib, ic]*(3*(r_vec[2])*(r_vec[2]) - r2)
@@ -634,10 +637,11 @@ class SiestaReadOut():
         # This part adds in the ionic non binned part to the quadrupoles and the dipoles
         for i_atom, atom in enumerate(atoms_info):
             coordinates = atom[3]
-            charge = atom[2]
+            charge = atom[2]   # This is from the valance electron item in the list
             # print("charge",charge)
             r_atom = np.array([coordinates[0], coordinates[1], coordinates[2]])
-            r_vec = r_atom - COC
+            # r_vec = r_atom - COC
+            r_vec = r_atom
             # print("rvec",r_vec)
             r2 = np.dot(r_vec,r_vec)
             dipole += charge*r_vec
@@ -689,9 +693,9 @@ class SiestaReadOut():
         summary_file.write(f"total_electrons (from siesta)              {self.number_of_electrons}\n")
         summary_file.write(f"normalized total electronic charge         {total_electronic_charge}\n")
         summary_file.write(f"total ionic charge                         {total_ionic_charge}\n")
-        summary_file.write(f"Total Charge                               {total_charge}\n")
         summary_file.write(f"Normalization factor for electron density  {factor:<5f}\n")
         summary_file.write(f"Total Unnormalized charge from cube file   {total_unnormalized_charge:<5f}\n")
+        summary_file.write(f"Total Charge                               {total_charge}\n")
         summary_file.write(f"dipole                                     {dipole*unit_factor_Debye} Debye\n")
         summary_file.write(f"dipole                                     {dipole} in q.r numofelectrons.angs\n")
         for i,(k,v)in enumerate(conversions.items()):
@@ -713,7 +717,7 @@ class SiestaReadOut():
             summary_file.write(f"Qyz  (in the non-traceless from)           {Qyz_non_traceless*v:<5f} {k}\n")
             summary_file.write(f"Qzx  (in the non-traceless from)           {Qzx_non_traceless*v:<5f} {k}\n")
             summary_file.write(f"Qzy  (in the non-traceless from)           {Qzy_non_traceless*v:<5f} {k}\n")
-        summary_file.write(f"C.O.C (if no ions then binned electronic)  {COC}\n")
+        # summary_file.write(f"C.O.C (if no ions then binned electronic)  {COC}\n")
         summary_file.close()
 
         # Writing out the new data in a new file
