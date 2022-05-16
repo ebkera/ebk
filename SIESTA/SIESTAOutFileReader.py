@@ -381,7 +381,7 @@ class SiestaReadOut():
                 self.E_total = float(x[0])
                 return self.E_total
 
-    def get_quadrupole_moments(self, file_name = None, cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
+    def get_quadrupole_moments(self, file_name = None, out_put_file_name = "", cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
         """
         This part of the code is still under construction and should be moved up when done.
 
@@ -549,7 +549,7 @@ class SiestaReadOut():
         # Normalizing the charge
         if total_unnormalized_charge !=0:
             factor = self.number_of_electrons/total_unnormalized_charge  # To get around the devide by zero error for the zero charge case
-            factor = 1
+            # factor = 1
         else: factor = 0   
         total_electronic_charge = 0
         for x in range(a_number_of_voxels):
@@ -602,11 +602,9 @@ class SiestaReadOut():
                     prog.get_progress((ia)*(b_number_of_voxels*c_number_of_voxels)+(ib)*(c_number_of_voxels)+ic)
                     """Methana podi indeces prashnayak thiyeanwa. mokenda iterate karanna one i+1 da nattam i da kiyala"""
                     r_vec0 = get_r_vec(ia, ib, ic)
-                    # r_vec = r_vec0 - COC
                     r_vec = r_vec0
                     r2 = np.dot(r_vec,r_vec)
                     r = np.sqrt(r2)
-                    rrho += rho[ia, ib, ic]*r_vec    # this does not still contain the ionic data and will be added next
                     total_charge+=rho[ia, ib, ic]
                     full_volume+=d_V
                     dipole+=rho[ia, ib, ic]*r_vec
@@ -640,9 +638,7 @@ class SiestaReadOut():
             charge = atom[2]   # This is from the valance electron item in the list
             # print("charge",charge)
             r_atom = np.array([coordinates[0], coordinates[1], coordinates[2]])
-            # r_vec = r_atom - COC
             r_vec = r_atom
-            # print("rvec",r_vec)
             r2 = np.dot(r_vec,r_vec)
             dipole += charge*r_vec
             Qxx+= charge*(3*(r_vec[0])*(r_vec[0]) - r2)
@@ -678,8 +674,9 @@ class SiestaReadOut():
         conversions = {"Debye.Angs":unit_factor_Debye, "Cm^2":unit_factor_Cmm,"esu.Angs":unit_factor_esuA, "in q.r^2 numofelectrons.angs^2":1}
 
         # Here we can write to output file and then delete the above if necessary for furture 
-        print(f"Writing the values to file {self.out_file_name}.electrostatics.out")
-        summary_file = open(f"{self.out_file_name}.electrostatics.out", "w")
+        if out_put_file_name == "": out_put_file_name = self.out_file_name
+        print(f"Writing the values to file {out_put_file_name}.electrostatics.out")
+        summary_file = open(f"{out_put_file_name}.electrostatics.out", "w")
         summary_file.write(f"Summary of electrostatics calculations for file {self.out_file_name}\n\n")
         summary_file.write(f"numer of voxels                            {a_number_of_voxels}, {b_number_of_voxels}, {c_number_of_voxels}\n")
         summary_file.write(f"Voxel vectors                              {a_voxel_vec}, {b_voxel_vec}, {c_voxel_vec}\n")
@@ -689,7 +686,6 @@ class SiestaReadOut():
         summary_file.write(f"Half cell vector                           {voxel_midpoint_vec}\n")
         summary_file.write(f"Voxel cell vector                          {r_voxel}\n")
         summary_file.write(f"elementary volume                          {d_V:<5f}\n")
-        summary_file.write(f"shapes (rho), (rrho)                       {np.shape(rho)}, {np.shape(rrho)}\n")
         summary_file.write(f"total_electrons (from siesta)              {self.number_of_electrons}\n")
         summary_file.write(f"normalized total electronic charge         {total_electronic_charge}\n")
         summary_file.write(f"total ionic charge                         {total_ionic_charge}\n")
@@ -736,7 +732,7 @@ class SiestaReadOut():
     
         return_dict = {}
         return_dict.update({"Qzz":Qzz*unit_factor_Debye})
-        return return_dict
+        return return_dict        
 
     def load_quadrupole_moments(self, file_name = None, cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
         """
