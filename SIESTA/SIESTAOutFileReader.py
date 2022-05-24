@@ -96,6 +96,18 @@ class SiestaReadOut():
                 self.N_orbitals = int(x[1])
                 self.N_projectors = int(x[2])
 
+            # Here we are reading in the Iternal realspace grid
+            if "InitMesh: (bp) = " in line:
+                x = line.strip("InitMesh: (bp) = ")
+                x = x.split()
+                self.InitMesh_bp = [int(x[0]), int(x[2]), int(x[4])]
+
+            # Here we are reading in the External realspace grid
+            if "ExtMesh (bp) on 0 = " in line:
+                x = line.strip("ExtMesh (bp) on 0 = ")
+                x = x.split()
+                self.ExtMesh_bp = [int(x[0]), int(x[2]), int(x[4])]
+
             # Here we read in atoms should be below the actual reading in script
             if trigger_read_in_atoms:
                 x = line.split()
@@ -732,6 +744,7 @@ class SiestaReadOut():
     
         return_dict = {}
         return_dict.update({"Qzz":Qzz*unit_factor_Debye})
+        print("Electrostatics: Done\n")
         return return_dict        
 
     def load_quadrupole_moments(self, file_name = None, cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
