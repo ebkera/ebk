@@ -436,22 +436,11 @@ class SiestaReadOut():
             read_file_name = f"{self.out_file_name}.RHO.cube"
         else:
             read_file_name = file_name
-        print(f"Reading in file {read_file_name}")
+        print(f"Reading in file {read_file_name}")   # This is important so that the user knows which file is being read
         f = open(f"{read_file_name}", "r")
         for line in f:
             self.RHO_file.append(line)
         f.close()
-
-        # print(cell)
-        # Me kalla mokakda kiyala danne ne 
-        cell_negative = []
-        cell_positive = []
-        for direc in cell:
-            comp = [x/2 for x in direc]
-            cell_positive.append(comp)
-            comp = [-x for x in comp]
-            cell_negative.append(comp)
-        # print(cell_negative, cell_positive)
 
         number_of_atoms = 0
         full_volume = 0
@@ -463,7 +452,6 @@ class SiestaReadOut():
         total_unnormalized_charge = 0
         atoms_info = []# atomic_number, charge, valance_electrons, [x,y,z]
         first_lines_of_file = []
-        rrho = 0          # The summation of the binned electronic and the non-binned ionic    # The summation for the r times rho that we need to calculate the centre of charge.
 
         for i,line in enumerate(self.RHO_file):
             if i == 2:
@@ -489,7 +477,7 @@ class SiestaReadOut():
                 c_voxel_vec = np.array([float(parsed[1]),float(parsed[2]),float(parsed[3])])
                 rho = np.zeros((a_number_of_voxels, b_number_of_voxels, c_number_of_voxels))  # This is the normalized charge density in terms of the number of electrons. It will later be converted into charge in Coulombs.
             
-            # Here we load in the atoms from the cube file to
+            # Here we load in the atoms from the cube file too
             if i == 6: atom_coordinates_trigger = True
             if atom_coordinates_trigger:
                 if atoms_left_to_add == 0:
@@ -502,26 +490,28 @@ class SiestaReadOut():
                 atoms_left_to_add-=1
                 if atomic_number == 1000:            # For testing code
                     valance_electrons = 0.058874798240219241 
-                if atomic_number == 1:               # H
+                elif atomic_number == 1:               # H
                     valance_electrons = 1 
-                if atomic_number == 6:               # O
+                elif atomic_number == 6:               # O
                     valance_electrons = 4 
-                if atomic_number == 7:               # N
+                elif atomic_number == 7:               # N
                     valance_electrons = 5 
-                if atomic_number == 8:
+                elif atomic_number == 8:
                     valance_electrons = 6
-                if atomic_number == 9:
+                elif atomic_number == 9:
                     valance_electrons = 7 
-                if atomic_number == 16:              # S
+                elif atomic_number == 16:              # S
                     valance_electrons = 6 
-                if atomic_number == 17:              # Cl
+                elif atomic_number == 17:              # Cl
                     valance_electrons = 7 
-                if atomic_number == 26:
+                elif atomic_number == 26:
                     valance_electrons = 7 
-                if atomic_number == 50:              # Sn
+                elif atomic_number == 50:              # Sn
                     valance_electrons = 4 
+                else:
+                    print("get_quadrupole_moments: Atoms not recognized")
+                    return
                 atoms_info.append([atomic_number, charge, valance_electrons, [float(parsed[2]), float(parsed[3]), float(parsed[4])]])
-                # print(atoms_info[-1])
           
             # Here we load the volumetric data
             if not atom_coordinates_trigger and i>5:
@@ -574,17 +564,8 @@ class SiestaReadOut():
         total_ionic_charge = 0
         voxel_midpoint_vec = 0.5*a_voxel_vec+0.5*b_voxel_vec+0.5*c_voxel_vec
         def get_r_vec(x,y,z):
-            # r_vec = x*a_voxel_vec+y*b_voxel_vec+z*c_voxel_vec + origin  + voxel_midpoint_vec
-            # r_vec = x*a_voxel_vec+y*b_voxel_vec+z*c_voxel_vec + voxel_midpoint_vec
             r_vec = x*a_voxel_vec+y*b_voxel_vec+z*c_voxel_vec + origin
-            # r_vec = x*a_voxel_vec+y*b_voxel_vec+z*c_voxel_vec + origin + r_voxel
             return r_vec
-
-        def is_inside_cell(vec):
-            result = True
-            for i,v in vec:
-                if abs(v) >= np.sqrt(cell_positive[i][0]**2+cell_positive[i][1]**2+cell_positive[i][2]**2): result=True
-            return result
 
         Qxx = 0
         Qxy = 0
@@ -745,6 +726,7 @@ class SiestaReadOut():
         return_dict = {}
         return_dict.update({"Qzz":Qzz*unit_factor_Debye})
         print("Electrostatics: Done\n")
+
         return return_dict        
 
     def load_quadrupole_moments(self, file_name = None, cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
@@ -766,11 +748,11 @@ class SiestaReadOut():
             if "dipole" in line and "Debye" in line and "unadjusted" not in line and "binned" not in line:
                 line = line.strip("[")
                 line = line.strip("]")
-                print(line)
+                # print(line)
                 parsed = line.split()
                 if "[" in parsed : parsed.remove("[")
                 if "]" in parsed : parsed.remove("]")
-                print(parsed)
+                # print(parsed)
                 self.dipole = [ float(parsed[-4].strip("[")), float(parsed[-3]), float(parsed[-2].strip("]")) ]
             if "Qxx" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
                 parsed = line.split()
