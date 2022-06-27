@@ -137,7 +137,7 @@ class SiestaReadOut():
 
             # Here we read in the total charge
             if "Total ionic charge" in line:
-                self.total_ionic_charge = float(line.split()[3])
+                self.total_ionic_charge_siesta = float(line.split()[3])
 
 # Here we are parsing in the .EIG file
         for i,line in enumerate(self.EIG_file):
@@ -299,7 +299,7 @@ class SiestaReadOut():
 
     def get_total_ionic_charge(self):
         """Returns the total ionic charge of the system"""
-        return self.total_ionic_charge
+        return self.total_ionic_charge_siesta
 
     def get_initial_cell_vectors(self):
         """Returns the un relaxed initial cell vectors"""
@@ -583,11 +583,11 @@ class SiestaReadOut():
         summary_file.write(f"Full volume                                {self.integrated_volume:<5f}\n")
         summary_file.write(f"elementary volume                          {self.d_V:<5f}\n")
         summary_file.write(f"total_electrons (from siesta)              {self.number_of_electrons}\n")
-        summary_file.write(f"normalized total electronic charge         {self.total_electronic_charge}\n")
-        summary_file.write(f"total ionic charge                         {self.total_ionic_charge}\n")
+        summary_file.write(f"normalized total electronic charge         {self.integrated_electronic_charge}\n")
+        summary_file.write(f"total ionic charge                         {self.integrated_ionic_charge}\n")
         summary_file.write(f"Normalization factor for electron density  {self.charge_normalization_factor:<5f}\n")
         summary_file.write(f"Total Unnormalized charge from cube file   {self.total_unnormalized_charge:<5f}\n")
-        summary_file.write(f"Total Charge                               {self.total_charge}\n")
+        summary_file.write(f"Total Charge                               {self.integrated_charge}\n")
         summary_file.write(f"dipole                                     {self.dipole*unit_factor_Debye} Debye\n")
         summary_file.write(f"dipole                                     {self.dipole} in q.r numofelectrons.angs\n")
         for i,(k,v)in enumerate(conversions.items()):
@@ -601,6 +601,8 @@ class SiestaReadOut():
             for col in range(0,3):
                 for row in range(0,3):
                     summary_file.write(f"Q{get_direction(row)}{get_direction(col)}                                        {self.Q[row,col]*v:<5f} {k}\n")
+            for col in range(0,3):
+                for row in range(0,3):
                     summary_file.write(f"Q{get_direction(row)}{get_direction(col)}  (in the non-traceless from)           {self.Q_non_traceless[row,col]*v:<5f} {k}\n")
         summary_file.close()
 
@@ -622,10 +624,27 @@ class SiestaReadOut():
         r_vec = x*self.a_voxel_vec+y*self.b_voxel_vec+z*self.c_voxel_vec + self.origin
         return r_vec
 
+    def calculate_center_of_electronic_charge(self):
+        """"""
+        self.electronic_dipole = 0
+        self.integrated_electronic_charge = 0
+
+        prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Calculating Centre of Charge")
+        for ia in range(self.a_number_of_voxels):
+            for ib in range(self.b_number_of_voxels):
+                for ic in range(self.c_number_of_voxels):
+                    prog.get_progress((ia)*(self.b_number_of_voxels*self.c_number_of_voxels)+(ib)*(self.c_number_of_voxels)+ic)
+                    r_vec = self.get_r_vec(ia, ib, ic)
+                    self.electronic_dipole+=self.rho[ia, ib, ic]*r_vec
+                    self.integrated_electronic_charge+=self.rho[ia, ib, ic]
+        self.center_of_charge_electronic = self.electronic_dipole/self.integrated_electronic_charge
+        return self.center_of_charge_electronic
+
+
     def calculate_dipole_moments(self):
         """"""
         self.dipole = 0
-        self.total_electronic_charge = 0
+        self.integrated_electronic_charge = 0
 
         prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Calculating dipole moments")
         for ia in range(self.a_number_of_voxels):
@@ -647,6 +666,9 @@ class SiestaReadOut():
         """"""
         self.Q = np.zeros((3,3))
         self.Q_non_traceless = np.zeros((3,3))
+        self.dipole = 0
+        self.integrated_electronic_charge = 0
+        self.integrated_ionic_charge = 0
 
         # This part calculates only the electronic part from the cube file
         prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Analyzing for moments")
@@ -659,14 +681,13 @@ class SiestaReadOut():
                     r2 = np.dot(r_vec,r_vec)
                     r = np.sqrt(r2)
                     self.dipole+=self.rho[ia, ib, ic]*r_vec
-                    self.total_electronic_charge+=self.rho[ia,ib,ic]
+                    self.integrated_electronic_charge+=self.rho[ia,ib,ic]
                     for col in range(0,3):
                         for row in range(0,3):
                             if col == row: f=1
                             else:f=0
                             self.Q[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)
                             self.Q_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))
-
 
         # Now adding the ionic part
         for i_atom, atom in enumerate(self.atoms_info):
@@ -681,7 +702,7 @@ class SiestaReadOut():
                     else:f=0
                     self.Q[row,col]               += charge*(3*(r_vec[row])*(r_vec[col]) - r2*f)
                     self.Q_non_traceless[row,col] += charge*((r_vec[row])*(r_vec[col]))
-            self.total_ionic_charge+= charge
+            self.integrated_ionic_charge+= charge
 
     def get_all_moments(self, file_name = None, out_put_file_name = "", cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
         """
@@ -692,7 +713,7 @@ class SiestaReadOut():
         print("\nCalculating the dipoles and quadrupoles...")
         self.read_in_rho_cube_file(file_name=file_name)
         self.calculate_quadrupole_moments()
-        self.total_charge = self.total_ionic_charge + self.total_electronic_charge
+        self.integrated_charge = self.integrated_ionic_charge + self.integrated_electronic_charge
         self.write_to_quadrupole_outputfiles(out_put_file_name)
 
         return_dict = {}
