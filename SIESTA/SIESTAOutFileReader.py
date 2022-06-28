@@ -442,7 +442,6 @@ class SiestaReadOut():
         b_voxel_counter = 0
         c_voxel_counter = 0
         atom_coordinates_trigger = False
-        self.total_unnormalized_charge = 0
         self.atoms_info = []# atomic_number, charge, valance_electrons, [x,y,z]
         self.first_lines_of_file = []
 
@@ -503,7 +502,7 @@ class SiestaReadOut():
                 elif atomic_number == 50:              # Sn
                     valance_electrons = 4 
                 else:
-                    print("get_quadrupole_moments: Atoms not recognized")
+                    print("ERROR: get_quadrupole_moments: Atoms not recognized")
                     return
                 self.atoms_info.append([atomic_number, charge, valance_electrons, [float(parsed[2]), float(parsed[3]), float(parsed[4])]])
           
@@ -513,7 +512,6 @@ class SiestaReadOut():
                 for val in parsed:
                     val_read = float(val)
                     self.volumetric_data[a_voxel_counter, b_voxel_counter, c_voxel_counter] = val_read
-                    # self.total_unnormalized_charge+= val_read*self.d_V
                     c_voxel_counter+=1
                     if c_voxel_counter == self.c_number_of_voxels: 
                         c_voxel_counter = 0
