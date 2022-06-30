@@ -467,8 +467,8 @@ class SiestaReadOut():
         new_denchar.write(f"Denchar.MaxZ    {box_edges[2][1]} Ang\n") 
 
         new_denchar.close()
-        bash_file.write(f"denchar < 'CO.newDenchar.{number_of_points}.{box_edges}.fdf' | tee 'CO.denchar.{number_of_points}.{box_edges}.out'\n")
-        bash_file.write(f"cp CO.RHO.cube 'CO.RHO.{number_of_points}.{box_edges}.cube'\n")
+        bash_file.write(f"denchar < 'CO_10.newDenchar.{number_of_points}.{box_edges}.fdf' | tee 'CO_10.denchar.{number_of_points}.{box_edges}.out'\n")
+        bash_file.write(f"cp CO_10.RHO.cube 'CO_10.RHO.{number_of_points}.{box_edges}.cube'\n")
         bash_file.close()
 
     def read_in_rho_cube_file(self, file_name = None):
@@ -835,7 +835,7 @@ class SiestaReadOut():
         self.read_in_rho_cube_file(file_name=file_name)
         self.normalize_electronic_charge_density()
         self.get_volumes_from_cube_header()
-        self.calculate_volume()
+        # self.calculate_volume()
         self.calculate_quadrupole_moments()
         self.integrated_charge = self.summed_ionic_charge + self.total_normalized_electronic_charge
         self.write_to_quadrupole_outputfiles(out_put_file_name)
