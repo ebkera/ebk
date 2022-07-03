@@ -395,7 +395,7 @@ class SiestaReadOut():
                 return self.E_total
 
 
-    def generate_new_denchar_file(self, file_name=None, out_file_name=None, number_of_points=[None, None,None], box_edges_input=["Mid","Mid","Mid"]):
+    def generate_new_denchar_file(self, file_name=None, output_file_name=None, number_of_points=[None, None,None], box_edges_input=["Mid","Mid","Mid"]):
         """
         Since it is important to readjust cells and also recompute the charge density this script 
         readin current Denchar files and write a new dencchar file based off of the original
@@ -419,6 +419,10 @@ class SiestaReadOut():
         else:
             read_file_name = file_name
 
+        # Getting the file filename starting part for this folder
+        parsed = self.out_file_name.split("/")
+        run_name = parsed[-1]
+
         init_cell = self.get_initial_cell_vectors()
         box_edges = [[[],[]],[[],[]],[[],[]]]
         if "Mid" in box_edges_input[0]:
@@ -441,11 +445,13 @@ class SiestaReadOut():
             print(f"generate_denchar_file: number of bins automatically set to InitMesh_bp: {self.InitMesh_bp}")
             number_of_points = self.InitMesh_bp
             
-        if out_file_name == None:
+        if output_file_name == None:
             # Here we can default to we default to using a known file name for denchar
             new_denchar_file_name = f"{self.out_file_name}.newDenchar.{number_of_points}.{box_edges}.fdf"
         else:
-            new_denchar_file_name = file_name
+            new_denchar_file_name = output_file_name
+
+        print(new_denchar_file_name)
 
         bash_file = open(f"{self.out_file_name}.denchar_runs.sh", "a+")
         new_denchar = open(new_denchar_file_name, "w+")
@@ -467,8 +473,8 @@ class SiestaReadOut():
         new_denchar.write(f"Denchar.MaxZ    {box_edges[2][1]} Ang\n") 
 
         new_denchar.close()
-        bash_file.write(f"denchar < 'CO_10.newDenchar.{number_of_points}.{box_edges}.fdf' | tee 'CO_10.denchar.{number_of_points}.{box_edges}.out'\n")
-        bash_file.write(f"cp CO_10.RHO.cube 'CO_10.RHO.{number_of_points}.{box_edges}.cube'\n")
+        bash_file.write(f"denchar < '{run_name}.newDenchar.{number_of_points}.{box_edges}.fdf' | tee '{run_name}.denchar.{number_of_points}.{box_edges}.out'\n")
+        bash_file.write(f"cp {run_name}.RHO.cube '{run_name}.RHO.{number_of_points}.{box_edges}.cube'\n")
         bash_file.close()
 
     def read_in_rho_cube_file(self, file_name = None):
@@ -687,6 +693,8 @@ class SiestaReadOut():
         summary_file.write(f"Normalization factor for electron density  {self.charge_normalization_factor:<5f}\n")
         summary_file.write(f"Total unnormalized charge from cube file   {self.total_unnormalized_charge:<5f}\n")
         summary_file.write(f"Total Charge                               {self.integrated_charge}\n")
+        summary_file.write(f"Electronic center of charge                {self.center_of_charge_electronic}\n")
+        summary_file.write(f"Ionic center of charge                     {self.center_of_charge_ionic}\n")
         summary_file.write(f"dipole                                     {self.dipole*unit_factor_Debye} Debye\n")
         summary_file.write(f"dipole                                     {self.dipole} in q.r numofelectrons.angs\n")
         summary_file.write(f"electronic dipole                          {self.electronic_dipole*unit_factor_Debye} Debye\n")
@@ -701,12 +709,26 @@ class SiestaReadOut():
             summary_file.write(f"Q (in the non-traceless from)  in {k}\n")
             summary_file.write(f"{self.Q_non_traceless*v}\n")
             summary_file.write(f"\n")
-            for col in range(0,3):
-                for row in range(0,3):
-                    summary_file.write(f"Q{get_direction(row)}{get_direction(col)}                                        {self.Q[row,col]*v:<5f} {k}\n")
-            for col in range(0,3):
-                for row in range(0,3):
-                    summary_file.write(f"Q{get_direction(row)}{get_direction(col)}  (in the non-traceless from)           {self.Q_non_traceless[row,col]*v:<5f} {k}\n")
+            summary_file.write(f"\n")
+            summary_file.write(f"Q                              in {k}\n")
+            summary_file.write(f"{self.Q_electronic*v}\n")
+            summary_file.write(f"\n")
+            summary_file.write(f"Q (in the non-traceless from)  in {k}\n")
+            summary_file.write(f"{self.Q_electronic_non_traceless*v}\n")
+            summary_file.write(f"\n")
+            summary_file.write(f"\n")
+            summary_file.write(f"Q                              in {k}\n")
+            summary_file.write(f"{self.Q_ionic*v}\n")
+            summary_file.write(f"\n")
+            summary_file.write(f"Q (in the non-traceless from)  in {k}\n")
+            summary_file.write(f"{self.Q_ionic_non_traceless*v}\n")
+            summary_file.write(f"\n")
+            # for col in range(0,3):
+            #     for row in range(0,3):
+            #         summary_file.write(f"Q{get_direction(row)}{get_direction(col)}                                        {self.Q[row,col]*v:<5f} {k}\n")
+            # for col in range(0,3):
+            #     for row in range(0,3):
+            #         summary_file.write(f"Q{get_direction(row)}{get_direction(col)}  (in the non-traceless from)           {self.Q_non_traceless[row,col]*v:<5f} {k}\n")
         summary_file.close()
 
         # Writing out the new data in a new file
@@ -728,7 +750,7 @@ class SiestaReadOut():
         r_vec = x*self.a_voxel_vec + y*self.b_voxel_vec + z*self.c_voxel_vec + self.origin
         return r_vec
 
-    def calculate_volume(self):
+    def calculate_integrated_volume(self):
         """
         This method sums the volume from using the volume of a single voxel and iterating through the volxels.
         """
@@ -742,8 +764,8 @@ class SiestaReadOut():
         return self.summed_volume
                     
     def calculate_center_of_electronic_charge(self):
-        """"""
-        self.electronic_dipole = 0
+        """Maybe redundant"""
+        self.electronic_dipole = np.zeros((1,3))
 
         prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Calculating Centre of Charge")
         for ia in range(self.a_number_of_voxels):
@@ -754,6 +776,25 @@ class SiestaReadOut():
                     self.electronic_dipole+=self.rho[ia, ib, ic]*r_vec
         self.center_of_charge_electronic = self.electronic_dipole/self.total_normalized_electronic_charge
         return self.center_of_charge_electronic
+                    
+    def calculate_center_of_ionic_charge(self):
+        """"""
+        self.summed_ionic_charge = 0
+        self.ionic_dipole = np.zeros((1,3))
+        for i_atom, atom in enumerate(self.atoms_info):
+            coordinates = atom[3]
+            charge = atom[2]   # This is from the valance electron item in the list
+            r_vec = np.array([coordinates[0], coordinates[1], coordinates[2]])
+            r2 = np.dot(r_vec, r_vec)
+            self.dipole += charge*r_vec
+            self.ionic_dipole += charge*r_vec
+            self.summed_ionic_charge += charge
+            for col in range(0,3):
+                for row in range(0,3):
+                    if col == row: f=1
+                    else:f=0
+                    self.Q[row,col]               += charge*(3*(r_vec[row])*(r_vec[col]) - r2*f)
+                    self.Q_non_traceless[row,col] += charge*((r_vec[row])*(r_vec[col]))
 
     def calculate_dipole_moments(self):
         """"""
@@ -781,12 +822,21 @@ class SiestaReadOut():
         self.Q = np.zeros((3,3))
         self.Q_non_traceless = np.zeros((3,3))
         self.dipole = np.zeros((1,3))
-        self.calculate_electronic_part()
-        self.calculate_ionic_part()
-        
+        self.calculate_electronic_moments()
+        self.calculate_ionic_moments()
 
-    def calculate_electronic_part(self):
-        # This part calculates only the electronic part from the cube file
+        self.Q = self.Q_electronic + self.Q_ionic
+        self.Q_non_traceless = self.Q_electronic_non_traceless + self.Q_ionic_non_traceless
+
+    def calculate_electronic_moments(self):
+        """
+        This method calculates:
+            electronic dipole
+            electronic quadrupole
+            electronic centre of charge
+        """
+        self.Q_electronic = np.zeros((3,3))
+        self.Q_electronic_non_traceless = np.zeros((3,3))
         self.electronic_dipole = np.zeros((1,3))
         prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Analyzing for moments")
         for ia in range(self.a_number_of_voxels):
@@ -803,18 +853,26 @@ class SiestaReadOut():
                         for row in range(0,3):
                             if col == row: f=1
                             else:f=0
-                            self.Q[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)*self.d_V
-                            self.Q_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))*self.d_V
+                            self.Q_electronic[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)*self.d_V
+                            self.Q_electronic_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))*self.d_V
+        self.center_of_charge_electronic = self.electronic_dipole/self.total_normalized_electronic_charge
 
-    def calculate_ionic_part(self):
-        # Now adding the ionic part
+    def calculate_ionic_moments(self):
+        """
+        This method calculates:
+            ionic dipole
+            ionic quadrupole
+            ionic centre of charge
+        """        
+        self.Q_ionic = np.zeros((3,3))
+        self.Q_ionic_non_traceless = np.zeros((3,3))
         self.summed_ionic_charge = 0
         self.ionic_dipole = np.zeros((1,3))
         for i_atom, atom in enumerate(self.atoms_info):
             coordinates = atom[3]
             charge = atom[2]   # This is from the valance electron item in the list
             r_vec = np.array([coordinates[0], coordinates[1], coordinates[2]])
-            r2 = np.dot(r_vec,r_vec)
+            r2 = np.dot(r_vec, r_vec)
             self.dipole += charge*r_vec
             self.ionic_dipole += charge*r_vec
             self.summed_ionic_charge += charge
@@ -822,10 +880,11 @@ class SiestaReadOut():
                 for row in range(0,3):
                     if col == row: f=1
                     else:f=0
-                    self.Q[row,col]               += charge*(3*(r_vec[row])*(r_vec[col]) - r2*f)
-                    self.Q_non_traceless[row,col] += charge*((r_vec[row])*(r_vec[col]))
+                    self.Q_ionic[row,col]               += charge*(3*(r_vec[row])*(r_vec[col]) - r2*f)
+                    self.Q_ionic_non_traceless[row,col] += charge*((r_vec[row])*(r_vec[col]))
+        self.center_of_charge_ionic = self.ionic_dipole/self.summed_ionic_charge
 
-    def get_all_moments(self, file_name = None, out_put_file_name = "", cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
+    def get_moments(self, file_name = None, out_put_file_name = "", cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
         """
         This is the main method to calculate the dipole/quadrupole moments
         """
@@ -864,14 +923,16 @@ class SiestaReadOut():
         self.Q_non_traceless = np.zeros((3,3))
 
         for line in f:
-            if "dipole" in line and "Debye" in line and "unadjusted" not in line and "binned" not in line:
+            if "dipole" in line and "Debye" in line and "unadjusted" not in line and "binned" not in line and "electronic dipole" not in line and "ionic dipole" not in line:
                 line = line.strip("[")
                 line = line.strip("]")
                 # print(line)
                 parsed = line.split()
                 if "[" in parsed : parsed.remove("[")
                 if "]" in parsed : parsed.remove("]")
-                # print(parsed)
+                if "[[" in parsed : parsed.remove("[[")
+                if "]]" in parsed : parsed.remove("]]")
+                print(parsed)
                 self.dipole = [ float(parsed[-4].strip("[")), float(parsed[-3]), float(parsed[-2].strip("]")) ]
             if "electronic dipole" in line and "Debye" in line and "unadjusted" not in line and "binned" not in line:
                 line = line.strip("[")
@@ -880,6 +941,8 @@ class SiestaReadOut():
                 parsed = line.split()
                 if "[" in parsed : parsed.remove("[")
                 if "]" in parsed : parsed.remove("]")
+                if "[[" in parsed : parsed.remove("[[")
+                if "]]" in parsed : parsed.remove("]]")
                 # print(parsed)
                 self.electronic_dipole = [ float(parsed[-4].strip("[")), float(parsed[-3]), float(parsed[-2].strip("]")) ]
             if "ionic dipole" in line and "Debye" in line and "unadjusted" not in line and "binned" not in line:
@@ -889,35 +952,37 @@ class SiestaReadOut():
                 parsed = line.split()
                 if "[" in parsed : parsed.remove("[")
                 if "]" in parsed : parsed.remove("]")
+                if "[[" in parsed : parsed.remove("[[")
+                if "]]" in parsed : parsed.remove("]]")
                 # print(parsed)
                 self.ionic_dipole = [ float(parsed[-4].strip("[")), float(parsed[-3]), float(parsed[-2].strip("]")) ]
             if "Qxx" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
                 parsed = line.split()
-                self.Q_non_traceless[0,0] = float(parsed[1])
+                self.Q[0,0] = float(parsed[1])
             if "Qyy" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
                 parsed = line.split()
-                self.Q_non_traceless[1,1] = float(parsed[1])
+                self.Q[1,1] = float(parsed[1])
             if "Qzz" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
                 parsed = line.split()
-                self.Q_non_traceless[2,2] = float(parsed[1])
+                self.Q[2,2] = float(parsed[1])
             if "Qxy" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
                 parsed = line.split()
-                self.Q_non_traceless[0,1] = float(parsed[1])
+                self.Q[0,1] = float(parsed[1])
             if "Qxz" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
                 parsed = line.split()
-                self.Q_non_traceless[0,2] = float(parsed[1])
+                self.Q[0,2] = float(parsed[1])
             if "Qyx" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
                 parsed = line.split()
-                self.Q_non_traceless[1,0] = float(parsed[1])
+                self.Q[1,0] = float(parsed[1])
             if "Qyz" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
                 parsed = line.split()
-                self.Q_non_traceless[1,2] = float(parsed[1])
+                self.Q[1,2] = float(parsed[1])
             if "Qzx" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
                 parsed = line.split()
-                self.Q_non_traceless[2,0] = float(parsed[1])
+                self.Q[2,0] = float(parsed[1])
             if "Qzy" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
                 parsed = line.split()
-                self.Q_non_traceless[2,1] = float(parsed[1])
+                self.Q[2,1] = float(parsed[1])
 
 
             if "Qxx" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
