@@ -451,7 +451,7 @@ class SiestaReadOut():
         else:
             new_denchar_file_name = output_file_name
 
-        print(new_denchar_file_name)
+        # print(new_denchar_file_name)
 
         bash_file = open(f"{self.out_file_name}.denchar_runs.sh", "a+")
         new_denchar = open(new_denchar_file_name, "w+")
@@ -646,7 +646,6 @@ class SiestaReadOut():
                 for z in range(self.c_number_of_voxels):
                     self.rho[x,y,z] = -self.volumetric_data[x,y,z]*self.charge_normalization_factor
                     self.total_normalized_electronic_charge += self.rho[x,y,z]*self.charge_normalization_factor*self.d_V
-
         print("Done")
  
     def get_volumes_from_cube_header(self):
@@ -826,6 +825,7 @@ class SiestaReadOut():
         self.calculate_ionic_moments()
 
         self.Q = self.Q_electronic + self.Q_ionic
+        # print(self.Q_ionic,"\n", self.Q_electronic)
         self.Q_non_traceless = self.Q_electronic_non_traceless + self.Q_ionic_non_traceless
 
     def calculate_electronic_moments(self):
@@ -855,6 +855,8 @@ class SiestaReadOut():
                             else:f=0
                             self.Q_electronic[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)*self.d_V
                             self.Q_electronic_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))*self.d_V
+                            # self.Q_electronic[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)
+                            # self.Q_electronic_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))
         self.center_of_charge_electronic = self.electronic_dipole/self.total_normalized_electronic_charge
 
     def calculate_ionic_moments(self):
@@ -871,8 +873,9 @@ class SiestaReadOut():
         for i_atom, atom in enumerate(self.atoms_info):
             coordinates = atom[3]
             charge = atom[2]   # This is from the valance electron item in the list
-            r_vec = np.array([coordinates[0], coordinates[1], coordinates[2]])
+            r_vec = np.array(coordinates)
             r2 = np.dot(r_vec, r_vec)
+            # print(f"r_vec, r2 ({i_atom}): ", r_vec, r2)
             self.dipole += charge*r_vec
             self.ionic_dipole += charge*r_vec
             self.summed_ionic_charge += charge
@@ -882,6 +885,9 @@ class SiestaReadOut():
                     else:f=0
                     self.Q_ionic[row,col]               += charge*(3*(r_vec[row])*(r_vec[col]) - r2*f)
                     self.Q_ionic_non_traceless[row,col] += charge*((r_vec[row])*(r_vec[col]))
+                    # if col == row:
+                    #     print("traceless row:", row, charge, (3*(r_vec[row])*(r_vec[col]) - r2*f))
+                    #     print("nontraceless :", row, charge, ((r_vec[row])*(r_vec[col])))
         self.center_of_charge_ionic = self.ionic_dipole/self.summed_ionic_charge
 
     def get_moments(self, file_name = None, out_put_file_name = "", cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
