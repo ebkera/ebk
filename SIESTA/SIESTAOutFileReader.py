@@ -703,24 +703,24 @@ class SiestaReadOut():
         summary_file.write(f"ionic dipole                               {self.ionic_dipole} in q.r numofelectrons.angs\n")
         for i,(k,v)in enumerate(conversions.items()):
             summary_file.write(f"\n")
-            summary_file.write(f"Q                              in {k}\n")
+            summary_file.write(f"Q                                         in {k}\n")
             summary_file.write(f"{self.Q*v}\n")
             summary_file.write(f"\n")
-            summary_file.write(f"Q (in the non-traceless from)  in {k}\n")
+            summary_file.write(f"Q (in the non-traceless from)             in {k}\n")
             summary_file.write(f"{self.Q_non_traceless*v}\n")
             summary_file.write(f"\n")
             summary_file.write(f"\n")
-            summary_file.write(f"Q                              in {k}\n")
+            summary_file.write(f"Q electronic                              in {k}\n")
             summary_file.write(f"{self.Q_electronic*v}\n")
             summary_file.write(f"\n")
-            summary_file.write(f"Q (in the non-traceless from)  in {k}\n")
+            summary_file.write(f"Q electronic (in the non-traceless from)  in {k}\n")
             summary_file.write(f"{self.Q_electronic_non_traceless*v}\n")
             summary_file.write(f"\n")
             summary_file.write(f"\n")
-            summary_file.write(f"Q                              in {k}\n")
+            summary_file.write(f"Q ionic                                   in {k}\n")
             summary_file.write(f"{self.Q_ionic*v}\n")
             summary_file.write(f"\n")
-            summary_file.write(f"Q (in the non-traceless from)  in {k}\n")
+            summary_file.write(f"Q ionic (in the non-traceless from)       in {k}\n")
             summary_file.write(f"{self.Q_ionic_non_traceless*v}\n")
             summary_file.write(f"\n")
             # for col in range(0,3):
@@ -919,105 +919,104 @@ class SiestaReadOut():
         print(f"Reading in file {read_file_name}")
         f = open(f"{read_file_name}", "r")
 
+        Q_line = 0
+        Q_nontraceless_line = 0
+        Q_electronic_line = 0
+        Q_electronic_nontraceless_line = 0
+        Q_ionic_line = 0
+        Q_ionic_nontraceless_line = 0
+
         self.Q = np.zeros((3,3))
         self.Q_non_traceless = np.zeros((3,3))
+        self.Q_electronic = np.zeros((3,3))
+        self.Q_electronic_non_traceless = np.zeros((3,3))
+        self.Q_ionic = np.zeros((3,3))
+        self.Q_ionic_non_traceless = np.zeros((3,3))
 
-        for line in f:
+        def parse_dipoles_and_quadrupoles_line(line):
+            parsed = line.strip("[[").strip("[").strip("]]").strip("]").split()
+            if "[[" in parsed : parsed.remove("[[")
+            if "]]" in parsed : parsed.remove("]]")
+            if "[" in parsed : parsed.remove("[")
+            if "]" in parsed : parsed.remove("]")
+            return parsed
+
+        for i,line in enumerate(f):
             if "dipole" in line and "Debye" in line and "unadjusted" not in line and "binned" not in line and "electronic dipole" not in line and "ionic dipole" not in line:
-                line = line.strip("[")
-                line = line.strip("]")
-                # print(line)
-                parsed = line.split()
-                if "[" in parsed : parsed.remove("[")
-                if "]" in parsed : parsed.remove("]")
-                if "[[" in parsed : parsed.remove("[[")
-                if "]]" in parsed : parsed.remove("]]")
-                print(parsed)
+                parsed = parse_dipoles_and_quadrupoles_line(line)
                 self.dipole = [ float(parsed[-4].strip("[")), float(parsed[-3]), float(parsed[-2].strip("]")) ]
             if "electronic dipole" in line and "Debye" in line and "unadjusted" not in line and "binned" not in line:
-                line = line.strip("[")
-                line = line.strip("]")
-                # print(line)
-                parsed = line.split()
-                if "[" in parsed : parsed.remove("[")
-                if "]" in parsed : parsed.remove("]")
-                if "[[" in parsed : parsed.remove("[[")
-                if "]]" in parsed : parsed.remove("]]")
-                # print(parsed)
+                parsed = parse_dipoles_and_quadrupoles_line(line)
                 self.electronic_dipole = [ float(parsed[-4].strip("[")), float(parsed[-3]), float(parsed[-2].strip("]")) ]
             if "ionic dipole" in line and "Debye" in line and "unadjusted" not in line and "binned" not in line:
-                line = line.strip("[")
-                line = line.strip("]")
-                # print(line)
-                parsed = line.split()
-                if "[" in parsed : parsed.remove("[")
-                if "]" in parsed : parsed.remove("]")
-                if "[[" in parsed : parsed.remove("[[")
-                if "]]" in parsed : parsed.remove("]]")
-                # print(parsed)
+                parsed = parse_dipoles_and_quadrupoles_line(line)
                 self.ionic_dipole = [ float(parsed[-4].strip("[")), float(parsed[-3]), float(parsed[-2].strip("]")) ]
-            if "Qxx" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q[0,0] = float(parsed[1])
-            if "Qyy" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q[1,1] = float(parsed[1])
-            if "Qzz" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q[2,2] = float(parsed[1])
-            if "Qxy" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q[0,1] = float(parsed[1])
-            if "Qxz" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q[0,2] = float(parsed[1])
-            if "Qyx" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q[1,0] = float(parsed[1])
-            if "Qyz" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q[1,2] = float(parsed[1])
-            if "Qzx" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q[2,0] = float(parsed[1])
-            if "Qzy" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q[2,1] = float(parsed[1])
 
+            # For Q and Q traceless#################################################################
+            if "Q" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "ionic" not in line and "electronic" not in line: 
+                Q_line = i
+                # print(line)
+            if i < Q_line+4 and Q_line != 0 and i != Q_line:
+                row = i-Q_line-1
+                parsed = parse_dipoles_and_quadrupoles_line(line)
+                for col in range(0,3):
+                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                    self.Q[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
+            if "Q" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "ionic" not in line and "electronic" not in line: 
+                Q_nontraceless_line = i
+                # print(line)
+            if i < Q_nontraceless_line+4 and Q_nontraceless_line != 0 and i != Q_nontraceless_line:
+                row = i-Q_nontraceless_line-1
+                parsed = parse_dipoles_and_quadrupoles_line(line)
+                for col in range(0,3):
+                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                    self.Q_non_traceless[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
 
-            if "Qxx" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q_non_traceless[0,0] = float(parsed[5])
-            if "Qyy" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q_non_traceless[1,1] = float(parsed[5])
-            if "Qzz" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q_non_traceless[2,2] = float(parsed[5])
-            if "Qxy" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q_non_traceless[0,1] = float(parsed[5])
-            if "Qxz" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q_non_traceless[0,2] = float(parsed[5])
-            if "Qyx" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q_non_traceless[1,0] = float(parsed[5])
-            if "Qyz" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q_non_traceless[1,2] = float(parsed[5])
-            if "Qzx" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q_non_traceless[2,0] = float(parsed[5])
-            if "Qzy" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "numofelectrons.angs^2" not in line:
-                parsed = line.split()
-                self.Q_non_traceless[2,1] = float(parsed[5])
-            if "Total unnormalized charge from cube file" in line:
-                parsed = line.split()
-                self.total_unnormalized_charge = float(parsed[-1])
-            if "Full volume (summed)" in line:
-                parsed = line.split()
-                self.summed_volume = float(parsed[-1])
+            # For Q electronic and Q electronic traceless#################################################################
+            if "Q electronic" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line: 
+                Q_electronic_line = i
+                # print(line)
+            if i < Q_electronic_line+4 and Q_electronic_line != 0 and i != Q_electronic_line:
+                row = i-Q_electronic_line-1
+                parsed = parse_dipoles_and_quadrupoles_line(line)
+                for col in range(0,3):
+                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                    self.Q_electronic[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
+            if "Q electronic" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line: 
+                Q_electronic_nontraceless_line = i
+                # print(line)
+            if i < Q_electronic_nontraceless_line+4 and Q_electronic_nontraceless_line != 0 and i != Q_electronic_nontraceless_line:
+                row = i-Q_electronic_nontraceless_line-1
+                parsed = parse_dipoles_and_quadrupoles_line(line)
+                for col in range(0,3):
+                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                    self.Q_electronic_non_traceless[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
+
+            # For Q ionic and Q electronic traceless#################################################################
+            if "Q ionic" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line: 
+                Q_ionic_line = i
+                # print(line)
+            if i < Q_ionic_line+4 and Q_ionic_line != 0 and i != Q_ionic_line:
+                row = i-Q_ionic_line-1
+                parsed = parse_dipoles_and_quadrupoles_line(line)
+                for col in range(0,3):
+                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                    self.Q_ionic[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
+            if "Q ionic" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line: 
+                Q_ionic_nontraceless_line = i
+                # print(line)
+            if i < Q_ionic_nontraceless_line+4 and Q_ionic_nontraceless_line != 0 and i != Q_ionic_nontraceless_line:
+                row = i-Q_ionic_nontraceless_line-1
+                parsed = parse_dipoles_and_quadrupoles_line(line)
+                for col in range(0,3):
+                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                    self.Q_ionic_non_traceless[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
+                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
 
             if "C.O.C (if no ions then binned electronic)" in line:
                 parsed = line.split()
