@@ -476,7 +476,7 @@ class SiestaReadOut():
         bash_file.write(f"denchar < '{run_name}.newDenchar.{number_of_points}.{box_edges}.fdf' | tee '{run_name}.denchar.{number_of_points}.{box_edges}.out'\n")
         bash_file.write(f"cp {run_name}.RHO.cube '{run_name}.RHO.{number_of_points}.{box_edges}.cube'\n")
         bash_file.close()
-        print(f"Please find and run script named {bash_file_name}")
+        print(f"\nPlease find and run script named {bash_file_name}")
 
     def read_in_rho_cube_file(self, file_name = None):
         """
