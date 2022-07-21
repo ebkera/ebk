@@ -42,7 +42,7 @@ def populate_RELAX(folder_name = False, RELAX_DIR="1_RELAX", **kwargs):
         file.write(contents)
         file.close()
 
-def populate_SCF(folder_name = False, RELAX_DIR="1_RELAX"):
+def populate_SCF(folder_name = False, RELAX_DIR="1_RELAX", DEFAULT_POTCAR_NAME='POTCAR', DEFAULT_POSCAR_NAME="POSCAR_relaxed"):
     if folder_name == False:
         folder_name = "2_SCF"
     else:
@@ -50,12 +50,12 @@ def populate_SCF(folder_name = False, RELAX_DIR="1_RELAX"):
     
     if not os.path.isdir(folder_name):
         os.mkdir(folder_name)
-    shutil.copy(f"DEFAULTS/POTCAR", f"{folder_name}/POTCAR")
+    shutil.copy(f"DEFAULTS/{DEFAULT_POTCAR_NAME}", f"{folder_name}/POTCAR")
     try:
         shutil.copy(f"DEFAULTS/INCAR_SCF_TEMPLATE", f"{folder_name}/INCAR")
         print(f"INCAR for SCF run loaded from template file in DEFAULTS")
     except:
-        print(f"No template for INCAR for SCF using original template from code")
+        print(f"No template for INCAR for SCF (INCAR_SCF_TEMPLATE) using original template from code")
         file = open(f"{folder_name}/INCAR", "w+")
         contents = get_scf_INCAR()
         file.write(contents)
@@ -74,7 +74,7 @@ def populate_SCF(folder_name = False, RELAX_DIR="1_RELAX"):
         print(f"CONTCAR file found in relaxation run.. Using it for POSCAR in SCF")
     except:
         print(f"No CONTCAR file found in relaxation run.. Looking for DEFAULTS/POSCAR_relaxed.. if you already have relaxed structure rename as such..")
-        shutil.copy(f"DEFAULTS/POSCAR_relaxed", f"{folder_name}/POSCAR")
+        shutil.copy(f"DEFAULTS/{DEFAULT_POSCAR_NAME}", f"{folder_name}/POSCAR")
 
 def populate_BANDS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **kwargs):
     if folder_name == False:
