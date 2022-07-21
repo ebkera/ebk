@@ -238,6 +238,34 @@ def make_mini_proj():
 \tableofcontents
 
 \section{Background}
+This section can be used to make a small statement about why this mini project was started. 
+This section is not meant for a background in the subject matter since it is obvious and maybe should be included in the larger report.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale = 0.45]{Rivero_band_gaps.JPG}
+    \caption{Bands from the rivero paper. We are looking at the dashed green line.}
+    \label{fig:rivero_bands}
+\end{figure}
+
+\section{In this folder..}
+Put things that are supposed to be done in this folder (mini project)
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale = 0.45]{Rivero_band_gaps.JPG}
+    \caption{Bands from the rivero paper. We are looking at the dashed green line.}
+    \label{fig:rivero_bands}
+\end{figure}
+
+\section{Implementation}
+This section is for how you have implemented the different things that you have explained in the above section.
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale = 0.45]{Rivero_band_gaps.JPG}
+    \caption{Bands from the rivero paper. We are looking at the dashed green line.}
+    \label{fig:rivero_bands}
+\end{figure}
+
+\section{Results}
 This is dummy text.
 \begin{figure}[H]
     \centering
