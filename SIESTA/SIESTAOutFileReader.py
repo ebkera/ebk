@@ -452,8 +452,8 @@ class SiestaReadOut():
             new_denchar_file_name = output_file_name
 
         # print(new_denchar_file_name)
-
-        bash_file = open(f"{self.out_file_name}.denchar_runs.sh", "a+")
+        bash_file_name = f"{self.out_file_name}.denchar_runs.sh"
+        bash_file = open(bash_file_name, "a+")
         new_denchar = open(new_denchar_file_name, "w+")
            
         with open(read_file_name, "r") as old_denchar:
@@ -476,6 +476,7 @@ class SiestaReadOut():
         bash_file.write(f"denchar < '{run_name}.newDenchar.{number_of_points}.{box_edges}.fdf' | tee '{run_name}.denchar.{number_of_points}.{box_edges}.out'\n")
         bash_file.write(f"cp {run_name}.RHO.cube '{run_name}.RHO.{number_of_points}.{box_edges}.cube'\n")
         bash_file.close()
+        print(f"Please find and run script named {bash_file_name}")
 
     def read_in_rho_cube_file(self, file_name = None):
         """
@@ -626,6 +627,9 @@ class SiestaReadOut():
         self.rho = np.zeros((self.a_number_of_voxels, self.b_number_of_voxels, self.c_number_of_voxels))  # This is the normalized charge density in terms of the number of electrons. It will later be converted into charge in Coulombs.
         self.total_unnormalized_charge = 0
         self.total_normalized_electronic_charge = 0
+        box = []
+        total_val = []
+        box_now = 0
 
         print("Normalizing Charge density please wait...  ", end="", flush=True)
         self.get_volumes_from_cube_header()     # To get dV
@@ -633,19 +637,52 @@ class SiestaReadOut():
         # Here we integrate the total charge w.r.t. the volume.
         for x in range(self.a_number_of_voxels):
             for y in range(self.b_number_of_voxels):
+                val = []
                 for z in range(self.c_number_of_voxels):
                     self.total_unnormalized_charge += self.volumetric_data[x,y,z]*self.d_V
+                    val.append(self.volumetric_data[x,y,z]*self.d_V)
+                    box.append(box_now)
+                    box_now+=1
+                total_val.append(val)
+        # Saving the charge profile 
+        import matplotlib.pyplot as plt
+        x_plot = [self.get_r_vec(0,0,x)[2] for x in range(self.c_number_of_voxels)]
+        for v in total_val:
+            plt.plot(x_plot,v)
+        ax = plt.gca()
+        for atom in self.atoms_info:
+            # plt.axvline(atom[3][2], color="r")
+            vline_color = next(ax._get_lines.prop_cycler)['color']
+            plt.axvline(atom[3][2],color = vline_color, label=f"A={atom[0]}")
+        plt.xlabel("Position along the z axis ($\AA$)")
+        plt.ylabel("Charge")
+        plt.title("Charge profile along the z axis")
+        plt.legend()
+        plt.savefig(f"{self.out_file_name}.chargeprofile_z.pdf")
+        plt.close()
 
         if self.total_unnormalized_charge !=0:
             self.charge_normalization_factor = self.number_of_electrons/self.total_unnormalized_charge  # To get around the devide by zero error for the zero charge case
         else: self.charge_normalization_factor = 0   
 
+        r_extreme = self.get_r_vec(self.a_number_of_voxels-1, self.b_number_of_voxels-1, self.c_number_of_voxels-1)
+        r2_extreme = np.dot(r_extreme,r_extreme)
         # Here we integrate the total charge w.r.t. the volume.
+        sum_of_weights=0
         for x in range(self.a_number_of_voxels):
             for y in range(self.b_number_of_voxels):
                 for z in range(self.c_number_of_voxels):
+                    # self.rho[x,y,z] = -self.volumetric_data[x,y,z]*self.charge_normalization_factor
+                    rvec = self.get_r_vec(x,y,z)
+                    # r2=np.dot(rvec,rvec)
+                    # weight = r2_extreme-r2
+                    # sum_of_weights += weight
                     self.rho[x,y,z] = -self.volumetric_data[x,y,z]*self.charge_normalization_factor
-                    self.total_normalized_electronic_charge += self.rho[x,y,z]*self.charge_normalization_factor*self.d_V
+                    self.total_normalized_electronic_charge += self.rho[x,y,z]*self.d_V
+                    # self.rho[x,y,z] = -self.volumetric_data[x,y,z]*self.charge_normalization_factor*weight
+                    # self.total_normalized_electronic_charge += self.rho[x,y,z]*weight*self.d_V
+        # self.rho = self.rho/sum_of_weights
+        # self.total_normalized_electronic_charge = self.total_normalized_electronic_charge/sum_of_weights
         print("Done")
  
     def get_volumes_from_cube_header(self):
@@ -677,7 +714,7 @@ class SiestaReadOut():
         if out_put_file_name == "": out_put_file_name = self.out_file_name
         print(f"Writing the values to file {out_put_file_name}.electrostatics.out")
         summary_file = open(f"{out_put_file_name}.electrostatics.out", "w")
-        summary_file.write(f"Summary of electrostatics calculations for file {self.out_file_name}\n\n")
+        summary_file.write(f"Summary of electrostatics calculations for SIESTA run: {self.out_file_name}\n\n")
         summary_file.write(f"numer of voxels                            {self.a_number_of_voxels}, {self.b_number_of_voxels}, {self.c_number_of_voxels}\n")
         summary_file.write(f"Voxel vectors                              {self.a_voxel_vec}, {self.b_voxel_vec}, {self.c_voxel_vec}\n")
         summary_file.write(f"Origin                                     {self.origin}\n")
@@ -746,7 +783,12 @@ class SiestaReadOut():
 
     def get_r_vec(self,x,y,z):
         """"""
-        r_vec = x*self.a_voxel_vec + y*self.b_voxel_vec + z*self.c_voxel_vec + self.origin
+        # This is the oroginal do not delete
+        # r_vec = x*self.a_voxel_vec + y*self.b_voxel_vec + z*self.c_voxel_vec + self.origin
+        # r_vec = (x-1.5)*self.a_voxel_vec + (y-1.5)*self.b_voxel_vec + (z-1.5)*self.c_voxel_vec + self.origin
+        shift = 0
+        r_vec = (x+shift)*self.a_voxel_vec + (y+shift)*self.b_voxel_vec + (z+shift)*self.c_voxel_vec + self.origin
+        # r_vec = (x)*self.a_voxel_vec + (y)*self.b_voxel_vec + (z)*self.c_voxel_vec
         return r_vec
 
     def calculate_integrated_volume(self):
@@ -763,9 +805,8 @@ class SiestaReadOut():
         return self.summed_volume
                     
     def calculate_center_of_electronic_charge(self):
-        """Maybe redundant"""
+        """This is redundant and is done while calculating the quadrupoles in the electronic section"""
         self.electronic_dipole = np.zeros((1,3))
-
         prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Calculating Centre of Charge")
         for ia in range(self.a_number_of_voxels):
             for ib in range(self.b_number_of_voxels):
@@ -777,7 +818,7 @@ class SiestaReadOut():
         return self.center_of_charge_electronic
                     
     def calculate_center_of_ionic_charge(self):
-        """"""
+        """This is redundant and is done while calculating the quadrupoles in the ionic section"""
         self.summed_ionic_charge = 0
         self.ionic_dipole = np.zeros((1,3))
         for i_atom, atom in enumerate(self.atoms_info):
@@ -823,9 +864,12 @@ class SiestaReadOut():
         self.dipole = np.zeros((1,3))
         self.calculate_electronic_moments()
         self.calculate_ionic_moments()
+        # print(f"0,0,110",self.get_r_vec(0,0,self.c_number_of_voxels-1))
+        # print(f"0,0,55",self.get_r_vec(0,0,54))
+        # print(f"0,0,55",self.get_r_vec(0,0,55))
+        # print(f"0,0,55",self.get_r_vec(0,0,56))
 
         self.Q = self.Q_electronic + self.Q_ionic
-        # print(self.Q_ionic,"\n", self.Q_electronic)
         self.Q_non_traceless = self.Q_electronic_non_traceless + self.Q_ionic_non_traceless
 
     def calculate_electronic_moments(self):
@@ -839,6 +883,7 @@ class SiestaReadOut():
         self.Q_electronic_non_traceless = np.zeros((3,3))
         self.electronic_dipole = np.zeros((1,3))
         prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Analyzing for moments")
+
         for ia in range(self.a_number_of_voxels):
             for ib in range(self.b_number_of_voxels):
                 for ic in range(self.c_number_of_voxels):
@@ -849,14 +894,28 @@ class SiestaReadOut():
                     r = np.sqrt(r2)
                     self.dipole+=self.rho[ia, ib, ic]*r_vec*self.d_V
                     self.electronic_dipole+=self.rho[ia, ib, ic]*r_vec*self.d_V
+                    dV = self.d_V
+
+                    # dV=dV/2
+                    # if ia == 0 or ia==self.a_number_of_voxels:
+                    #     dV = dV/2
+                    # if ib == 0 or ib == self.b_number_of_voxels:
+                    #     dV = dV/2
+                    # if ic == 0 or ic == self.b_number_of_voxels:
+                    #     dV = dV/2
+
                     for col in range(0,3):
                         for row in range(0,3):
                             if col == row: f=1
-                            else:f=0
-                            self.Q_electronic[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)*self.d_V
-                            self.Q_electronic_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))*self.d_V
-                            # self.Q_electronic[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)
-                            # self.Q_electronic_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))
+                            # else:f=0
+                            # self.Q_electronic[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)*dV
+                            # self.Q_electronic_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))*dV
+                            self.Q_electronic[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)*dV
+                            self.Q_electronic_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))*dV
+                            # self.Q_electronic[row,col]               += -self.volumetric_data[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)
+                            # self.Q_electronic_non_traceless[row,col] += -self.volumetric_data[ia, ib, ic]*((r_vec[row])*(r_vec[col]))
+                            # self.Q_electronic[row,col]               += -self.volumetric_data[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)*self.d_V
+                            # self.Q_electronic_non_traceless[row,col] += -self.volumetric_data[ia, ib, ic]*((r_vec[row])*(r_vec[col]))*self.d_V
         self.center_of_charge_electronic = self.electronic_dipole/self.total_normalized_electronic_charge
 
     def calculate_ionic_moments(self):
