@@ -9,7 +9,7 @@ class SIESTARunCreator:
     def __init__(self, system_name):
         """
         This is an old file and may not be required for the latest implementation. But important to retain for legacy code and also for making a fully fldged system for SIESTA.
-        Newer implementation is using the runfilecreator and SIESTAcontrol.generatefdf classes.
+        Newer implementation uses the runfilecreator and SIESTAcontrol.generatefdf classes.
         This function initializes the object. Default initializations are
         |self.job_manager [options: "torque", "slurm"]
         """
