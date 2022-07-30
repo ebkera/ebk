@@ -783,13 +783,23 @@ class SiestaReadOut():
 
     def get_r_vec(self,x,y,z):
         """"""
-        # This is the oroginal do not delete
-        # r_vec = x*self.a_voxel_vec + y*self.b_voxel_vec + z*self.c_voxel_vec + self.origin
-        # r_vec = (x-1.5)*self.a_voxel_vec + (y-1.5)*self.b_voxel_vec + (z-1.5)*self.c_voxel_vec + self.origin
-        shift = 0
-        r_vec = (x+shift)*self.a_voxel_vec + (y+shift)*self.b_voxel_vec + (z+shift)*self.c_voxel_vec + self.origin
-        # r_vec = (x)*self.a_voxel_vec + (y)*self.b_voxel_vec + (z)*self.c_voxel_vec
+        r_vec = x*self.a_voxel_vec + y*self.b_voxel_vec + z*self.c_voxel_vec + self.origin
         return r_vec
+
+
+    def add_moments_of_point_charge(self,r_vec, charge):
+        r2 = np.dot(r_vec, r_vec)
+        for col in range(0,3):
+            for row in range(0,3):
+                if col == row: f=1
+                else:f=0
+                if charge<0 or charge == 0:
+                    self.Q[row,col]               += charge*(3*(r_vec[row])*(r_vec[col]) - r2*f)
+                    self.Q_non_traceless[row,col] += charge*((r_vec[row])*(r_vec[col]))
+                else:
+                    self.Q[row,col]               += charge*(3*(r_vec[row])*(r_vec[col]) - r2*f)
+                    self.Q_non_traceless[row,col] += charge*((r_vec[row])*(r_vec[col]))
+
 
     def calculate_integrated_volume(self):
         """
@@ -806,7 +816,7 @@ class SiestaReadOut():
                     
     def calculate_center_of_electronic_charge(self):
         """This is redundant and is done while calculating the quadrupoles in the electronic section"""
-        self.electronic_dipole = np.zeros((1,3))
+        self.electronic_dipole = np.zeros(3)
         prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Calculating Centre of Charge")
         for ia in range(self.a_number_of_voxels):
             for ib in range(self.b_number_of_voxels):
@@ -815,12 +825,13 @@ class SiestaReadOut():
                     r_vec = self.get_r_vec(ia, ib, ic)
                     self.electronic_dipole+=self.rho[ia, ib, ic]*r_vec
         self.center_of_charge_electronic = self.electronic_dipole/self.total_normalized_electronic_charge
+        print("THis is the enter of electrnoic charge:", self.center_of_charge_electronic)
         return self.center_of_charge_electronic
                     
     def calculate_center_of_ionic_charge(self):
         """This is redundant and is done while calculating the quadrupoles in the ionic section"""
         self.summed_ionic_charge = 0
-        self.ionic_dipole = np.zeros((1,3))
+        self.ionic_dipole = np.zeros(3)
         for i_atom, atom in enumerate(self.atoms_info):
             coordinates = atom[3]
             charge = atom[2]   # This is from the valance electron item in the list
@@ -861,7 +872,9 @@ class SiestaReadOut():
         """"""
         self.Q = np.zeros((3,3))
         self.Q_non_traceless = np.zeros((3,3))
-        self.dipole = np.zeros((1,3))
+        self.dipole = np.zeros(3)
+        # self.origin = np.zeros((1,3))
+        # self.calculate_center_of_electronic_charge()
         self.calculate_electronic_moments()
         self.calculate_ionic_moments()
         # print(f"0,0,110",self.get_r_vec(0,0,self.c_number_of_voxels-1))
@@ -881,7 +894,7 @@ class SiestaReadOut():
         """
         self.Q_electronic = np.zeros((3,3))
         self.Q_electronic_non_traceless = np.zeros((3,3))
-        self.electronic_dipole = np.zeros((1,3))
+        self.electronic_dipole = np.zeros(3)
         prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Analyzing for moments")
 
         for ia in range(self.a_number_of_voxels):
@@ -896,26 +909,13 @@ class SiestaReadOut():
                     self.electronic_dipole+=self.rho[ia, ib, ic]*r_vec*self.d_V
                     dV = self.d_V
 
-                    # dV=dV/2
-                    # if ia == 0 or ia==self.a_number_of_voxels:
-                    #     dV = dV/2
-                    # if ib == 0 or ib == self.b_number_of_voxels:
-                    #     dV = dV/2
-                    # if ic == 0 or ic == self.b_number_of_voxels:
-                    #     dV = dV/2
-
                     for col in range(0,3):
                         for row in range(0,3):
                             if col == row: f=1
                             # else:f=0
-                            # self.Q_electronic[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)*dV
-                            # self.Q_electronic_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))*dV
                             self.Q_electronic[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)*dV
                             self.Q_electronic_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))*dV
-                            # self.Q_electronic[row,col]               += -self.volumetric_data[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)
-                            # self.Q_electronic_non_traceless[row,col] += -self.volumetric_data[ia, ib, ic]*((r_vec[row])*(r_vec[col]))
-                            # self.Q_electronic[row,col]               += -self.volumetric_data[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)*self.d_V
-                            # self.Q_electronic_non_traceless[row,col] += -self.volumetric_data[ia, ib, ic]*((r_vec[row])*(r_vec[col]))*self.d_V
+
         self.center_of_charge_electronic = self.electronic_dipole/self.total_normalized_electronic_charge
 
     def calculate_ionic_moments(self):
@@ -928,7 +928,7 @@ class SiestaReadOut():
         self.Q_ionic = np.zeros((3,3))
         self.Q_ionic_non_traceless = np.zeros((3,3))
         self.summed_ionic_charge = 0
-        self.ionic_dipole = np.zeros((1,3))
+        self.ionic_dipole = np.zeros(3)
         for i_atom, atom in enumerate(self.atoms_info):
             coordinates = atom[3]
             charge = atom[2]   # This is from the valance electron item in the list
@@ -1087,6 +1087,9 @@ class SiestaReadOut():
                 parsed = line.split()
                 self.COC = [ float(parsed[-3].strip("[")), float(parsed[-2]), float(parsed[-1].strip("]")) ]
         f.close()
+        
+
+
 
 if __name__ == "__main__":
     vac = SiestaReadOut("Fe")
