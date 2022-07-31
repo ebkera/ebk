@@ -236,6 +236,8 @@ def make_mini_proj():
 \begin{document}
 \maketitle
 \tableofcontents
+\section{Folders in the project}
+\subsection{Folder_1}
 
 \section{Background}
 This section can be used to make a small statement about why this mini project was started. 
