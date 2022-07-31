@@ -7,11 +7,13 @@ from pandas import array
 import numpy as np
 
 class OCCO_quadrupole():
-    def __init__(self) -> None:
+    def __init__(self, CO_dist=1.15908, dipole_from_siesta=[-0.000000, -0.000000, 0.149545]) -> None:
         # Setting the default values here
-        self.CO_dist = 1.15908
+        # self.CO_dist = 1.15908
             # THis is in angstroms
-        self.CO_dipole_from_siesta = np.array([-0.000000, -0.000000, 0.149545])
+        self.CO_dist = CO_dist
+        self.CO_dipole_from_siesta = np.array(dipole_from_siesta)
+        # print(self.CO_dipole_from_siesta)
             # This dipole value is unrelaxed which is because relaxation would make it loose is CO relaxation value
             # The values are in Debye
         self.CO_dipole_in_eA = 0.2081943*self.CO_dipole_from_siesta
@@ -21,10 +23,17 @@ class OCCO_quadrupole():
 
     def set_positions_for_zz(self, CC_distance:float) -> None:
         self.point_charges = []  # will contain all the charges in this format: [[x,y,z], 1/-1] ([position],charge)
-        self.point_charges.append([[0,0,-CC_distance/2],1*self.charge_on_a_pointcharge])
-        self.point_charges.append([[0,0,CC_distance/2],1*self.charge_on_a_pointcharge])
-        self.point_charges.append([[0,0,-CC_distance/2-self.CO_dist],-1*self.charge_on_a_pointcharge])
-        self.point_charges.append([[0,0,CC_distance/2+self.CO_dist],-1*self.charge_on_a_pointcharge])
+        self.point_charges.append([[0,0,-CC_distance/2],-1*self.charge_on_a_pointcharge])
+        self.point_charges.append([[0,0,CC_distance/2],-1*self.charge_on_a_pointcharge])
+        self.point_charges.append([[0,0,-CC_distance/2-self.CO_dist],1*self.charge_on_a_pointcharge])
+        self.point_charges.append([[0,0,CC_distance/2+self.CO_dist],1*self.charge_on_a_pointcharge])
+
+    # def set_positions_for_zz_COC(self, CC_distance:float) -> None:
+    #     self.point_charges = []  # will contain all the charges in this format: [[x,y,z], 1/-1] ([position],charge)
+    #     self.point_charges.append([[0,0,-CC_distance/2],-1*self.charge_on_a_pointcharge])
+    #     self.point_charges.append([[0,0,CC_distance/2],-1*self.charge_on_a_pointcharge])
+    #     self.point_charges.append([[0,0,-CC_distance/2-self.CO_dist],1*self.charge_on_a_pointcharge])
+    #     self.point_charges.append([[0,0,CC_distance/2+self.CO_dist],1*self.charge_on_a_pointcharge])
         
     def set_positions_actual_ionic(self, CC_distance:float) -> None:
         self.point_charges = []  # will contain all the charges in this format: [[x,y,z], 1/-1] ([position],charge)
