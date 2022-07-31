@@ -147,7 +147,7 @@ class SiestaReadOut():
             if "Total ionic charge" in line:
                 self.total_ionic_charge_siesta = float(line.split()[3])
 
-# Here we are parsing in the .EIG file
+        # Here we are parsing in the .EIG file
         for i,line in enumerate(self.EIG_file):
             if i == 0:
                 self.Ef_EIG = float(line)
@@ -179,15 +179,10 @@ class SiestaReadOut():
                 self.band_index_HOMO = (i-1)+1   # Adding 1 to the index so that we the index starts from 1
                 break
                                       
-
-# From here on we are doing methods
         # Here we are getting the Work functions
         try: 
             self.WF = self.Vac_mean - self.Ef
         except: print("SiestaReadOut: No vacuum values. Possible reasons: bulk system")
-        # print(self.N_atoms, self.N_orbitals, self.N_projectors)
-        # print(self.Species)
-
         # Parsing the bands files
         self.bands = []
         bands_temp = []
@@ -458,7 +453,6 @@ class SiestaReadOut():
         else:
             new_denchar_file_name = output_file_name
 
-        # print(new_denchar_file_name)
         bash_file_name = f"{self.out_file_name}.denchar_runs.sh"
         bash_file = open(bash_file_name, "a+")
         new_denchar = open(new_denchar_file_name, "w+")
@@ -515,7 +509,6 @@ class SiestaReadOut():
                 printf("\n");
             }
         }
-
         """
 
         if file_name == None:
@@ -658,7 +651,6 @@ class SiestaReadOut():
             plt.plot(x_plot,v)
         ax = plt.gca()
         for atom in self.atoms_info:
-            # plt.axvline(atom[3][2], color="r")
             vline_color = next(ax._get_lines.prop_cycler)['color']
             plt.axvline(atom[3][2],color = vline_color, label=f"A={atom[0]}")
         plt.xlabel("Position along the z axis ($\AA$)")
@@ -667,29 +659,15 @@ class SiestaReadOut():
         plt.legend()
         plt.savefig(f"{self.out_file_name}.chargeprofile_z.pdf")
         plt.close()
-
         if self.total_unnormalized_charge !=0:
             self.charge_normalization_factor = self.number_of_electrons/self.total_unnormalized_charge  # To get around the devide by zero error for the zero charge case
         else: self.charge_normalization_factor = 0   
-
-        r_extreme = self.get_r_vec(self.a_number_of_voxels-1, self.b_number_of_voxels-1, self.c_number_of_voxels-1)
-        r2_extreme = np.dot(r_extreme,r_extreme)
         # Here we integrate the total charge w.r.t. the volume.
-        sum_of_weights=0
         for x in range(self.a_number_of_voxels):
             for y in range(self.b_number_of_voxels):
                 for z in range(self.c_number_of_voxels):
-                    # self.rho[x,y,z] = -self.volumetric_data[x,y,z]*self.charge_normalization_factor
-                    rvec = self.get_r_vec(x,y,z)
-                    # r2=np.dot(rvec,rvec)
-                    # weight = r2_extreme-r2
-                    # sum_of_weights += weight
                     self.rho[x,y,z] = -self.volumetric_data[x,y,z]*self.charge_normalization_factor
                     self.total_normalized_electronic_charge += self.rho[x,y,z]*self.d_V
-                    # self.rho[x,y,z] = -self.volumetric_data[x,y,z]*self.charge_normalization_factor*weight
-                    # self.total_normalized_electronic_charge += self.rho[x,y,z]*weight*self.d_V
-        # self.rho = self.rho/sum_of_weights
-        # self.total_normalized_electronic_charge = self.total_normalized_electronic_charge/sum_of_weights
         print("Done")
  
     def get_volumes_from_cube_header(self):
@@ -766,12 +744,6 @@ class SiestaReadOut():
             summary_file.write(f"Q ionic (in the non-traceless from)       in {k}\n")
             summary_file.write(f"{self.Q_ionic_non_traceless*v}\n")
             summary_file.write(f"\n")
-            # for col in range(0,3):
-            #     for row in range(0,3):
-            #         summary_file.write(f"Q{get_direction(row)}{get_direction(col)}                                        {self.Q[row,col]*v:<5f} {k}\n")
-            # for col in range(0,3):
-            #     for row in range(0,3):
-            #         summary_file.write(f"Q{get_direction(row)}{get_direction(col)}  (in the non-traceless from)           {self.Q_non_traceless[row,col]*v:<5f} {k}\n")
         summary_file.close()
 
         # Writing out the new data in a new file
@@ -792,21 +764,6 @@ class SiestaReadOut():
         """"""
         r_vec = x*self.a_voxel_vec + y*self.b_voxel_vec + z*self.c_voxel_vec + self.origin
         return r_vec
-
-
-    def add_moments_of_point_charge(self,r_vec, charge):
-        r2 = np.dot(r_vec, r_vec)
-        for col in range(0,3):
-            for row in range(0,3):
-                if col == row: f=1
-                else:f=0
-                if charge<0 or charge == 0:
-                    self.Q[row,col]               += charge*(3*(r_vec[row])*(r_vec[col]) - r2*f)
-                    self.Q_non_traceless[row,col] += charge*((r_vec[row])*(r_vec[col]))
-                else:
-                    self.Q[row,col]               += charge*(3*(r_vec[row])*(r_vec[col]) - r2*f)
-                    self.Q_non_traceless[row,col] += charge*((r_vec[row])*(r_vec[col]))
-
 
     def calculate_integrated_volume(self):
         """
@@ -855,10 +812,9 @@ class SiestaReadOut():
                     self.Q_non_traceless[row,col] += charge*((r_vec[row])*(r_vec[col]))
 
     def calculate_dipole_moments(self):
-        """"""
+        """This is redundant and is done while calculating the quadrupoles"""
         self.dipole = 0
         self.total_normalized_electronic_charge = 0
-
         prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Calculating dipole moments")
         for ia in range(self.a_number_of_voxels):
             for ib in range(self.b_number_of_voxels):
@@ -866,7 +822,6 @@ class SiestaReadOut():
                     prog.get_progress((ia)*(self.b_number_of_voxels*self.c_number_of_voxels)+(ib)*(self.c_number_of_voxels)+ic)
                     r_vec = self.get_r_vec(ia, ib, ic)
                     self.dipole+=self.rho[ia, ib, ic]*r_vec
-
         # Now adding the ionic part
         for i_atom, atom in enumerate(self.atoms_info):
             coordinates = atom[3]
@@ -874,23 +829,6 @@ class SiestaReadOut():
             r_vec = np.array([coordinates[0], coordinates[1], coordinates[2]])
             self.dipole += charge*r_vec
         return self.dipole
-
-    def calculate_quadrupole_moments(self):
-        """"""
-        self.Q = np.zeros((3,3))
-        self.Q_non_traceless = np.zeros((3,3))
-        self.dipole = np.zeros(3)
-        # self.origin = np.zeros((1,3))
-        # self.calculate_center_of_electronic_charge()
-        self.calculate_electronic_moments()
-        self.calculate_ionic_moments()
-        # print(f"0,0,110",self.get_r_vec(0,0,self.c_number_of_voxels-1))
-        # print(f"0,0,55",self.get_r_vec(0,0,54))
-        # print(f"0,0,55",self.get_r_vec(0,0,55))
-        # print(f"0,0,55",self.get_r_vec(0,0,56))
-
-        self.Q = self.Q_electronic + self.Q_ionic
-        self.Q_non_traceless = self.Q_electronic_non_traceless + self.Q_ionic_non_traceless
 
     def calculate_electronic_moments(self):
         """
@@ -915,14 +853,12 @@ class SiestaReadOut():
                     self.dipole+=self.rho[ia, ib, ic]*r_vec*self.d_V
                     self.electronic_dipole+=self.rho[ia, ib, ic]*r_vec*self.d_V
                     dV = self.d_V
-
                     for col in range(0,3):
                         for row in range(0,3):
                             if col == row: f=1
-                            # else:f=0
+                            else:f=0
                             self.Q_electronic[row,col]               += self.rho[ia, ib, ic]*(3*(r_vec[row])*(r_vec[col]) - r2*f)*dV
                             self.Q_electronic_non_traceless[row,col] += self.rho[ia, ib, ic]*((r_vec[row])*(r_vec[col]))*dV
-
         self.center_of_charge_electronic = self.electronic_dipole/self.total_normalized_electronic_charge
 
     def calculate_ionic_moments(self):
@@ -951,9 +887,6 @@ class SiestaReadOut():
                     else:f=0
                     self.Q_ionic[row,col]               += charge*(3*(r_vec[row])*(r_vec[col]) - r2*f)
                     self.Q_ionic_non_traceless[row,col] += charge*((r_vec[row])*(r_vec[col]))
-                    # if col == row:
-                    #     print("traceless row:", row, charge, (3*(r_vec[row])*(r_vec[col]) - r2*f))
-                    #     print("nontraceless :", row, charge, ((r_vec[row])*(r_vec[col])))
         self.center_of_charge_ionic = self.ionic_dipole/self.summed_ionic_charge
 
     def get_moments(self, file_name = None, out_put_file_name = "", cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
@@ -961,16 +894,20 @@ class SiestaReadOut():
         This is the main method to calculate the dipole/quadrupole moments
         """
         import numpy as np
-
         print("\nCalculating the dipoles and quadrupoles...")
         self.read_in_rho_cube_file(file_name=file_name)
         self.normalize_electronic_charge_density()
         self.get_volumes_from_cube_header()
         # self.calculate_volume()
-        self.calculate_quadrupole_moments()
+        self.Q = np.zeros((3,3))
+        self.Q_non_traceless = np.zeros((3,3))
+        self.dipole = np.zeros(3)
+        self.calculate_electronic_moments()
+        self.calculate_ionic_moments()
+        self.Q = self.Q_electronic + self.Q_ionic
+        self.Q_non_traceless = self.Q_electronic_non_traceless + self.Q_ionic_non_traceless
         self.integrated_charge = self.summed_ionic_charge + self.total_normalized_electronic_charge
         self.write_to_quadrupole_outputfiles(out_put_file_name)
-
         return_dict = {}
         print("Electrostatics: Done\n")
         return return_dict        
@@ -1027,68 +964,50 @@ class SiestaReadOut():
             # For Q and Q traceless#################################################################
             if "Q" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line and "ionic" not in line and "electronic" not in line: 
                 Q_line = i
-                # print(line)
             if i < Q_line+4 and Q_line != 0 and i != Q_line:
                 row = i-Q_line-1
                 parsed = parse_dipoles_and_quadrupoles_line(line)
                 for col in range(0,3):
-                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
                     self.Q[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
-                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
             if "Q" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line and "ionic" not in line and "electronic" not in line: 
                 Q_nontraceless_line = i
-                # print(line)
             if i < Q_nontraceless_line+4 and Q_nontraceless_line != 0 and i != Q_nontraceless_line:
                 row = i-Q_nontraceless_line-1
                 parsed = parse_dipoles_and_quadrupoles_line(line)
                 for col in range(0,3):
-                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
                     self.Q_non_traceless[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
-                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
 
             # For Q electronic and Q electronic traceless#################################################################
             if "Q electronic" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line: 
                 Q_electronic_line = i
-                # print(line)
             if i < Q_electronic_line+4 and Q_electronic_line != 0 and i != Q_electronic_line:
                 row = i-Q_electronic_line-1
                 parsed = parse_dipoles_and_quadrupoles_line(line)
                 for col in range(0,3):
-                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
                     self.Q_electronic[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
-                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
             if "Q electronic" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line: 
                 Q_electronic_nontraceless_line = i
-                # print(line)
             if i < Q_electronic_nontraceless_line+4 and Q_electronic_nontraceless_line != 0 and i != Q_electronic_nontraceless_line:
                 row = i-Q_electronic_nontraceless_line-1
                 parsed = parse_dipoles_and_quadrupoles_line(line)
                 for col in range(0,3):
-                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
                     self.Q_electronic_non_traceless[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
-                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
 
             # For Q ionic and Q electronic traceless#################################################################
             if "Q ionic" in line and "Debye.Angs" in line and "(in the non-traceless from)" not in line: 
                 Q_ionic_line = i
-                # print(line)
             if i < Q_ionic_line+4 and Q_ionic_line != 0 and i != Q_ionic_line:
                 row = i-Q_ionic_line-1
                 parsed = parse_dipoles_and_quadrupoles_line(line)
                 for col in range(0,3):
-                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
                     self.Q_ionic[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
-                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
             if "Q ionic" in line and "Debye.Angs" in line and "(in the non-traceless from)" in line: 
                 Q_ionic_nontraceless_line = i
-                # print(line)
             if i < Q_ionic_nontraceless_line+4 and Q_ionic_nontraceless_line != 0 and i != Q_ionic_nontraceless_line:
                 row = i-Q_ionic_nontraceless_line-1
                 parsed = parse_dipoles_and_quadrupoles_line(line)
                 for col in range(0,3):
-                    # print("refined loading term:", parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
                     self.Q_ionic_non_traceless[row,col] = float(parsed[col].strip("[[").strip("[").strip("]]").strip("]"))
-                # print(self.Q)  # will print 3 times for every row that you populate so ignore the first 2
 
             if "C.O.C (if no ions then binned electronic)" in line:
                 parsed = line.split()
@@ -1097,7 +1016,7 @@ class SiestaReadOut():
         
     def convergence_checker(self, title_addon="",show_linear_Kicks=False, show_struct_opt_moves=False, show_parameters=False, show_Harris=False):
         """
-        
+        This looks at the convergence of the runs. THis can be run even if the run has not converged and only requires an out file.
         """
         import matplotlib.pyplot as plt
         file = open(f"{self.out_file_name}.out", 'r')
@@ -1106,7 +1025,6 @@ class SiestaReadOut():
 
         text_to_write = "# Eranjan\n"
     
-        # print(data)
         iteration_number = []
         inter_num_count = 1
         scf_num = []
@@ -1120,7 +1038,6 @@ class SiestaReadOut():
         Struct_opt_moves = []
         for line in data:
             if "scf" in line and "compute" not in line and "siesta" not in line and "Eharris" not in line and "Vacuum" not in line and "dfscf" not in line and "spin moment" not in line:
-                # print(line)
                 try:
                     vals = line.split()
                     if len(vals) != 8 : continue
