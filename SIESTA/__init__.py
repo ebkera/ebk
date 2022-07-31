@@ -76,6 +76,10 @@ def xyz2fdf(file_name, format, lattice=False, lattice_constant=0):
     file.close()
 
 def siesta_convergence_checker(file_name, title_addon="",show_linear_Kicks=False, show_struct_opt_moves=False, show_parameters=False, show_Harris=False):
+    """
+    This is legacy code now
+    Use convergence_checker method in the siesta SIESTAOutFileReader.py    
+    """
     import matplotlib.pyplot as plt
     file = open(f"{file_name}", 'r')
     data = [line for line in file]
