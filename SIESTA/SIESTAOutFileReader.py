@@ -26,10 +26,17 @@ class SiestaReadOut():
         for line in f:
             self.out_file.append(line)
         f.close()
-        f = open(f"{self.out_file_name}.EIG", "r")
-        for line in f:
-            self.EIG_file.append(line)
-        f.close()
+
+        #Using a try method to bail out if run has not completed and EIG files are not present
+        try:
+            f = open(f"{self.out_file_name}.EIG", "r")
+            for line in f:
+                self.EIG_file.append(line)
+            f.close()
+        except: 
+            print("Warning!: File reading suppressed. Eig/bands files not loaded. Run may have not completed")
+            return
+
         try:
             f = open(f"{self.out_file_name}.bands", "r")
             for line in f:
@@ -1088,7 +1095,81 @@ class SiestaReadOut():
                 self.COC = [ float(parsed[-3].strip("[")), float(parsed[-2]), float(parsed[-1].strip("]")) ]
         f.close()
         
+    def convergence_checker(self, title_addon="",show_linear_Kicks=False, show_struct_opt_moves=False, show_parameters=False, show_Harris=False):
+        """
+        
+        """
+        import matplotlib.pyplot as plt
+        file = open(f"{self.out_file_name}.out", 'r')
+        data = [line for line in file]
+        file.close()
 
+        text_to_write = "# Eranjan\n"
+    
+        # print(data)
+        iteration_number = []
+        inter_num_count = 1
+        scf_num = []
+        Eharris = []
+        E_KS = []
+        FreeEng = []
+        dDmax = []
+        Ef = []
+        dHmax = []
+        Liner_kick_at = []
+        Struct_opt_moves = []
+        for line in data:
+            if "scf" in line and "compute" not in line and "siesta" not in line and "Eharris" not in line and "Vacuum" not in line and "dfscf" not in line and "spin moment" not in line:
+                # print(line)
+                try:
+                    vals = line.split()
+                    if len(vals) != 8 : continue
+                    dDmax.append(float(vals[5]))  # This is here uptop because somtime it breaks for MD steps here and will go into the except before iterating iteration_number
+                    iteration_number.append(inter_num_count)
+                    scf_num.append(int(vals[1]))
+                    inter_num_count+=1
+                    Eharris.append(float(vals[2]))
+                    E_KS.append(float(vals[3]))
+                    FreeEng.append(float(vals[4]))
+                    Ef.append(float(vals[6]))
+                    dHmax.append(float(vals[7]))
+                except: continue
+                text_to_write+=line
+                text_to_write+=f"len_vals|len_iter|len_dDmax|len_Ef:{len(vals)|len(iteration_number)}|{len(dDmax)}|{len(Ef)}\n"
+            if "Linear-Kick" in line and "switching mixer" in line:
+                text_to_write+=line
+                text_to_write+=f"linear kick here ->\n"
+                Liner_kick_at.append(inter_num_count)
+            if "Begin" in line and "opt. move =" in line:
+                text_to_write+=line
+                text_to_write+=f"Opt Move here ->\n"
+                if inter_num_count == 1: Struct_opt_moves.append(1)
+                else: Struct_opt_moves.append(inter_num_count+1)
+
+        file = open(f"{self.out_file_name}_scf_convergence.era", 'w')
+        file.write(text_to_write)
+        file.close()
+
+        if show_Harris: plt.plot(iteration_number, Eharris, 'c', label=("Harris"))
+        plt.rcParams["figure.figsize"] = (120,12)
+        plt.plot(iteration_number, FreeEng, 'g', label=("Free Energy"))
+        plt.plot(iteration_number, E_KS, "b",label=("Kohn-Sham"))
+        plt.title(f"SCF Convergence: {title_addon}")
+        plt.xlabel("Iteration")
+        plt.ylabel("Energy (eV)")
+        if show_linear_Kicks:
+            if len(Liner_kick_at) != 0:
+                plt.axvline(Liner_kick_at[0], color='r', linestyle='-', linewidth=.5, label="Linear Kicks")
+                for x in range(1,len(Liner_kick_at)):
+                    plt.axvline(Liner_kick_at[x], color='r', linestyle='-', linewidth=.5, )
+        if show_struct_opt_moves:
+            if len(Struct_opt_moves) != 0:
+                plt.axvline(Struct_opt_moves[0], color='m', linestyle='-', linewidth=.5, label="Opt. move")
+                for x in range(1,len(Struct_opt_moves)):
+                    plt.axvline(Struct_opt_moves[x], color='m', linewidth=.5, linestyle='-')                
+        plt.legend()
+        plt.savefig(f"{self.out_file_name}_SCF_convergence.pdf")
+        plt.show()
 
 
 if __name__ == "__main__":
