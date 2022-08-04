@@ -2,6 +2,7 @@
 This file reads the the file out_file_name.out and extracts/calculates data/values from it
 """
 import imp
+from turtle import color
 from ebk import progress_bar
 import numpy as np
 
@@ -647,15 +648,25 @@ class SiestaReadOut():
         # Saving the charge profile 
         import matplotlib.pyplot as plt
         x_plot = [self.get_r_vec(0,0,x)[2] for x in range(self.c_number_of_voxels)]
+        plotted_atoms = []
+        plotted_colours = []
         for v in total_val:
             plt.plot(x_plot,v)
         ax = plt.gca()
-        for atom in self.atoms_info:
-            vline_color = next(ax._get_lines.prop_cycler)['color']
-            plt.axvline(atom[3][2],color = vline_color, label=f"A={atom[0]}")
+        for atom in self.atoms_info: 
+            if atom[0] not in plotted_atoms:
+                plotted_atoms.append(atom[0])
+                vline_color = next(ax._get_lines.prop_cycler)['color']
+                plotted_colours.append(vline_color)
+                # plt.axvline(atom[3][2],color = vline_color, label=f"A={atom[0]}")
+                plt.plot(atom[3][2],0,marker=3,color = vline_color, label=f"A={atom[0]}")
+            else:
+                index = plotted_atoms.index(atom[0])
+                # plt.axvline(atom[3][2],color = plotted_colours[index])
+                plt.plot(atom[3][2],0,marker=3,color = plotted_colours[index])
         plt.xlabel("Position along the z axis ($\AA$)")
         plt.ylabel("Charge")
-        plt.title("Charge profile along the z axis")
+        # plt.title("Charge profile along the z axis")
         plt.legend()
         plt.savefig(f"{self.out_file_name}.chargeprofile_z.pdf")
         plt.close()
