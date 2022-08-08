@@ -958,6 +958,25 @@ class SiestaReadOut():
         plt.ylabel(f"Potential eV")  
         plt.savefig(f"{read_file_name}.AVP.pdf")
 
+    def create_macroave_in_file(self, file_name = None):
+        """
+        Manipulates macroave files
+        """
+        if file_name == None:
+            # Here we can default to open the normal output file from Dencahr
+            read_file_name = f"{self.out_file_name}"
+        else:
+            read_file_name = file_name
+
+        with open(f"{self.folder_path}/macroave.in","w+") as file:
+            file.write("Siesta            # Which code have you used to get the input data?\n")
+            file.write("Potential         # Which is the input data used to compute the band offset?\n")
+            file.write(f"{self.SystemLabel}                 # Name of the file where the input data is stored\n")
+            file.write("1                 # Number of convolutions required to calculate the macro. ave.\n")
+            file.write("7.47622255        # First length for the filter function in macroscopic average\n")
+            file.write("7.56114385        # Second length for the filter function in macroscopic average (not used in our case)\n")
+            file.write("200               # Total charge (not used in our case)\n")
+            file.write("spline            # Type of interpolation\n")
 
     def load_quadrupole_moments(self, file_name = None, cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
         """
