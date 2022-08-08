@@ -1,14 +1,16 @@
 """
 This file reads the the file out_file_name.out and extracts/calculates data/values from it
 """
-import imp
-from turtle import color
 from ebk import progress_bar
 import numpy as np
 
 class SiestaReadOut():
     def __init__(self, out_file_name):
         self.out_file_name = out_file_name
+        self.folder_path = out_file_name.split("/")
+        del self.folder_path[-1]
+        self.folder_path = "/".join(self.folder_path)
+
         self.out_file = []
         self.EIG_file = []
         self.bands_file = []
@@ -51,6 +53,10 @@ class SiestaReadOut():
             if "SystemLabel" in line:
                 x = line.split()
                 self.SystemLabel = x[1]
+            elif "System Label" in line:
+                x = line.split()
+                self.SystemLabel = x[-1]
+
             if "Species number:" in line and "Atomic number:" in line:
                 temp_Species = []
                 x = line.strip("Species number:")
@@ -947,10 +953,11 @@ class SiestaReadOut():
 
         import matplotlib.pyplot as plt
         plt.plot(distances[2],average_potentials[2])
-        plt.title(f"Average potential")   
+        plt.title(f"Average potential for {self.SystemLabel}")   
         plt.xlabel(f"Distance $\AA$")  
         plt.ylabel(f"Potential eV")  
         plt.savefig(f"{read_file_name}.AVP.pdf")
+
 
     def load_quadrupole_moments(self, file_name = None, cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
         """
