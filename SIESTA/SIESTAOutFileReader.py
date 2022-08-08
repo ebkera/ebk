@@ -921,7 +921,36 @@ class SiestaReadOut():
         self.write_to_quadrupole_outputfiles(out_put_file_name)
         return_dict = {}
         print("Electrostatics: Done\n")
-        return return_dict        
+        return return_dict   
+
+    def get_potential_grid(self, file_name=None):
+        if file_name == None:
+            # Here we can default to open the normal output file from Dencahr
+            read_file_name = f"{self.out_file_name}.VH.cube"
+        else:
+            read_file_name = file_name
+        self.read_in_rho_cube_file(file_name=read_file_name)
+
+        prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Calculating averages")
+        average_potentials = [[],[],[]]
+        distances = [[],[],[]]
+        for ic in range(self.c_number_of_voxels):
+            sum = 0
+            r = self.get_r_vec(0,0,ic)
+            for i in range(0,3):
+                distances[i].append(r[i])
+            for ia in range(self.a_number_of_voxels):
+                for ib in range(self.b_number_of_voxels):
+                    prog.get_progress((ic)*(self.a_number_of_voxels*self.b_number_of_voxels)+(ia)*(self.b_number_of_voxels)+ib)
+                    sum+=self.volumetric_data[ia,ib,ic]
+            average_potentials[2].append(sum)
+
+        import matplotlib.pyplot as plt
+        plt.plot(distances[2],average_potentials[2])
+        plt.title(f"Average potential")   
+        plt.xlabel(f"Distance $\AA$")  
+        plt.ylabel(f"Potential eV")  
+        plt.savefig(f"{read_file_name}.AVP.pdf")
 
     def load_quadrupole_moments(self, file_name = None, cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
         """
