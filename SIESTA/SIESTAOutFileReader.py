@@ -929,7 +929,7 @@ class SiestaReadOut():
         print("Electrostatics: Done\n")
         return return_dict   
 
-    def get_potential_grid(self, file_name=None):
+    def get_potential_grid(self, file_name=None, direction = np.array([0,0,1])):
         if file_name == None:
             # Here we can default to open the normal output file from Dencahr
             read_file_name = f"{self.out_file_name}.VH.cube"
@@ -940,23 +940,43 @@ class SiestaReadOut():
         prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Calculating averages")
         average_potentials = [[],[],[]]
         distances = [[],[],[]]
+        average_factor = self.a_number_of_voxels*self.b_number_of_voxels
+        dA = np.dot(direction,np.cross(self.a_voxel_vec, self.b_voxel_vec))
+        A = np.dot(direction,np.cross(self.a_number_of_voxels*self.a_voxel_vec,self.b_number_of_voxels*self.b_voxel_vec))
+        print(dA)
+        print(A)
         for ic in range(self.c_number_of_voxels):
+            summedA = 0 
             sum = 0
             r = self.get_r_vec(0,0,ic)
+            dist = np.dot(direction, r)
+            # print(r, dist)  % confirmed to be working
             for i in range(0,3):
-                distances[i].append(r[i])
+                distances[i].append(dist)
             for ia in range(self.a_number_of_voxels):
                 for ib in range(self.b_number_of_voxels):
                     prog.get_progress((ic)*(self.a_number_of_voxels*self.b_number_of_voxels)+(ia)*(self.b_number_of_voxels)+ib)
-                    sum+=self.volumetric_data[ia,ib,ic]
+                    sum+=self.volumetric_data[ia,ib,ic]*dA
+                    # sum+=self.volumetric_data[ia,ib,ic]
+                    summedA+=dA
             average_potentials[2].append(sum)
-
+        print("compare summed dA vs Calculated A", summedA, A)
+ 
         import matplotlib.pyplot as plt
         plt.plot(distances[2],average_potentials[2])
-        plt.title(f"Average potential for {self.SystemLabel}")   
+        plt.title(f"Potential profile for {self.SystemLabel} (from cube file)")   
         plt.xlabel(f"Distance $\AA$")  
         plt.ylabel(f"Potential eV")  
         plt.savefig(f"{read_file_name}.AVP.pdf")
+        plt.close()
+
+    def make_grid2cube_input_file(self):
+        with open(f"{self.folder_path}/{self.SystemLabel}.grid2cube.in","w+") as file:
+            file.write(f"{self.SystemLabel}\n")
+            file.write("vh\n")
+            file.write(f"{self.initial_cell_vectors[0][0]} {self.initial_cell_vectors[1][1]} {self.initial_cell_vectors[2][2]}\n")
+            file.write("1                 # Number of convolutions required to calculate the macro. ave.\n")
+            file.write("unformatted\n")
 
     def create_macroave_in_file(self, file_name = None):
         """
@@ -973,7 +993,7 @@ class SiestaReadOut():
             file.write("Potential         # Which is the input data used to compute the band offset?\n")
             file.write(f"{self.SystemLabel}                 # Name of the file where the input data is stored\n")
             file.write("1                 # Number of convolutions required to calculate the macro. ave.\n")
-            file.write("7.47622255        # First length for the filter function in macroscopic average\n")
+            file.write("3.47622255        # First length for the filter function in macroscopic average\n")
             file.write("7.56114385        # Second length for the filter function in macroscopic average (not used in our case)\n")
             file.write("200               # Total charge (not used in our case)\n")
             file.write("spline            # Type of interpolation\n")
