@@ -94,9 +94,15 @@ class SiestaReadOut():
 
             # Here we are reading in the Total energies
             if "siesta: Automatic unit cell vectors (Ang):" in line:
+                # This is for reading in teh cell vectors if it was a molecular calculation and the cell was set by siesta
                 trigger_read_in_cell = True
                 self.initial_cell_vectors = []
                 continue
+            if "outcell: Unit cell vectors (Ang):" in line:
+                # This is when the user sets the cell of a bulk material
+                trigger_read_in_cell = True
+                self.initial_cell_vectors = []
+                continue        
             if trigger_read_in_cell:
                 x = line.strip("siesta:")
                 x = x.split()
@@ -997,6 +1003,9 @@ class SiestaReadOut():
             file.write("7.56114385        # Second length for the filter function in macroscopic average (not used in our case)\n")
             file.write("200               # Total charge (not used in our case)\n")
             file.write("spline            # Type of interpolation\n")
+    
+    def line_potential_profile(self):
+        pass
 
     def load_quadrupole_moments(self, file_name = None, cell = [[0., 0., 0.,],[0., 0., 0.,],[0., 0., 0.,]]):
         """
