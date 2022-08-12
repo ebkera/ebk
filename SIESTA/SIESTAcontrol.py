@@ -331,7 +331,7 @@ class Generatefdf:
                     elif self.constrain_atom_list:
                         for x in self.constrain_atom_list:
                             fdf_file.write(f"atom {x}\n")    # Here atom numbers start from 1
-                    if self.constrain_cell_vectors != []:
+                    if self.constrain_cell_vectors:
                         for v in self.constrain_cell_vectors:
                             fdf_file.write(f"cell-vector {v}\n")    # Should be A/B/C and the vecoros have to be in the form: 100 or 010 or 001 to be considered
                     fdf_file.write(f"%endblock Geometry.Constraints\n")
