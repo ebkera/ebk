@@ -1,7 +1,9 @@
 """
-Reads both .DOS and .PDOS files. Can calculate band gaps. use the Read_PDOS class and load() functions to load() functions
+Reads both .DOS and .PDOS files. Can calculate band gaps. use the Read_PDOS class and load() functions to load() plots
+Has the ability to pin the graphs at the homo/lumo or fermi level.
 """
 
+import enum
 import os
 import matplotlib
 import sys
@@ -16,9 +18,14 @@ from ebk.SIESTA.SIESTAOutFileReader import SiestaReadOut
 
 class Read_PDOS():
     def __init__(self, figure_name = "PDOS"):
+        """
+        self.pin = Can be homo/lumo/Ef or vacuum: homo and lumo work differently and pins the "lead" at zero with all others following. We can have multiple leads by setting in the load method and anything that follows will move respective to the last lead
+
+        """
         self.system_labels = []
         self.file_names = []
         self.fermi_levels = []
+        self.vacuum = []
         self.figure_name = figure_name
         self.Species_per_file = []
         self.show_band_gaps = True
@@ -37,6 +44,21 @@ class Read_PDOS():
         self.plt_ylabel = "PDoS"
         self.kwargs = []  # for all the matplotlib pltotting kwargs
         self.plt_show = True
+        self.onsetup_xval = []
+        self.onsetdown_xval = []
+        self.onset_threshold = 0
+        self.HOMOs_xval = []
+        self.LUMOs_xval = []
+        self.Lead_HOMOs_xval = []
+        self.Lead_LUMOs_xval = []
+        self.HOMOs_onset_xval = []
+        self.LUMOs_onset_xval = []
+        self.Lead_HOMOs_onset_xval = []
+        self.Lead_LUMOs_onset_xval = []
+        self.HOMO_Energies = []
+        self.LUMO_Energies = []
+        self.HOMO_from_vac = []
+        self.pin = "vacuum"      # Can be homo/lumo/Ef or vacuum: homo and lumo work differently and pins the "lead" at zero with all others following. We can have multiple leads by setting in the load method and anything that follows will move respective to the last lead
 
     def process(self, system_label):
         """
@@ -54,14 +76,23 @@ class Read_PDOS():
     def get_band_gaps(self):
         return self.Egs
 
-    def load(self, file_name, Ef, label, **kwargs):
+    def load(self, file_name, Ef, label, lead = False, vacuum = 0, **kwargs):
         """
         This method will load the file and also calculate band gap when loaded. 
         Don't have to do the processing if using load (this method)
+        lead = T/F Any energy shifts to move homo/lumo levels will follow the value at the lead.
+                If no leads are set then first line will be the lead
+                self.pin = "vacuum"      # Can be homo/lumo/Ef or vacuum: homo and lumo work differently and pins the "lead" 
+                at zero with all others following. We can have multiple leads by setting in the load method and anything 
+                that follows will move respective to the last lead
+
         **kwargs: ( matpotlib kwargs for lines and markers and the sort)
         """
         self.file_names.append(file_name)
         Ef = Ef
+        self.orbital_labels.append(label)
+        self.fermi_levels.append(float(Ef))
+        self.kwargs.append(kwargs)
         tempx = []
         tempyup = []
         tempydn = []
@@ -71,63 +102,101 @@ class Read_PDOS():
         temp_n = 0
         temp_l = -1
         temp_m = 9
+        self.vacuum.append(vacuum)
 
         with open(file_name, 'r') as file:
             for line in file:
                 if "partial DOS for atom species" in line:
                     self.Species_per_file.append(line.strip().split(":")[-1].strip())
-                # if "Add data for atom_index" in line:
-                #     new_m = line.strip().split()[-1].strip()
-                #     new_l = line.strip().split()[-2].strip()
-                #     new_n = line.strip().split()[-3].strip()
-
-                #     if temp_n == 0: temp_n = new_n
-                #     elif temp_n != int(new_n):
 
                 if "#" not in line:
                     data = line.strip().split()
-                    # print(line.strip().split()) X_val = 
-                    # print(line)
-                    tempx.append(float(data[0])-float(Ef))
+                    tempx.append(float(data[0]))
                     tempyup.append(float(data[1]))
                     if len(line) == 3:
                         tempydn.append(float(data[2]))
         self.x.append(tempx)
         self.y_up.append(tempyup)
-        self.orbital_labels.append(label)
-        self.fermi_levels.append(float(Ef))
-        self.kwargs.append(kwargs)
 
         #finding the band gap
-        diffs = [abs(x) for x in tempx]
+        diffs = [abs(x - Ef) for x in tempx]
         Ef_index = diffs.index(min(diffs))
-        # print(tempx[Ef_index])
+        temp_negx = Ef_index
+        temp_posx = Ef_index
+        try:
+            if tempyup[Ef_index] == 0:
+                while tempyup[temp_negx] == 0:
+                    temp_negx-=1
+                while tempyup[temp_posx] == 0:
+                    temp_posx+=1
+                Eg = tempx[temp_posx-1] - tempx[temp_negx+1]
+            self.HOMOs_xval.append(tempx[temp_negx+1])
+            self.LUMOs_xval.append(tempx[temp_posx-1])
+            if lead or self.Lead_HOMOs_xval == []: self.Lead_HOMOs_xval.append(tempx[temp_negx+1])
+            else: self.Lead_HOMOs_xval.append(self.Lead_HOMOs_xval[-1])
+            if lead or self.Lead_LUMOs_xval == []: self.Lead_LUMOs_xval.append(tempx[temp_posx-1])
+            else: self.Lead_LUMOs_xval.append(self.Lead_LUMOs_xval[-1])
+        except:
+            #Most likely there was no band gap
+            self.HOMOs_xval.append(0)
+            self.LUMOs_xval.append(0)
+            if lead or self.Lead_HOMOs_xval == []: self.Lead_HOMOs_xval.append(0)
+            else: self.Lead_HOMOs_xval.append(self.Lead_HOMOs_xval[-1])
+            if lead or self.Lead_LUMOs_xval == []: self.Lead_LUMOs_xval.append(0)
+            else: self.Lead_LUMOs_xval.append(self.Lead_LUMOs_xval[-1])
+            
+
+        # This is for the calculations where you need to set a onset-threshold other than 0 to see where the DOS starts
         temp_negx = Ef_index
         temp_posx = Ef_index
         Eg = 0
-        if tempyup[Ef_index] == 0:
-            while tempyup[temp_negx] == 0:
-                temp_negx-=1
-            while tempyup[temp_posx] == 0:
-                temp_posx+=1
-            Eg = tempx[temp_posx-1] - tempx[temp_negx+1]
-        # print(f"Eg {Eg}")
-        # print(f"low {tempx[temp_negx]}")
-        # print(f"hig {tempx[temp_posx]}")
-        self.Egs.append(Eg)
+        try:
+            #We use a try catch since there might not be a band gap (conducting)
+            if tempyup[Ef_index] == 0:
+                while tempyup[temp_negx] <= self.onset_threshold:
+                    temp_negx-=1
+                while tempyup[temp_posx] <= self.onset_threshold :
+                    temp_posx+=1
+                Eg = tempx[temp_posx-1] - tempx[temp_negx+1]
+            self.HOMOs_onset_xval.append(tempx[temp_negx+1])
+            self.LUMOs_onset_xval.append(tempx[temp_posx-1])
+            if lead or self.Lead_HOMOs_onset_xval == []: self.Lead_HOMOs_onset_xval.append(tempx[temp_negx+1])
+            else: self.Lead_HOMOs_onset_xval.append(self.Lead_HOMOs_onset_xval[-1])
+            if lead or self.Lead_LUMOs_onset_xval == []: self.Lead_LUMOs_onset_xval.append(tempx[temp_posx-1])
+            else: self.Lead_LUMOs_onset_xval.append(self.Lead_LUMOs_onset_xval[-1])
+            self.Egs.append(Eg)
+        except:
+            #Most likely there was no band gap
+            self.HOMOs_onset_xval.append(0)
+            self.LUMOs_onset_xval.append(0)
+            if lead or self.Lead_HOMOs_onset_xval == []: self.Lead_HOMOs_onset_xval.append(0)
+            else: self.Lead_HOMOs_onset_xval.append(self.Lead_HOMOs_onset_xval[-1])
+            if lead or self.Lead_LUMOs_onset_xval == []: self.Lead_LUMOs_onset_xval.append(0)
+            else: self.Lead_LUMOs_onset_xval.append(self.Lead_LUMOs_onset_xval[-1])
+            self.Egs.append(Eg)
+
+        self.HOMO_Energies.append(tempx[temp_negx+1])
+        self.LUMO_Energies.append(tempx[temp_posx-1])
 
     def prepare(self):
-        pass
+        """Here we condition the data"""
+        if self.pin.lower() == "homo":
+            for i,line in enumerate(self.x):
+                self.x[i] = [x - self.Lead_HOMOs_xval[i] for x in line]
+        elif self.pin.lower() == "lumo":
+            for i,line in enumerate(self.x):
+                self.x[i] = [x - self.Lead_LUMOs_xval[i] for x in line]
+        elif "vac" in self.pin.lower():
+            for i,line in enumerate(self.x):
+                self.x[i] = [x - self.vacuum[i] for x in line]
+        elif "ef" in self.pin.lower():
+            for i,line in enumerate(self.x):
+                self.x[i] = [x - self.fermi_levels[i] for x in line]
 
     def plot(self):
+        self.prepare()
         plt.figure()
         for i in range(0,len(self.x)):
-            # if "BDT" in self.orbital_labels[i]:
-            #     try:
-            #         plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
-            #     except:
-            #         plt.plot(self.x[i], self.y_up[i], "--", linewidth=1, label=f"{self.orbital_labels[i]}", **self.kwargs[i])
-            # else:
             try:
                 if self.show_band_gaps:
                     plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}\t$E_g$ = {self.Egs[i]:5> 2.3f} eV", **self.kwargs[i])
@@ -140,8 +209,12 @@ class Read_PDOS():
                 else:
                     plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}", **self.kwargs[i])
 
-        plt.xlabel('Energy in eV (E - E$_f$)')
-        # plt.text(-3, 100, r'(b)', fontsize=12)
+        if self.pin.lower() == "ef": plt.xlabel(f'Energy in eV (E - E$_f$)')
+        elif self.pin.lower() == "homo":  plt.xlabel(f'Energy in eV (E - E$_v$)')
+        elif self.pin.lower() == "lumo": plt.xlabel(f'Energy in eV (E - E$_c$)')
+        elif "vac" in self.pin.lower() : plt.xlabel(r'Energy in eV (E - E$_{vac}$)')
+
+        plt.text(-3, 100, r'(b)', fontsize=12)
         plt.ylabel(f'{self.plt_ylabel}')
         plt.legend(loc='upper right')
         # plt.legend()
@@ -152,21 +225,33 @@ class Read_PDOS():
             plt.xlim([self.xlim_low,self.xlim_high])
         if self.set_y_range == True:
             plt.ylim([self.ylim_low,self.ylim_high])
-        plt.savefig(f"{self.figure_name}.png")
+        plt.savefig(f"{self.figure_name}.pdf")
         if self.plt_show: plt.show()
         plt.close()
 
-        # plt.figure()
-        # for Set in args:
-        #     if Set.band_gap != None:
-        #         plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: {Set.band_gap:.3f}, $E_c-E_f$: {Set.gap_high:.3f}, $E_f - E_v$: {-Set.gap_low:.3f} eV")
-        #     else:
-        #         plt.plot(Set.band_data_x, Set.band_data_y, linewidth=0.5, label=f"{Set.name}, $E_g$: None")
-        # plt.yscale('log')
-        # plt.xlabel('Energy in eV (E - E$_f$)')
-        # plt.ylabel('DOS')
-        # # plt.legend(loc='upper left')
-        # plt.legend()
-        # plt.title("DOS")
-        # plt.savefig(f"Comparison_log_{figure_name}.pdf")
-        # plt.close()
+    def calculate_offsets(self):
+        vals = []
+        print("HOMO Offsets calculated from onset_threshold:",self.onset_threshold)
+        for i in range(0,len(self.Lead_HOMOs_onset_xval)):
+            vals.append(self.HOMOs_onset_xval[i] - self.Lead_HOMOs_onset_xval[i])
+        zipped = zip(self.orbital_labels, vals)
+        res = sorted(zipped, key = lambda x: x[1])
+
+        for i,v in enumerate(vals):
+            print(f"Shift: {self.orbital_labels[i]}: {vals[i]}")
+        print(f"Ordered printing for ease of use")
+        for i,v in enumerate(vals):
+            print("Shift:", res[i])
+        return vals
+
+
+
+    def get_vacuum_subtracted_homo(self):
+        """
+        Returns the vacuum subtracted HOMO values and also prints them out
+        """
+        h_v = []
+        for i,v in enumerate(self.HOMO_Energies):
+            h_v.append(v - self.vacuum[i])
+            print(f"HOMO-vac: {self.orbital_labels[i]}: {h_v[-1]}")
+        return h_v
