@@ -61,25 +61,25 @@ class discrete_quadrupole():
     def plot_charge_profile(self, x_range = 15, title_text="Z axis", save_to="discrete_point_charges_vs_coc"):
         import matplotlib.pyplot as plt 
         print("Plotting charge profile. Please wait...")
-        # resolution= 500
-        # x = list(np.linspace(-x_range, x_range, resolution))
-        # y_n = np.linspace(0, 0, resolution)
-        # y_p = np.linspace(0, 0, resolution)
-        # for p_i, p in enumerate(self.point_charges):
-        #     for x_i in x:
-        #         if p[0][2] <= x_i:
-        #             if p[1]>0:y_p[x.index(x_i)] += p[1]
-        #             if p[1]<0:y_n[x.index(x_i)] += p[1]
-        #             break
-        # plt.plot(x,y_n, label = "negative part")
-        # plt.plot(x,y_p, label = "positive part")
-        # plt.xlabel("The z axis")
-        # plt.ylabel("Charge in e")
+        resolution= 500
+        x = list(np.linspace(-x_range, x_range, resolution))
+        y_n = np.linspace(0, 0, resolution)
+        y_p = np.linspace(0, 0, resolution)
+        for p_i, p in enumerate(self.point_charges):
+            for x_i in x:
+                if p[0][2] <= x_i:
+                    if p[1]>0:y_p[x.index(x_i)] += p[1]
+                    if p[1]<0:y_n[x.index(x_i)] += p[1]
+                    break
+        plt.plot(x,y_n, label = "negative part")
+        plt.plot(x,y_p, label = "positive part")
+        plt.xlabel("The z axis $\AA$")
+        plt.ylabel("Charge in electrons")
         # plt.title(f"Charge density profile {title_text}")
-        # plt.legend()
-        # plt.savefig(f"{save_to}/{title_text}.pdf")
-        # # plt.show()
-        # plt.close()
-        # # fig(close)
+        plt.legend()
+        plt.savefig(f"{save_to}/{title_text}.pdf")
+        # plt.show()
+        plt.close()
+        # fig(close)
 
 
