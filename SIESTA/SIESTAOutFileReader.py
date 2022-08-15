@@ -623,6 +623,7 @@ class SiestaReadOut():
                             a_voxel_counter+=1
         # All data is loaded by this point
 
+    def convert_units_to_Angstroms(self):
         # Possible unit conversions are handled here.   
         if self.a_number_of_voxels > 0 and self.b_number_of_voxels > 0 and self.c_number_of_voxels > 0:
             print("Units are detected to be Bohr and are converted into Angstroms")
@@ -924,6 +925,7 @@ class SiestaReadOut():
         import numpy as np
         print("\nCalculating the dipoles and quadrupoles...")
         self.read_in_rho_cube_file(file_name=file_name)
+        self.convert_units_to_Angstroms()
         self.normalize_electronic_charge_density()
         self.get_volumes_from_cube_header()
         # self.calculate_volume()
@@ -947,6 +949,7 @@ class SiestaReadOut():
         else:
             read_file_name = file_name
         self.read_in_rho_cube_file(file_name=read_file_name)
+        self.convert_units_to_Angstroms()
 
         prog = progress_bar(self.a_number_of_voxels*self.b_number_of_voxels*self.c_number_of_voxels, descriptor="Calculating averages")
         average_potentials = [[],[],[]]
