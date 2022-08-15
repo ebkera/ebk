@@ -37,7 +37,7 @@ class PlotEnergy():
         self.IEs = []
         self.hlines = kwargs.get("hlines", True)
         self.vlines = kwargs.get("vlines", True)
-        self.title = "Energy Levels"
+        self.title = ""
         self.set_y_range_upper = kwargs.get("set_y_range_upper", True)
         self.set_y_range_lower = kwargs.get("set_y_range_lower", False)
         self.set_x_range = False
