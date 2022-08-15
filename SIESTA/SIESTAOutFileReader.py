@@ -321,6 +321,11 @@ class SiestaReadOut():
         """Returns the un relaxed initial cell vectors"""
         return self.initial_cell_vectors
 
+    def output_struct2vasp(self):
+        """Converts the STRUCT_OUT file to a vasp file"""
+        from ebk.SIESTA import struct2vasp
+        struct2vasp(f"{self.out_file_name}.STRUCT_OUT")
+
     def plot_band_structure(self, **kwargs):
         """Plots the """
         from ebk.BandPlotter import BandPlotter
