@@ -10,8 +10,8 @@ def fix_ligand_names_TPDAC(ligand_name, complete_name = False):
 	This is for the bringing the two naming conventions into the same standard.
 		This hapened in TPDAc where there was a naming convention mismatch between the Sn atached ligands and the gas phase ligands.
 	"""
-	ligand_name = ligand_name.strip("TPDAc")
-	ligand_name = ligand_name.strip("_F_")
+	ligand_name = ligand_name.replace("TPDAc", "")
+	ligand_name = ligand_name.replace("_F_", "")
 	location_mapper_old_to_new_naming_convention = {"":"","A2":"A6", "A6": "A2", "A5":"A3","A3":"A5", "B2":"B3", "B3":"B2"}
 	if complete_name:
 		name = location_mapper_old_to_new_naming_convention[ligand_name]
