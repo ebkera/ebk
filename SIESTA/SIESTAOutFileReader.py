@@ -8,8 +8,11 @@ class SiestaReadOut():
     def __init__(self, out_file_name):
         self.out_file_name = out_file_name
         self.folder_path = out_file_name.split("/")
-        del self.folder_path[-1]
-        self.folder_path = "/".join(self.folder_path)
+        if len(self.folder_path) == 1:
+             self.folder_path = "."
+        else:
+            del self.folder_path[-1]
+            self.folder_path = "/".join(self.folder_path)
 
         self.out_file = []
         self.EIG_file = []
