@@ -20,8 +20,8 @@ class Read_PDOS():
     def __init__(self, figure_name = "PDOS"):
         """
         self.pin = Can be homo/lumo/Ef or vacuum: homo and lumo work differently and pins the "lead" at zero with all others following. We can have multiple leads by setting in the load method and anything that follows will move respective to the last lead
-
         """
+
         self.system_labels = []
         self.file_names = []
         self.fermi_levels = []
@@ -34,13 +34,14 @@ class Read_PDOS():
         self.y_dn = []
         self.Egs = []
         self.set_y_range = False
+        self.show_ef_as_line = False
         self.ylim_low = 0
         self.ylim_high = 50
         self.set_x_range = True
         self.xlim_low = -3
         self.xlim_high = 3
         self.orbital_labels = []
-        self.plt_title = f"{self.figure_name}"
+        self.plt_title = f""
         self.plt_ylabel = "PDoS"
         self.kwargs = []  # for all the matplotlib pltotting kwargs
         self.plt_show = True
@@ -208,6 +209,9 @@ class Read_PDOS():
                     plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}\t$E_g$ = {self.Egs[i]:> 2.3f} eV", **self.kwargs[i])
                 else:
                     plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}", **self.kwargs[i])
+            if self.show_ef_as_line:
+                plt.axvline(self.fermi_levels[i])
+        
 
         if self.pin.lower() == "ef": plt.xlabel(f'Energy in eV (E - E$_f$)')
         elif self.pin.lower() == "homo":  plt.xlabel(f'Energy in eV (E - E$_v$)')
@@ -218,7 +222,7 @@ class Read_PDOS():
         plt.ylabel(f'{self.plt_ylabel}')
         plt.legend(loc='upper right')
         # plt.legend()
-        plt.title(f"{self.plt_title}")
+        # plt.title(f"{self.plt_title}")
         # plt.xticks(np.arange(-3,3, step=0.5))  # Set label locations.
 
         if self.set_x_range == True:
@@ -226,6 +230,7 @@ class Read_PDOS():
         if self.set_y_range == True:
             plt.ylim([self.ylim_low,self.ylim_high])
         plt.savefig(f"{self.figure_name}.pdf")
+        plt.tight_layout()
         if self.plt_show: plt.show()
         plt.close()
 
@@ -243,8 +248,6 @@ class Read_PDOS():
         for i,v in enumerate(vals):
             print("Shift:", res[i])
         return vals
-
-
 
     def get_vacuum_subtracted_homo(self):
         """
