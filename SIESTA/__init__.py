@@ -275,3 +275,12 @@ def get_geometrical_steps(file_name:str, write_png:bool = False, animate:bool=Tr
             write_gif(f"{filename_pre}.z.gif", atom_images_z)
             write_gif(f"{filename_pre}.x.gif", atom_images_x)
             write_gif(f"{filename_pre}.y.gif", atom_images_y)
+
+
+def get_cwd():
+    import os
+    return os.getcwd()
+
+def get_run_name():
+    cwd = get_cwd()
+    return cwd.split("/")[-1].split("^")[0]
