@@ -1057,6 +1057,10 @@ class SiestaReadOut():
             return parsed
 
         for i,line in enumerate(f):
+            if "normalized total electronic charge" in line:
+                self.total_normalized_electronic_charge = float(line.split()[-1])
+            if "total ionic charge" in line:
+                self.total_ionic_charge = float(line.split()[-1])
             if "dipole" in line and "Debye" in line and "unadjusted" not in line and "binned" not in line and "electronic dipole" not in line and "ionic dipole" not in line:
                 parsed = parse_dipoles_and_quadrupoles_line(line)
                 self.dipole = [ float(parsed[-4].strip("[")), float(parsed[-3]), float(parsed[-2].strip("]")) ]
