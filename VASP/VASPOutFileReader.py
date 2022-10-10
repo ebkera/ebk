@@ -1,8 +1,7 @@
 """
 This file reads the the file system_label.out and extracts/calculates data/values from it
 """
-from os import P_WAIT, kill
-from types import coroutine
+
 from ebk.BandPlotter import BandPlotter 
 import numpy as np
 
@@ -231,6 +230,10 @@ class VASPReadOut():
         import numpy as np
         return np.dot(self.lattice_vectors[2], np.cross(self.lattice_vectors[0],self.lattice_vectors[1]))
 
+    def convert_to_cif(self):
+        from ase.io import read, write
+        structure =  read(f"{self.out_folder}/CONTCAR")
+        write(f"{self.out_folder}/structure.cif", structure)
 
     def get_band_gap(self):
         return self.Eg
