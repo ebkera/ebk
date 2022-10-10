@@ -19,13 +19,15 @@ class discrete_quadrupole():
             to_append.append([[point_charge[0][0],point_charge[0][1],-point_charge[0][2]], point_charge[1]])
         self.point_charges.extend(to_append)
 
-    def calculate_quadrupoles(self) -> list:
+    def calculate_quadrupoles(self):
         self.Q = np.zeros((3,3))
         self.Q_non_traceless = np.zeros((3,3))
         self.Q_electronic = np.zeros((3,3))
         self.Q_electronic_non_traceless = np.zeros((3,3))
         self.Q_ionic = np.zeros((3,3))
         self.Q_ionic_non_traceless = np.zeros((3,3))
+        self.ionic_charge = 0
+        self.electronic_charge = 0
         for point_charge in self.point_charges:
             # print(point_charge)
             r_vec = point_charge[0]
@@ -40,10 +42,20 @@ class discrete_quadrupole():
                     if point_charge[1] <0:
                         self.Q_electronic[row,col]               += point_charge[1]*(3*(point_charge[0][row])*(point_charge[0][col]) - r2*f)
                         self.Q_electronic_non_traceless[row,col] += point_charge[1]*((point_charge[0][row])*(point_charge[0][col]))
+                        self.electronic_charge+= point_charge[1]
 
                     if point_charge[1] >0:
                         self.Q_ionic[row,col]               += point_charge[1]*(3*(point_charge[0][row])*(point_charge[0][col]) - r2*f)
                         self.Q_ionic_non_traceless[row,col] += point_charge[1]*((point_charge[0][row])*(point_charge[0][col]))
+                        self.ionic_charge+= point_charge[1]
+
+    def calculate_quadrupoles_using_quadrupolar_coc(self) -> float:
+        coc_electronic = np.sqrt(self.Q_electronic[2][2]/self.electronic_charge)
+        coc_ionic = np.sqrt(self.Q_ionic[2][2]/self.ionic_charge)
+        d = coc_ionic - coc_electronic
+        r = coc_electronic
+        Qzz = (self.ionic_charge/2)*d*(2*r+d)
+        return Qzz
 
     def convert_to_debye(self):
         unit_factor_Debye = 1/0.2081943 #(same as c.elementary_charge*10**(-10)/(3.33564*10**(-30)))
