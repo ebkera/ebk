@@ -247,7 +247,21 @@ class Read_PDOS():
         print(f"Ordered printing for ease of use")
         for i,v in enumerate(vals):
             print("Shift:", res[i])
-        return vals
+        # return vals
+
+        vals = []
+        print("LUMO Offsets calculated from onset_threshold:",self.onset_threshold)
+        for i in range(0,len(self.Lead_LUMOs_onset_xval)):
+            vals.append(self.LUMOs_onset_xval[i] - self.Lead_LUMOs_onset_xval[i])
+        zipped = zip(self.orbital_labels, vals)
+        res = sorted(zipped, key = lambda x: x[1])
+
+        for i,v in enumerate(vals):
+            print(f"Shift: {self.orbital_labels[i]}: {vals[i]}")
+        print(f"Ordered printing for ease of use")
+        for i,v in enumerate(vals):
+            print("Shift:", res[i])
+        # return vals
 
     def get_vacuum_subtracted_homo(self):
         """
