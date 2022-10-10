@@ -202,6 +202,20 @@ def struct2vasp(file_name):
     write(f"{file_write_name}.vasp", atoms)
     print(f"struct2vasp: Written to .vasp file")
 
+def struct2cif(file_name):
+    """
+    This function converts a SIESTA struct out file to a vasp file.
+    Inputs: filename (string): The file name to save the file. Should the given without the extension.
+    """
+    from ase.io import read, write
+    atoms = read(file_name, format="struct_out")
+    print(f"struct2vasp: STRUCT_OUT file imported: {atoms}")
+    file_name = file_name.split(".")
+    del file_name[-1]
+    file_write_name = ".".join(file_name)
+    write(f"{file_write_name}.cif", atoms)
+    print(f"struct2vasp: Written to .cif file")
+
 def read_struct_file(file_name):
     """
     This function reads a struct file and returns the atoms object.
