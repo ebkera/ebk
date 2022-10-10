@@ -196,3 +196,26 @@ class Slab_Sn_Ligand():
             extreme_coordinates = get_extreme_coordinates(LI.atoms)
             LI = LI.atoms # this is because if run is of only slabs and no ligands the object is a atoms type object
             # print("cell:" , LI.get_cell())
+
+def add_unit_cell_to_Sn_ligand_system(longer_system: ase.Atoms, relaxed_system: ase.Atoms, a0 = 6.479) -> ase.Atoms:
+    """"
+    This program will replace the longer system atoms with the relaxed system atoms
+    """
+    shift_amount = (longer_system.cell[2][2] - relaxed_system.cell[2][2])/2
+    print(f"Adding {int(shift_amount/a0)} unit cells onto both sides")
+
+    atoms_to_delete = []
+    for i, atom in enumerate(longer_system):
+        if atom.position[2] > shift_amount and atom.position[2] < longer_system.cell[2][2] - shift_amount:
+            atoms_to_delete.append(i)
+
+    atoms_to_delete.sort(reverse=True)
+    for i in atoms_to_delete:
+        del longer_system[i]
+
+    for i,atom in enumerate(relaxed_system):
+        atom.position[2] = atom.position[2]+shift_amount
+        longer_system.append(atom)
+
+    return longer_system
+
