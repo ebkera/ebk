@@ -452,16 +452,28 @@ class SiestaReadOut():
             # We take box edges to be the middle of the images 
             box_edges[0][0] = -(init_cell[0][0]/2)
             box_edges[0][1] = (init_cell[0][0]/2)
+        elif "Edge" in box_edges_input[0]:
+            # We take box edges to be the middle of the images 
+            box_edges[0][0] = 0
+            box_edges[0][1] = (init_cell[0][0])
         else:box_edges[0] = box_edges_input[0]
         if "Mid" in box_edges_input[1]:
             # We take box edges to be the middle of the images 
             box_edges[1][0] = -(init_cell[1][1]/2)
             box_edges[1][1] = (init_cell[1][1]/2)
+        elif "Edge" in box_edges_input[1]:
+            # We take box edges to be the middle of the images 
+            box_edges[1][0] = 0
+            box_edges[1][1] = (init_cell[1][1])
         else:box_edges[1] = box_edges_input[1]
         if "Mid" in box_edges_input[2]:
             # We take box edges to be the middle of the images 
             box_edges[2][0] = -(init_cell[2][2]/2)
             box_edges[2][1] = (init_cell[2][2]/2)
+        elif "Edge" in box_edges_input[2]:
+            # We take box edges to be the middle of the images 
+            box_edges[2][0] = 0
+            box_edges[2][1] = (init_cell[2][2])
         else:box_edges[2] = box_edges_input[2]
 
         if None in number_of_points:
