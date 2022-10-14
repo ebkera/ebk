@@ -7,8 +7,10 @@ class SIESTAcalculatePOT(SiestaReadOut):
     def __init__(self, out_file_name, **kwargs):
         super().__init__(out_file_name)
 
-        self.eps_1 = kwargs.get("eps_1",cons.epsilon_0)
-        self.eps_2 = kwargs.get("eps_2",cons.epsilon_0)
+        self.eps_r_1 = kwargs.get("eps_r_1",1)
+        self.eps_r_2 = kwargs.get("eps_r_2",1)
+        self.eps_1 = kwargs.get("eps_1",cons.epsilon_0)*self.eps_r_1
+        self.eps_2 = kwargs.get("eps_2",cons.epsilon_0)*self.eps_r_2
 
         # self.load_quadrupole_moments("/home/ebk/OneDrive_UIC/CQD Research/Analysis/Quadrupole_fitting/TPDAc_F_B3.electrostatics_edit.out")
         self.load_quadrupole_moments()
@@ -78,7 +80,6 @@ class SIESTAcalculatePOT(SiestaReadOut):
         # plt.show()
 
     def calculate_coc_quadrupole(self):
-        self.coc_quadrupole = np.zeros((3,3))
         self.coc_positive_quadrupole = np.zeros((3,3))
         self.coc_negative_quadrupole = np.zeros((3,3))
         for i,charge in enumerate(self.point_charge_coordinates):
@@ -107,9 +108,7 @@ class SIESTAcalculatePOT(SiestaReadOut):
                     Mk = np.sqrt(k1**2/a**2 + k2**2/b**2)
                     print(np.e)
                     # A+=np.e**
-
-        getA(2,2)
-
+        getA(5,5)
         total = first_term
         # print(a,b)
         return total
