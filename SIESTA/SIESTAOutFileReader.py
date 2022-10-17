@@ -1,6 +1,7 @@
 """
 This file reads the the file out_file_name.out and extracts/calculates data/values from it
 """
+import imp
 from ebk import progress_bar
 import numpy as np
 
@@ -253,6 +254,14 @@ class SiestaReadOut():
         transpose = numpy_array.T
         self.bands = transpose.tolist()
 
+    def get_atoms(self):
+        """Returns the ase.atoms type object read in through atoms"""
+        from ase.io import read
+        try:
+            self.atoms = read(filename=f"{self.out_file_name}.STRUCT_OUT")
+        except:
+            print("Cannot find '.STRUCT_OUT' file. Possible reason is an unfinished run.")
+
     def get_vacuum(self):
         """returns [self.Vac_max, self.Vac_mean, self.Vac_units]""" 
         return [self.Vac_max, self.Vac_mean, self.Vac_units]
@@ -487,7 +496,7 @@ class SiestaReadOut():
             new_denchar_file_name = output_file_name
 
         bash_file_name = f"{self.out_file_name}.denchar_runs.sh"
-        bash_file = open(bash_file_name, "a+")
+        bash_file = open(bash_file_name, "w+")
         new_denchar = open(new_denchar_file_name, "w+")
            
         with open(read_file_name, "r") as old_denchar:
