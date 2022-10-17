@@ -57,27 +57,25 @@ class SIESTAcalculatePOT(SiestaReadOut):
         self.point_charge_coordinates.insert(0,[-self.point_charge_coordinates[-2][0],-self.point_charge_coordinates[-2][1],-self.point_charge_coordinates[-2][2]])
         self.point_charge_coordinates.insert(0,[-self.point_charge_coordinates[-1][0],-self.point_charge_coordinates[-1][1],-self.point_charge_coordinates[-1][2]])
 
-        # fig,ax = plt.subplots()
-        # fig.suptitle(self.SystemLabel)
-        # for i,x in enumerate(self.point_charge_coordinates):
-        #     if i in [0,3]:s="+"
-        #     else : s="."
-        #     plt.subplot(2, 1, 1)
-        #     plt.plot(x[2],x[0],s,label=f"{i+1}")
-        #     plt.xlabel("z")
-        #     plt.ylabel("x")
+        fig,ax = plt.subplot_mosaic("AA;BC")
+        fig.suptitle(self.SystemLabel)
+        for i,x in enumerate(self.point_charge_coordinates):
+            if i in [0,3]:s="+"
+            else : s="."
+            ax['A'].plot(x[2],x[0],s,label=f"{i+1}")
+            ax['A'].set_xlabel("z")
+            ax['A'].set_ylabel("x")
 
-        #     plt.subplot(2, 2, 3)
-        #     plt.plot(x[0],x[1],s,label=f"{i+1}")
-        #     plt.xlabel("x")
-        #     plt.ylabel("y")
-        #     plt.subplot(2, 2, 4)
-            
-        #     plt.plot(x[2],x[1],s,label=f"{i+1}")
-        #     plt.xlabel("z")
-        #     plt.ylabel("y")
-        # plt.legend()
-        # plt.show()
+            ax['B'].plot(x[0],x[1],s)
+            ax['B'].set_xlabel("x")
+            ax['B'].set_ylabel("y")
+
+            ax["C"].plot(x[2],x[1],s)
+            ax["C"].set_xlabel("z")
+            ax["C"].set_ylabel("y")
+        ax["A"].legend(loc="upper center")
+        fig.tight_layout()
+        fig.savefig(f"{self.SystemLabel}.pdf")
 
     def calculate_coc_quadrupole(self):
         self.coc_positive_quadrupole = np.zeros((3,3))
@@ -104,9 +102,7 @@ class SIESTAcalculatePOT(SiestaReadOut):
             A = 0
             for k1 in range(1,k1_max):
                 for k2 in range(1,k2_max):
-                    print("athule")
                     Mk = np.sqrt(k1**2/a**2 + k2**2/b**2)
-                    print(np.e)
                     # A+=np.e**
         getA(5,5)
         total = first_term
