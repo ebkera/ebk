@@ -29,6 +29,12 @@ class SiestaReadOut():
         trigger_read_in_atoms = False
         trigger_read_in_cell = False
 
+        from ase.io import read
+        try:
+            self.atoms = read(filename=f"{self.out_file_name}.STRUCT_OUT")
+        except:
+            print("Cannot find '.STRUCT_OUT' file. Possible reason is an unfinished run.")
+
         f = open(f"{self.out_file_name}.out", "r")
         for line in f:
             self.out_file.append(line)
@@ -253,14 +259,6 @@ class SiestaReadOut():
         numpy_array = np.array(self.bands)
         transpose = numpy_array.T
         self.bands = transpose.tolist()
-
-    def get_atoms(self):
-        """Returns the ase.atoms type object read in through atoms"""
-        from ase.io import read
-        try:
-            self.atoms = read(filename=f"{self.out_file_name}.STRUCT_OUT")
-        except:
-            print("Cannot find '.STRUCT_OUT' file. Possible reason is an unfinished run.")
 
     def get_vacuum(self):
         """returns [self.Vac_max, self.Vac_mean, self.Vac_units]""" 
