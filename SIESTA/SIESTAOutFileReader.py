@@ -1,7 +1,6 @@
 """
 This file reads the the file out_file_name.out and extracts/calculates data/values from it
 """
-import imp
 from ebk import progress_bar
 import numpy as np
 
@@ -717,7 +716,8 @@ class SiestaReadOut():
         for x in range(self.a_number_of_voxels):
             for y in range(self.b_number_of_voxels):
                 for z in range(self.c_number_of_voxels):
-                    self.rho[x,y,z] = -self.volumetric_data[x,y,z]*self.charge_normalization_factor
+                    # self.rho[x,y,z] = -self.volumetric_data[x,y,z]*self.charge_normalization_factor
+                    self.rho[x,y,z] = -self.volumetric_data[x,y,z]
                     self.total_normalized_electronic_charge += self.rho[x,y,z]*self.d_V
         print("Done")
  
@@ -963,6 +963,130 @@ class SiestaReadOut():
         return_dict = {}
         print("Electrostatics: Done\n")
         return return_dict   
+
+    def trim_cube_file(self, file_name = None, box_edges_input=[None,None,None]):
+        self.read_in_rho_cube_file(file_name = None)
+        self.convert_units_to_Angstroms()
+
+        def convert_angs2bohr(ang):
+            return ang/0.529177249
+
+        def convert_bohr2ang(bohr):
+            return bohr*0.529177249
+
+        init_cell = self.get_initial_cell_vectors()
+        box_edges = [[[],[]],[[],[]],[[],[]]]
+        if None == box_edges_input[0]:
+            # We take box edges to be the middle of the images 
+            box_edges[0][0] = -(init_cell[0][0])
+            box_edges[0][1] = (init_cell[0][0]+init_cell[0][0])
+        elif "Mid" == box_edges_input[0]:
+            # We take box edges to be the middle of the images 
+            box_edges[0][0] = -(init_cell[0][0]/2)
+            box_edges[0][1] = (init_cell[0][0]/2)
+        elif "Edge" == box_edges_input[0]:
+            # We take box edges to be the middle of the images 
+            box_edges[0][0] = 0
+            box_edges[0][1] = (init_cell[0][0])
+        else:box_edges[0] = box_edges_input[0]
+        if None == box_edges_input[1]:
+            # We take box edges to be the middle of the images 
+            box_edges[1][0] = -(init_cell[1][1])
+            box_edges[1][1] = (init_cell[1][1]+init_cell[1][1])
+        elif "Mid" == box_edges_input[1]:
+            # We take box edges to be the middle of the images 
+            box_edges[1][0] = -(init_cell[1][1]/2)
+            box_edges[1][1] = (init_cell[1][1]/2)
+        elif "Edge" == box_edges_input[1]:
+            # We take box edges to be the middle of the images 
+            box_edges[1][0] = 0
+            box_edges[1][1] = (init_cell[1][1])
+        else:box_edges[1] = box_edges_input[1]
+        if None == box_edges_input[2]:
+            # We take box edges to be the middle of the images 
+            box_edges[2][0] = -(init_cell[2][2])
+            box_edges[2][1] = (init_cell[2][2]+init_cell[2][2])
+        elif "Mid" == box_edges_input[2]:
+            # We take box edges to be the middle of the images 
+            box_edges[2][0] = -(init_cell[2][2]/2)
+            box_edges[2][1] = (init_cell[2][2]/2)
+        elif "Edge" == box_edges_input[2]:
+            # We take box edges to be the middle of the images 
+            box_edges[2][0] = 0
+            box_edges[2][1] = (init_cell[2][2])
+        else:box_edges[2] = box_edges_input[2]
+        
+        for x in range(3):
+            for y in range(2):
+                box_edges[x][y] = convert_angs2bohr(box_edges[x][y])
+
+        with open(f"{self.folder_path}/{self.SystemLabel}.RHO.trimmed.cube","w+") as file:
+            text = ""
+            atoms = self.atoms.copy()
+            noofatoms = 0
+            # file.write("Produced by Eranjan\n")
+            for i,x in enumerate(atoms):
+                atom_x = convert_angs2bohr(x.position[0])
+                atom_y = convert_angs2bohr(x.position[1])
+                atom_z = convert_angs2bohr(x.position[2])
+
+                # if box_edges[0] == None: pass
+                # elif (atom_x >=box_edges[0][0] and atom_x <=box_edges[0][1]): pass
+                # else: continue
+                # if box_edges[1] == None: pass
+                # elif (atom_y >=box_edges[1][0] and atom_x <=box_edges[1][1]): pass
+                # else: continue
+                # if box_edges[2] == None: pass
+                # elif (atom_z >=box_edges[2][0] and atom_x <=box_edges[2][1]): pass
+                # else: continue
+                # text+=f"{x.number:>5}{0.00000:12f}{atom_x:>12f}{atom_y:>12f}{atom_z:>12f}\n"
+                # noofatoms +=1
+
+                # if box_edges[0] == None: pass
+                # elif (atom_x >=box_edges[0][0] and atom_x <=box_edges[0][1]): pass
+                # else: continue
+                # if box_edges[1] == None: pass
+                # elif (atom_y >=box_edges[1][0] and atom_x <=box_edges[1][1]): pass
+                # else: continue
+                # if box_edges[2] == None: pass
+                # elif (atom_z >=box_edges[2][0] and atom_x <=box_edges[2][1]): pass
+                # else: continue
+                # text+=f"{x.number:>5}{0.00000:12f}{atom_x:>12f}{atom_y:>12f}{atom_z:>12f}\n"
+                # noofatoms +=1
+
+                # if (atom_x >box_edges[0][0] and atom_x <box_edges[0][1]) and atom_y>box_edges[1][0] and atom_y<box_edges[1][1] and atom_z>box_edges[2][0] and atom_z<box_edges[2][1]:
+                # if (atom_x >=box_edges[0][0] and atom_x <=box_edges[0][1]) and atom_y>=box_edges[1][0] and atom_y<=box_edges[1][1] and atom_z>=box_edges[2][0] and atom_z<=box_edges[2][1]:
+                if (atom_x >=box_edges[0][0] and atom_x <=box_edges[0][1]) and atom_z>=box_edges[2][0] and atom_z<=box_edges[2][1]:
+                # if atom_z>=box_edges[2][0] and atom_z<=box_edges[2][1]:
+                    text+=f"{x.number:>5}{0.00000:12f}{atom_x:>12f}{atom_y:>12f}{atom_z:>12f}\n"
+                    noofatoms +=1
+            file.write("This is a trimmed version of the following cube_file\n")
+            file.write(f"For total charge for system: {self.out_file_name}\n")
+            file.write(f"{noofatoms:>5}{self.origin[0]:>12f}{self.origin[1]:>12f}{self.origin[2]:>12f}\n")
+            for i,line in enumerate(self.first_lines_of_file):
+                if i<1 or i>3 :continue
+                else: file.write(line)
+            file.write(text)
+
+            for x in range(3):
+                for y in range(2):
+                    box_edges[x][y] = convert_bohr2ang(box_edges[x][y])
+            for x in range(self.a_number_of_voxels):
+                for y in range(self.b_number_of_voxels):
+                    for z in range(self.c_number_of_voxels): 
+                        r = self.get_r_vec(x,y,z)
+                        if r[0]>box_edges[0][0] and r[0]<box_edges[0][1] and r[1]>box_edges[1][0] and r[1]<=box_edges[1][1] and r[2]>=box_edges[2][0] and r[2]<=box_edges[2][1]:
+                        # if r[0]>=box_edges[0][0] and r[0]<box_edges[0][1] and r[1]>=box_edges[1][0] and r[1]<box_edges[1][1] and r[2]>=box_edges[2][0] and r[2]<box_edges[2][1]:
+                        # if r[0]>=box_edges[0][0] and r[0]<=box_edges[0][1] and r[1]>=box_edges[1][0] and r[1]<=box_edges[1][1] and r[2]>=box_edges[2][0] and r[2]<=box_edges[2][1]:
+                        # if r[0]>box_edges[0][0] and r[0]<box_edges[0][1] and r[1]>=box_edges[1][0] and r[1]<=box_edges[1][1] and r[2]>=box_edges[2][0] and r[2]<=box_edges[2][1]:
+                            file.write(f"{self.volumetric_data[x][y][z]:1.5E} ")
+                            if (z % 6 == 5):
+                                file.write("\n")
+                        else:
+                            file.write(f"{0.00000:1.5E} ")
+                            if (z % 6 == 5):
+                                file.write("\n")
+                    file.write("\n")
 
     def get_potential_grid(self, file_name=None, direction = np.array([0,0,1])):
         if file_name == None:
