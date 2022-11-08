@@ -114,7 +114,7 @@ def A2Bohr(A):
 
 def Bohr2A(B):
     """Takes distances in Bohr and returns distances in Angstroms"""
-    return B*0.529177
+    return B*0.529177249
 
 def Rydberg2eV(R):
     """Takes energies in Rydbergs and returns energies in eV"""
