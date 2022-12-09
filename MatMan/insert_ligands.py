@@ -237,13 +237,13 @@ class Insert_ligand():
             diff_vec_2ndligand[i] = slab[sp-2].position[i] - self.atoms[lb].position[i]
         if not retain_passivation_atoms:
             if dense:
-                del slab[sp+1]
+                # del slab[sp+1]
                 del slab[sp]
-                del slab[sp-1]
+                # del slab[sp-1]
                 del slab[sp-2]
             else:
                 del slab[sp]
-                del slab[sp-1]
+                # del slab[sp-2]
             if not retain_ligand_passivant_atom:
                 del self.atoms[lp]  # Here we will retain or not the ligand passivatnt atom
                 # Making sure that the center atoms still poit to the same atoms if delting the passivant atom changes the index of the center atoms
