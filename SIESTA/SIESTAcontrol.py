@@ -319,7 +319,7 @@ class Generatefdf:
                     fdf_file.write(f"MD.Broyden.History.Denchar_NumberPointsZSteps    {self.MD_Broyden_History_Steps}    \t\t\t\t\t # default: 5\n")
                 fdf_file.write(f"MD.Steps                    {self.MD_Steps}    \t\t\t\t # default: 0\n")
                 fdf_file.write(f"MD.MaxForceTol              {self.MD_MaxForceTol} eV/Ang\t\t # default: 0.04eV/Ang\n")
-                if self.MD_VariableCell:
+                if self.MD_VariableCell:   # Requires MD.TypeOfRun to be one of the following: CG, Broyden, fire
                     fdf_file.write("MD.VariableCell             true\n")
                 if self.WriteMDHistory:
                     fdf_file.write("WriteMDHistory              true\n")
