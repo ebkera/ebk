@@ -335,6 +335,11 @@ class SiestaReadOut():
         from ebk.SIESTA import struct2vasp
         struct2vasp(f"{self.out_file_name}.STRUCT_OUT")
 
+    def output_struct2xyz(self):
+        """Converts the STRUCT_OUT file to a vasp file"""
+        from ebk.SIESTA import struct2xyz
+        struct2xyz(f"{self.out_file_name}.STRUCT_OUT")
+
     def plot_band_structure(self, **kwargs):
         """Plots the """
         from ebk.BandPlotter import BandPlotter
