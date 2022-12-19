@@ -22,21 +22,20 @@ def populate_RELAX(folder_name = False, RELAX_DIR="1_RELAX", **kwargs):
         os.mkdir(folder_name)
     shutil.copy(f"DEFAULTS/POTCAR", f"{folder_name}/POTCAR")
     shutil.copy(f"DEFAULTS/POSCAR_unrelaxed", f"{folder_name}/POSCAR")
-    # shutil.copy(f"DEFAULTS/INCAR__TEMPLATE", f"{folder_name}/INCAR")
-    # Lets make the INCAR file
-    file = open(f"{folder_name}/INCAR", "w+")
-    contents = get_relaxation_INCAR(**kwargs)
-    file.write(contents)
-    # Lets make the KPOINTS file
-    file = open(f"{folder_name}/KPOINTS", "w+")
-    contents = get_relaxation_KPOINTS()
-    file.write(contents)
-    file.close()
+    try:
+        shutil.copy(f"DEFAULTS/KPOINTS_RELAX_TEMPLATE", f"{folder_name}/KPOINTS")
+        print(f"INCAR for RELAX run loaded from template file in DEFAULTS")
+    except:
+        print(f"No template for KPOINTS for RELAX run, using template from code")
+        file = open(f"{folder_name}/KPOINTS", "w+")
+        contents = get_relaxation_KPOINTS()
+        file.write(contents)
+        file.close()
     try:
         shutil.copy(f"DEFAULTS/INCAR_RELAX_TEMPLATE", f"{folder_name}/INCAR")
         print(f"INCAR for RELAX run loaded from template file in DEFAULTS")
     except:
-        print(f"No template for INCAR for RELAX using original template from code")
+        print(f"No template for INCAR for RELAX using template from code")
         file = open(f"{folder_name}/INCAR", "w+")
         contents = get_relaxation_INCAR(**kwargs)
         file.write(contents)
@@ -226,7 +225,7 @@ def get_relaxation_INCAR():
     content = f"SYSTEM = RELAXATION_for_\n\
   \n\
 # start parameters for this Run (automatic defaults are finem, hence not often required)\n\
-  ISTART = 1         # job   : 0-new  1-orbitals from WAVECAR (continuation job:restart with constant energy cut-off) 3-orbitals from WAVECAR (continuation job: restart with constant basis set)\n\
+  ISTART = 0         # job   : 0-new  1-orbitals from WAVECAR (continuation job:restart with constant energy cut-off) 3-orbitals from WAVECAR (continuation job: restart with constant basis set)\n\
   ICHARG = 2         # charge: 1: from CHGCAR file | 2-atom (for SCF) | 10+: NSCF calculations\n\
   PREC   = Accurate  # standard precision (OtherOptions: Accurate)\n\
   \n\
