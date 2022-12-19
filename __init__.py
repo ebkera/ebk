@@ -433,14 +433,19 @@ def get_species(atoms):
     """
 
     from ase.atoms import Atoms as atoms_type
+    from ase.lattice.bravais  import Lattice as lattice
     species=[]
-
     if type(atoms) is atoms_type:
         all_symbols = atoms.get_chemical_symbols()
         for x in all_symbols:
             if x not in species:
                 species.append(x)
-
+    if type(atoms) is lattice:
+        all_symbols = atoms.get_chemical_symbols()
+        for x in all_symbols:
+            if x not in species:
+                species.append(x)
+    else:print("This object is not a ase.atoms type object")
     return species
 
 
