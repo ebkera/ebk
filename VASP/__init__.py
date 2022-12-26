@@ -236,7 +236,6 @@ def get_relaxation_INCAR():
   EDIFF  = 1E-07     # stopping-criterion for ELM\n\
   ISMEAR = 0         # -5:Tetrahedral Method for smearing \n\
   SIGMA  = 0.01\n\
-  # ENMAX  = 400       # cutoff should be set manually  (This seems to be an obsolete flag...)\n\
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
   # LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\n\
   # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
@@ -318,7 +317,6 @@ def get_scf_INCAR():
   EDIFF  = 1E-07     # stopping-criterion for ELM\n\
   ISMEAR = 0         # -5:Tetrahedral Method for smearing \n\
   SIGMA  = 0.01\n\
-  # ENMAX  = 400       # cutoff should be set manually  (This seems to be an obsolete flag...)\n\
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
   LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\n\
   # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
@@ -497,7 +495,6 @@ def get_bands_INCAR(**kwargs):
   EDIFF  = 1E-07     # stopping-criterion for ELM\n\
   ISMEAR = 0         # -5:Tetrahedral Method for smearing \n\
   SIGMA  = 0.01\n\
-  # ENMAX  = 400       # cutoff should be set manually  (This seems to be an obsolete flag...)\n\
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
   LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
   # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
@@ -616,7 +613,6 @@ def get_dos_INCAR(**kwargs):
   EDIFF  = 1E-07     # stopping-criterion for ELM\n\
   ISMEAR = -5         # -5:Tetrahedral Method for smearing \n\
   SIGMA  = 0.01\n\
-  # ENMAX  = 400       # cutoff should be set manually  (This seems to be an obsolete flag...)\n\
   # AMIN   = 0.01      # Default: 0.10 specifies the minimal mixing parameter in Kerker's[1] initial approximation to the charge dielectric function used in the Broyden[2][3]/Pulay[4] mixing scheme (IMIX=4, INIMIX=1)\n\
   LSORBIT = .TRUE.   # Spin Orbit Coupling is set to true.\\\n\
   # ISPIN = 2          # =1: (dafault) non spin polarized calculations are performed. =2: spin polarized calculations (collinear) are performed.\n\
