@@ -154,6 +154,7 @@ class BandPlotter():
         self.saveas_extension = "pdf"
         self.include_bandgaparrow = True
         self.arrow_data = kwargs.get("arrow_data", [])
+        self.show_figs = True
 
     def plot(self):
         """
@@ -163,10 +164,12 @@ class BandPlotter():
         # Setting the dimensions of the saved image
         plt.rcParams["figure.figsize"] = (self.plt_width,self.plt_height)
         if self.include_dos:
-            # fig, (ax1, ax2) = plt.subplots(1,2)
-            gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1])
+            fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True,constrained_layout=False)
+            gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1],wspace=0)
             ax1 = plt.subplot(gs[0])
             ax2 = plt.subplot(gs[1])
+            ax2.yaxis.tick_right()
+            ax2.yaxis.set_label_position("right")
         elif self.plot_only_dos:
             fig, ax2 = plt.subplots()
         else:
@@ -176,7 +179,7 @@ class BandPlotter():
         if self.vlines == True:
             if not self.plot_only_dos:
                 for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
-                    ax1.axvline(x=xc, linestyle='-', color='k', linewidth=0.1)
+                    ax1.axvline(x=xc, linestyle='--', color='k', alpha=0.2)
         # Setting horizontal line on the fermi energy
         if self.hlines == True:
             if self.plot_only_dos or self.include_dos:
@@ -200,8 +203,7 @@ class BandPlotter():
                 pass
         # we plot the dos figure here
         if self.plot_only_dos or self.include_dos:
-            # print(self.include_dos)
-            for i,v in enumerate(self.y_to_plot):
+            for i,v in enumerate(self.dos):
                 ax2.plot(self.dos[i], self.E_dos[i], self.band_colour[i], label = self.labels[i])
             ax2.set_xlabel(self.dos_units)
             ax2.set_ylabel("Energy (eV)")
@@ -219,8 +221,7 @@ class BandPlotter():
                             ax1.plot(self.x_to_plot[i], band, self.band_colour[i], label = self.labels[i],linewidth=0.5)
                     else:
                         ax1.plot(self.x_to_plot[i], band)  # Here we have ignored labels since individual bands have no labels
-            # print(self.k_locations)
-            # print(self.k_symbols)
+
             ax1.set_xticks( self.k_locations)
             ax1.set_xticklabels(self.k_symbols)
             ax1.set_xlabel("$\\vec{{k}}$")
@@ -230,39 +231,34 @@ class BandPlotter():
             ax1.legend(loc="upper right")
         plt.margins(x=self.x_margins)
         if self.include_bandgaparrow and self.arrow_data != []:
-            for arrow in self.arrow_data:
-                ax1.annotate('', xytext=(arrow[0],arrow[1]), xy=(arrow[2],arrow[3]), arrowprops={'arrowstyle': '->'}, va='center')
+            for i,arrow in enumerate(self.arrow_data):
+                ax1.annotate('', xytext=(arrow[0],arrow[1]), xy=(arrow[2],arrow[3]), arrowprops={'arrowstyle': '->', 'color':self.band_colour[i]}, va='center', color='red')
         plt.tight_layout()
         plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
-        plt.show()
+        if self.show_figs: plt.show()
 
     def add_to_plot(self, Ef, k_dist, bands, hsp, hss, E_dos=0, dos=0, label=None):
         """
         |Here you add individual plots that need to be plot and then just plot them with the plot() method
         """
 
-        if self.include_dos or self.plot_only_dos:
-            self.dos.append(dos)
-            self.E_dos.append(E_dos)
-            if self.plot_only_dos:  # Other wise we wil lappend to labels twice sicnce we will do it again at theloading of bands
-                self.labels.append(label)
+        self.dos.append(dos)
+        self.E_dos.append(E_dos)
 
-        if self.plot_only_dos == False:
-            # This is for the band structure
-            self.k_locations = hsp
-            self.k_symbols = hss
-            Energy_to_plot = []
-            if self.Ef_shift == True:
-                for band in bands:
-                    if self.pin_fermi != "nscf":
-                        # print(Ef)
-                        Energy_to_plot.append([E - Ef for E in band])
-                    else:
-                        Energy_to_plot.append([E - Ef_nscf for E in band])  # here the assumption is that if this option is ever reached then the idea is that an nscf calculation has already being done and dos is being plotted.
-
-            self.y_to_plot.append(bands)
-            self.x_to_plot.append(k_dist)
-            self.labels.append(label)
+        # This is for the band structure
+        self.k_locations = hsp
+        self.k_symbols = hss
+        Energy_to_plot = []
+        if self.Ef_shift == True:
+            for band in bands:
+                if self.pin_fermi != "nscf":
+                    # print(Ef)
+                    Energy_to_plot.append([E - Ef for E in band])
+                else:
+                    Energy_to_plot.append([E - Ef_nscf for E in band])  # here the assumption is that if this option is ever reached then the idea is that an nscf calculation has already being done and dos is being plotted.
+        self.y_to_plot.append(Energy_to_plot)
+        self.x_to_plot.append(k_dist)
+        self.labels.append(label)
 
 class BandPlotterASE():
     def __init__(self, **kwargs):
