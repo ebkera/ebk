@@ -13,17 +13,21 @@ def make_folder_structure():
         print(error)
 
 def populate_RELAX(folder_name = False, RELAX_DIR="1_RELAX", **kwargs):
+    POTCAR   = kwargs.get("POTCAR","POTCAR")
+    POSCAR   = kwargs.get("POSCAR","POSCAR_unrelaxed")
+    INCAR    = kwargs.get("INCAR","INCAR_RELAX_TEMPLATE")
+    KPOINTS  = kwargs.get("KPOINTS","KPOINTS_RELAX_TEMPLATE")
+    add_line = kwargs.get("add_line",[])
     if folder_name == False:
         folder_name = RELAX_DIR
     else:
         folder_name = f"{RELAX_DIR}_{folder_name}"
-    
     if not os.path.isdir(folder_name):
         os.mkdir(folder_name)
-    shutil.copy(f"DEFAULTS/POTCAR", f"{folder_name}/POTCAR")
-    shutil.copy(f"DEFAULTS/POSCAR_unrelaxed", f"{folder_name}/POSCAR")
+    shutil.copy(f"DEFAULTS/{POTCAR}", f"{folder_name}/POTCAR")
+    shutil.copy(f"DEFAULTS/{POSCAR}", f"{folder_name}/POSCAR")
     try:
-        shutil.copy(f"DEFAULTS/KPOINTS_RELAX_TEMPLATE", f"{folder_name}/KPOINTS")
+        shutil.copy(f"DEFAULTS/{KPOINTS}", f"{folder_name}/KPOINTS")
         print(f"INCAR for RELAX run loaded from template file in DEFAULTS")
     except:
         print(f"No template for KPOINTS for RELAX run, using template from code")
@@ -32,16 +36,27 @@ def populate_RELAX(folder_name = False, RELAX_DIR="1_RELAX", **kwargs):
         file.write(contents)
         file.close()
     try:
-        shutil.copy(f"DEFAULTS/INCAR_RELAX_TEMPLATE", f"{folder_name}/INCAR")
+        shutil.copy(f"DEFAULTS/{INCAR}", f"{folder_name}/INCAR")
         print(f"INCAR for RELAX run loaded from template file in DEFAULTS")
     except:
         print(f"No template for INCAR for RELAX using template from code")
         file = open(f"{folder_name}/INCAR", "w+")
         contents = get_relaxation_INCAR(**kwargs)
         file.write(contents)
-        file.close()
+    if add_line != []:
+        file = open(f"{folder_name}/INCAR", "a+")
+        file.write("\n\n# Added lines\n")
+        for line in add_line:
+            file.write(line)
+        file.write("\n")
+    file.close()
 
-def populate_SCF(folder_name = False, RELAX_DIR="1_RELAX", DEFAULT_POTCAR_NAME='POTCAR', DEFAULT_POSCAR_NAME="POSCAR_relaxed"):
+def populate_SCF(folder_name = False, RELAX_DIR="1_RELAX", **kwargs):
+    POTCAR   = kwargs.get("POTCAR","POTCAR")
+    POSCAR   = kwargs.get("POSCAR","POSCAR_RELAXED")
+    INCAR    = kwargs.get("INCAR","INCAR_SCF_TEMPLATE")
+    KPOINTS  = kwargs.get("KPOINTS","KPOINTS_SCF_TEMPLATE")
+    add_line = kwargs.get("add_line",[])
     if folder_name == False:
         folder_name = "2_SCF"
     else:
@@ -49,18 +64,18 @@ def populate_SCF(folder_name = False, RELAX_DIR="1_RELAX", DEFAULT_POTCAR_NAME='
     
     if not os.path.isdir(folder_name):
         os.mkdir(folder_name)
-    shutil.copy(f"DEFAULTS/{DEFAULT_POTCAR_NAME}", f"{folder_name}/POTCAR")
+    shutil.copy(f"DEFAULTS/{POTCAR}", f"{folder_name}/POTCAR")
     try:
-        shutil.copy(f"DEFAULTS/INCAR_SCF_TEMPLATE", f"{folder_name}/INCAR")
+        shutil.copy(f"DEFAULTS/{INCAR}", f"{folder_name}/INCAR")
         print(f"INCAR for SCF run loaded from template file in DEFAULTS")
     except:
-        print(f"No template for INCAR for SCF (INCAR_SCF_TEMPLATE) using original template from code")
+        print(f"No template for INCAR for SCF ({INCAR}) using original template from code")
         file = open(f"{folder_name}/INCAR", "w+")
         contents = get_scf_INCAR()
         file.write(contents)
         file.close()
     try:
-        shutil.copy(f"DEFAULTS/KPOINTS_SCF_TEMPLATE", f"{folder_name}/KPOINTS")
+        shutil.copy(f"DEFAULTS/{KPOINTS}", f"{folder_name}/KPOINTS")
         print(f"KPOINTS for SCF run loaded from template file in DEFAULTS")
     except:
         print(f"No template for KPOINTS for SCF using original template from code")
@@ -72,10 +87,15 @@ def populate_SCF(folder_name = False, RELAX_DIR="1_RELAX", DEFAULT_POTCAR_NAME='
         shutil.copy(f"{RELAX_DIR}/CONTCAR", f"{folder_name}/POSCAR")
         print(f"CONTCAR file found in relaxation run.. Using it for POSCAR in SCF")
     except:
-        print(f"No CONTCAR file found in relaxation run.. Looking for DEFAULTS/POSCAR_relaxed.. if you already have relaxed structure rename as such..")
-        shutil.copy(f"DEFAULTS/{DEFAULT_POSCAR_NAME}", f"{folder_name}/POSCAR")
+        print(f"No CONTCAR file found in relaxation run.. Looking for DEFAULTS/{POSCAR}.. if you already have relaxed structure rename as such..")
+        shutil.copy(f"DEFAULTS/{POSCAR}", f"{folder_name}/POSCAR")
 
 def populate_BANDS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **kwargs):
+    POTCAR   = kwargs.get("POTCAR","POTCAR")
+    POSCAR   = kwargs.get("POSCAR","POSCAR_unrelaxed")
+    INCAR    = kwargs.get("INCAR","INCAR_BANDS_TEMPLATE")
+    KPOINTS  = kwargs.get("KPOINTS","KPOINTS_BANDS_TEMPLATE")
+    add_line = kwargs.get("add_line",[])
     if folder_name == False:
         folder_name = "4_BANDS"
     else:
@@ -83,9 +103,9 @@ def populate_BANDS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **
     
     if not os.path.isdir(folder_name):
         os.mkdir(folder_name)
-    shutil.copy(f"DEFAULTS/POTCAR", f"{folder_name}/POTCAR")
+    shutil.copy(f"DEFAULTS/{POTCAR}", f"{folder_name}/POTCAR")
     try:
-        shutil.copy(f"DEFAULTS/INCAR_BANDS_TEMPLATE", f"{folder_name}/INCAR")
+        shutil.copy(f"DEFAULTS/{INCAR}", f"{folder_name}/INCAR")
         print(f"INCAR for BANDS run loaded from template file in DEFAULTS")
     except:
         print(f"No template for INCAR for BANDS (INCAR_BANDS_TEMPLATE) using original template from code")
@@ -94,7 +114,7 @@ def populate_BANDS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **
         file.write(contents)
         file.close()
     try:
-        shutil.copy(f"DEFAULTS/KPOINTS_BANDS_TEMPLATE", f"{folder_name}/KPOINTS")
+        shutil.copy(f"DEFAULTS/{KPOINTS}", f"{folder_name}/KPOINTS")
         print(f"KPOINTS for BANDS run loaded from template file in DEFAULTS")
     except:
         print(f"No template for KPOINTS for BANDS (KPOINTS_BANDS_TEMPLATE) using original template from code")
@@ -103,13 +123,17 @@ def populate_BANDS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **
         file.write(contents)
         file.close()
     try:
-        shutil.copy(f"{RELAX_DIR}/CONTCAR", f"{folder_name}/POSCAR")
+        shutil.copy(f"{RELAX_DIR}/{POSCAR}", f"{folder_name}/POSCAR")
         print(f"CONTCAR file found in relaxation run.. Using it for POSCAR in BANDS")
     except:
         print(f"No CONTCAR file found in relaxation run.. Looking for DEFAULTS/POSCAR_relaxed.. if you already have relaxed structure rename as such..")
-        shutil.copy(f"DEFAULTS/POSCAR_relaxed", f"{folder_name}/POSCAR")
+        shutil.copy(f"DEFAULTS/{POSCAR}", f"{folder_name}/POSCAR")
 
 def populate_DOS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **kwargs):
+    POTCAR   = kwargs.get("POTCAR","POTCAR")
+    POSCAR   = kwargs.get("POSCAR","POSCAR_unrelaxed")
+    INCAR    = kwargs.get("INCAR","INCAR_DOS_TEMPLATE")
+    KPOINTS  = kwargs.get("KPOINTS","KPOINTS_DOS_TEMPLATE")
     if folder_name == False:
         folder_name = "3_DOS"
     else:
@@ -117,9 +141,9 @@ def populate_DOS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **kw
     
     if not os.path.isdir(folder_name):
         os.mkdir(folder_name)
-    shutil.copy(f"DEFAULTS/POTCAR", f"{folder_name}/POTCAR")
+    shutil.copy(f"DEFAULTS/{POTCAR}", f"{folder_name}/POTCAR")
     try:
-        shutil.copy(f"DEFAULTS/INCAR_DOS_TEMPLATE", f"{folder_name}/INCAR")
+        shutil.copy(f"DEFAULTS/{INCAR}", f"{folder_name}/INCAR")
         print(f"INCAR for DOS run loaded from template file in DEFAULTS")
     except:
         print(f"No template for INCAR for DOS (INCAR_DOS_TEMPLATE) using original template from code")
@@ -128,7 +152,7 @@ def populate_DOS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **kw
         file.write(contents)
         file.close()
     try:
-        shutil.copy(f"DEFAULTS/KPOINTS_DOS_TEMPLATE", f"{folder_name}/KPOINTS")
+        shutil.copy(f"DEFAULTS/{KPOINTS}", f"{folder_name}/KPOINTS")
         print(f"KPOINTS for DOS run loaded from template file in DEFAULTS")
     except:
         print(f"No template for KPOINTS for DOS (KPOINTS_DOS_TEMPLATE) using original template from code")
@@ -141,7 +165,7 @@ def populate_DOS(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF", **kw
         print(f"CONTCAR file found in relaxation run.. Using it for POSCAR in BANDS")
     except:
         print(f"No CONTCAR file found in relaxation run.. Looking for DEFAULTS/POSCAR_relaxed.. if you already have relaxed structure rename as such..")
-        shutil.copy(f"DEFAULTS/POSCAR_relaxed", f"{folder_name}/POSCAR")
+        shutil.copy(f"DEFAULTS/{POSCAR}", f"{folder_name}/POSCAR")
 
 def populate_epsilon(folder_name = False, RELAX_DIR="1_RELAX", SCF_DIR="2_SCF"):
     folder_base = "4_eps2"
@@ -221,7 +245,7 @@ echo "done" >> {out_file}'
     with open(f"{run_name}.sh", "w+") as file:
         file.write(string_to_write)
 
-def get_relaxation_INCAR():
+def get_relaxation_INCAR(**kwargs):
     content = f"SYSTEM = RELAXATION_for_\n\
   \n\
 # start parameters for this Run (automatic defaults are finem, hence not often required)\n\
