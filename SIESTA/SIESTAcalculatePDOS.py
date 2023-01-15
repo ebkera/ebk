@@ -3,18 +3,9 @@ Reads both .DOS and .PDOS files. Can calculate band gaps. use the Read_PDOS clas
 Has the ability to pin the graphs at the homo/lumo or fermi level.
 """
 
-import enum
-import os
-import matplotlib
-import sys
-import subprocess
-import pathlib
-from pathlib import Path
+
 import matplotlib.pyplot as plt
-from matplotlib.font_manager import FontProperties
-import numpy as np
-from matplotlib import gridspec
-from ebk.SIESTA.SIESTAOutFileReader import SiestaReadOut
+
 
 class Read_PDOS():
     def __init__(self, figure_name = "PDOS"):
@@ -146,7 +137,6 @@ class Read_PDOS():
             if lead or self.Lead_LUMOs_xval == []: self.Lead_LUMOs_xval.append(0)
             else: self.Lead_LUMOs_xval.append(self.Lead_LUMOs_xval[-1])
             
-
         # This is for the calculations where you need to set a onset-threshold other than 0 to see where the DOS starts
         temp_negx = Ef_index
         temp_posx = Ef_index
@@ -195,12 +185,15 @@ class Read_PDOS():
                 self.x[i] = [x - self.fermi_levels[i] for x in line]
 
     def plot(self):
+        import numpy as np
         self.prepare()
         plt.figure()
         for i in range(0,len(self.x)):
             try:
                 if self.show_band_gaps:
                     plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}\t$E_g$ = {self.Egs[i]:5> 2.3f} eV", **self.kwargs[i])
+                    # plt.semilogy(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}\t$E_g$ = {self.Egs[i]:5> 2.3f} eV", **self.kwargs[i])
+                    plt.fill_between(self.x[i], self.y_up[i], alpha = 0.2)
                 else:
                     plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}", **self.kwargs[i])
             except:
@@ -218,50 +211,53 @@ class Read_PDOS():
         elif self.pin.lower() == "lumo": plt.xlabel(f'Energy in eV (E - E$_c$)')
         elif "vac" in self.pin.lower() : plt.xlabel(r'Energy in eV (E - E$_{vac}$)')
 
-        plt.text(-3, 100, r'(b)', fontsize=12)
+        # plt.text(-1, 1, r'(b)', fontsize=12)
         plt.ylabel(f'{self.plt_ylabel}')
         plt.legend(loc='upper right')
         # plt.legend()
-        # plt.title(f"{self.plt_title}")
+        plt.title(f"{self.plt_title}")
         # plt.xticks(np.arange(-3,3, step=0.5))  # Set label locations.
 
         if self.set_x_range == True:
             plt.xlim([self.xlim_low,self.xlim_high])
         if self.set_y_range == True:
             plt.ylim([self.ylim_low,self.ylim_high])
-        plt.savefig(f"{self.figure_name}.pdf")
+        plt.savefig(f"{self.figure_name}.png")
         plt.tight_layout()
         if self.plt_show: plt.show()
         plt.close()
 
-    def calculate_offsets(self):
+    def calculate_offsets(self, verbose=False):
         vals = []
-        print("HOMO Offsets calculated from onset_threshold:",self.onset_threshold)
+        if verbose: print("HOMO Offsets calculated from onset_threshold:",self.onset_threshold)
         for i in range(0,len(self.Lead_HOMOs_onset_xval)):
             vals.append(self.HOMOs_onset_xval[i] - self.Lead_HOMOs_onset_xval[i])
         zipped = zip(self.orbital_labels, vals)
         res = sorted(zipped, key = lambda x: x[1])
+        homo_vals_dict = {}
 
         for i,v in enumerate(vals):
-            print(f"Shift: {self.orbital_labels[i]}: {vals[i]}")
-        print(f"Ordered printing for ease of use")
-        for i,v in enumerate(vals):
-            print("Shift:", res[i])
-        # return vals
+            if verbose: print(f"Shift: {self.orbital_labels[i]}: {vals[i]}")
+            homo_vals_dict.update({self.orbital_labels[i]: vals[i]})
+        if verbose: 
+            print(f"Ordered printing for ease of use")
+            for i,v in enumerate(vals):
+                print("Shift:", res[i])
 
         vals = []
-        print("LUMO Offsets calculated from onset_threshold:",self.onset_threshold)
+        if verbose: print("LUMO Offsets calculated from onset_threshold:",self.onset_threshold)
         for i in range(0,len(self.Lead_LUMOs_onset_xval)):
             vals.append(self.LUMOs_onset_xval[i] - self.Lead_LUMOs_onset_xval[i])
         zipped = zip(self.orbital_labels, vals)
         res = sorted(zipped, key = lambda x: x[1])
 
-        for i,v in enumerate(vals):
-            print(f"Shift: {self.orbital_labels[i]}: {vals[i]}")
-        print(f"Ordered printing for ease of use")
-        for i,v in enumerate(vals):
-            print("Shift:", res[i])
-        # return vals
+        if verbose:
+            for i,v in enumerate(vals):
+                print(f"Shift: {self.orbital_labels[i]}: {vals[i]}")
+            print(f"Ordered printing for ease of use")
+            for i,v in enumerate(vals):
+                print("Shift:", res[i])
+        return homo_vals_dict
 
     def get_vacuum_subtracted_homo(self):
         """
