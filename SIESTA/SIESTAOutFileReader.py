@@ -672,58 +672,49 @@ class SiestaReadOut():
         self.rho = np.zeros((self.a_number_of_voxels, self.b_number_of_voxels, self.c_number_of_voxels))  # This is the normalized charge density in terms of the number of electrons. It will later be converted into charge in Coulombs.
         self.total_unnormalized_charge = 0
         self.total_normalized_electronic_charge = 0
-        box = []
-        total_val = []
-        box_now = 0
 
         print("Normalizing Charge density please wait...  ", end="", flush=True)
         self.get_volumes_from_cube_header()     # To get dV
-
-        # Here we integrate the total charge w.r.t. the volume.
-        for x in range(self.a_number_of_voxels):
-            for y in range(self.b_number_of_voxels):
-                val = []
-                for z in range(self.c_number_of_voxels):
-                    self.total_unnormalized_charge += self.volumetric_data[x,y,z]*self.d_V
-                    val.append(self.volumetric_data[x,y,z]*self.d_V)
-                    box.append(box_now)
-                    box_now+=1
-                total_val.append(val)
-        # Saving the charge profile 
-        import matplotlib.pyplot as plt
-        x_plot = [self.get_r_vec(0,0,x)[2] for x in range(self.c_number_of_voxels)]
-        plotted_atoms = []
-        plotted_colours = []
-        for v in total_val:
-            plt.plot(x_plot,v)
-        ax = plt.gca()
-        for atom in self.atoms_info: 
-            if atom[0] not in plotted_atoms:
-                plotted_atoms.append(atom[0])
-                vline_color = next(ax._get_lines.prop_cycler)['color']
-                plotted_colours.append(vline_color)
-                # plt.axvline(atom[3][2],color = vline_color, label=f"A={atom[0]}")
-                plt.plot(atom[3][2],0,marker=3,color = vline_color, label=f"A={atom[0]}")
-            else:
-                index = plotted_atoms.index(atom[0])
-                # plt.axvline(atom[3][2],color = plotted_colours[index])
-                plt.plot(atom[3][2],0,marker=3,color = plotted_colours[index])
-        plt.xlabel("Position along the z axis ($\AA$)")
-        plt.ylabel("Charge")
-        # plt.title("Charge profile along the z axis")
-        plt.legend()
-        plt.savefig(f"{self.out_file_name}.chargeprofile_z.pdf")
-        plt.close()
         if self.total_unnormalized_charge !=0:
             self.charge_normalization_factor = self.number_of_electrons/self.total_unnormalized_charge  # To get around the devide by zero error for the zero charge case
         else: self.charge_normalization_factor = 0   
         # Here we integrate the total charge w.r.t. the volume.
+        summed_z = np.zeros(self.c_number_of_voxels)
         for x in range(self.a_number_of_voxels):
             for y in range(self.b_number_of_voxels):
                 for z in range(self.c_number_of_voxels):
                     # self.rho[x,y,z] = -self.volumetric_data[x,y,z]*self.charge_normalization_factor
                     self.rho[x,y,z] = -self.volumetric_data[x,y,z]
                     self.total_normalized_electronic_charge += self.rho[x,y,z]*self.d_V
+                    summed_z[z] += -self.rho[x,y,z]*self.d_V
+
+        # Saving the charge profile 
+        import matplotlib.pyplot as plt
+        x_plot = [self.get_r_vec(0,0,x)[2] for x in range(self.a_number_of_voxels)]
+        y_plot = [self.get_r_vec(0,x,0)[2] for x in range(self.b_number_of_voxels)]
+        z_plot = [self.get_r_vec(0,0,x)[2] for x in range(self.c_number_of_voxels)]
+        plotted_atoms = []
+        plotted_colours = []
+        ax = plt.gca()
+        plt.plot(z_plot, summed_z)
+        plt.fill_between(z_plot, summed_z, alpha = 0.2)
+        for atom in self.atoms_info: 
+            if atom[0] not in plotted_atoms:
+                plotted_atoms.append(atom[0])
+                vline_color = next(ax._get_lines.prop_cycler)['color']
+                plotted_colours.append(vline_color)
+                plt.axvline(atom[3][2],ymin = 0, color = vline_color, label=f"A={atom[0]}", alpha = 0.3)
+                # plt.plot(atom[3][2],0,marker=3,color = vline_color, label=f"A={atom[0]}")
+            else:
+                index = plotted_atoms.index(atom[0])
+                plt.axvline(atom[3][2],ymin=0, color = plotted_colours[index], alpha = 0.3)
+                # plt.plot(atom[3][2],0,marker=3,color = plotted_colours[index])
+        plt.xlabel("Position along the z axis ($\AA$)")
+        plt.ylabel("Charge")
+        # plt.title("Charge profile along the z axis")
+        plt.legend()
+        plt.savefig(f"{self.out_file_name}.chargeprofile_z.pdf")
+        plt.close()
         print("Done")
  
     def get_volumes_from_cube_header(self):
