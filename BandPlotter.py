@@ -131,6 +131,7 @@ class BandPlotter():
         self.x_to_plot = []
         self.dos = []
         self.E_dos = []
+        self.dos_color_fills = []
         self.labels = []
         self.same_band_colour = kwargs.get("same_band_colour", True)
         self.band_colour = ["b", "g", "r", "c", "m", "y", "k"]
@@ -164,12 +165,13 @@ class BandPlotter():
         # Setting the dimensions of the saved image
         plt.rcParams["figure.figsize"] = (self.plt_width,self.plt_height)
         if self.include_dos:
-            fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True,constrained_layout=False)
-            gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1],wspace=0)
+            fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True,constrained_layout=True)
+            gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1],wspace=0)
             ax1 = plt.subplot(gs[0])
             ax2 = plt.subplot(gs[1])
             ax2.yaxis.tick_right()
             ax2.yaxis.set_label_position("right")
+            ax2.xaxis.get_major_ticks()[0].draw = lambda *args:None
         elif self.plot_only_dos:
             fig, ax2 = plt.subplots()
         else:
@@ -204,7 +206,12 @@ class BandPlotter():
         # we plot the dos figure here
         if self.plot_only_dos or self.include_dos:
             for i,v in enumerate(self.dos):
+                list_of_zeros = [0] * len(self.dos[i])
                 ax2.plot(self.dos[i], self.E_dos[i], self.band_colour[i], label = self.labels[i])
+                if self.dos_color_fills[i] == True: 
+                    ax2.fill_betweenx(self.E_dos[i], 0, self.dos[i], facecolor=self.band_colour[i], alpha = 0.2)
+                    # ax2.fill_betweenx(self.dos[i], self.E_dos[i], facecolor=self.band_colour[i], alpha = 0.2)
+
             ax2.set_xlabel(self.dos_units)
             ax2.set_ylabel("Energy (eV)")
             ax2.set_title(f"{self.dos_title}")
@@ -237,13 +244,14 @@ class BandPlotter():
         plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
         if self.show_figs: plt.show()
 
-    def add_to_plot(self, Ef, k_dist, bands, hsp, hss, E_dos=0, dos=0, label=None):
+    def add_to_plot(self, Ef, k_dist, bands, hsp, hss, E_dos=0, dos=0, label=None, dos_color_fill=True):
         """
         |Here you add individual plots that need to be plot and then just plot them with the plot() method
         """
 
         self.dos.append(dos)
         self.E_dos.append(E_dos)
+        self.dos_color_fills.append(dos_color_fill)
 
         # This is for the band structure
         self.k_locations = hsp
