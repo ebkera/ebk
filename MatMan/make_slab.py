@@ -38,7 +38,7 @@ class MakeSlab():
         """ Adds the amount of vacuum in angstroms"""
         ase.build.add_vacuum(self.atoms, vacuum)
 
-    def make_inversion_symmetric(self, duplicate_z = "+"):
+    def make_inversion_symmetric(self, duplicate_z = "-"):
         # self.center_to_cell()
         ebk.MatMan.make_inversion_symmetric(self.atoms, duplicate_z=duplicate_z)
         self.center_to_cell()
