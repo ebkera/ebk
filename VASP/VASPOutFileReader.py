@@ -213,8 +213,10 @@ class VASPReadOut():
             for i,line in enumerate(DOSCAR):
                 if i == 5:
                     data = line.split()
-                    self.dos_MIN_E = data[0]
-                    self.dos_MAX_E = data[1]
+                    self.dos_MIN_E = float(data[0])
+                    self.dos_MAX_E = float(data[1])
+                    self.dos_N_points = int(data[2])
+                    # self.Ef = float(data[3]) # Ef is updated here
                 if i>5 and len(line.split()) == 3:
                     data = line.split()
                     self.dos_E.append(float(data[0]) - self.Ef)
@@ -266,8 +268,18 @@ class VASPReadOut():
         if file_name == None:
             file_name = self.out_folder
         x = BandPlotter()
-        if hasattr(self, "dos_E"):x.add_to_plot(self.highest_valance[1], self.k_dist, self.bands, self.hsp, self.hss, self.dos_E, self.dos_D)
-        else:x.add_to_plot(self.Ef, self.k_dist, self.bands, self.hsp, self.hss)
+        if hasattr(self, "dos_E"):
+            x.add_to_plot(self.highest_valance[1], self.k_dist, self.bands, self.hsp, self.hss, self.dos_E, self.dos_D)
+            # print("methani weda karanne")
+            # print(self.dos_D)
+        else:
+            if self.Eg >= 0: 
+                x.add_to_plot(self.Ef, self.k_dist, self.bands, self.hsp, self.hss, label=f"$E_{{g}}={self.get_band_gap(): 3.3f} eV$")
+                arrow_data = [0,self.get_highest_valance_band_energy()-self.Ef, self.k_dist[self.get_lowest_conduction_band_kpoint()], self.get_lowest_conduction_band_energy()-self.Ef]
+            else:
+                x.add_to_plot(self.Ef, self.k_dist, self.bands, self.hsp, self.hss, label=f"$E_{{g}}={0: 3.3f} eV)$")
+                arrow_data = [0,0, 0, 0]
+            x.arrow_data.append(arrow_data)
         x.file_name = f"{file_name}"
         x.set_y_range=True
         x.same_band_colour = True
