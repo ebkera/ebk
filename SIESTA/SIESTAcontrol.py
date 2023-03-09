@@ -105,6 +105,15 @@ class Generatefdf:
         self.Denchar_MinZ          = kwargs.get("Denchar.MinZ", "-6.5")
         self.Denchar_MaxZ          = kwargs.get("Denchar.MaxZ", "+6.5")  # data type is real length
         self.Denchar_PlaneGeneration = kwargs.get("Denchar.PlaneGeneration", "NormalVector")
+        self.TS_Voltage            = kwargs.get("TS_Voltage", 0)
+        self.TS_electrode_calc     = kwargs.get("TS_electrode_calculation", False)
+        self.TS_ScatteringRegion_calc = kwargs.get("TS_scatteringregion_calculation", False)
+        self.TS_Atoms_Buffer       = kwargs.get("TS_atoms_buffer", None)
+        self.TS_ElectronicTemperature = kwargs.get("TS_ElectronicTemperature", None)
+        self.TS_LelectrodePath = kwargs.get("TS_LelectrodePath", None)
+        self.TS_RelectrodePath = kwargs.get("TS_RelectrodePath", self.TS_LelectrodePath)
+        self.TS_LelectrodePosition = kwargs.get("TS_LelectrodePosition", 1)
+        self.TS_RelectrodePosition = kwargs.get("TS_RelectrodePosition", "end -1")
 
         if self.XC_Functional == "LDA":
             self.LatticeConstant       = kwargs.get("LatticeConstant", 6.479)
@@ -349,6 +358,7 @@ class Generatefdf:
             fdf_file.write(f"SaveTotalPotential          true\n")
             fdf_file.write(f"SaveElectrostaticPotential  true\n")
             fdf_file.write(f"Write.DM                    true           # encouraged to have this flag true in case we have to restart or for post processing\n")
+            fdf_file.write(f"MD.UseSaveXV                true\n")
             if self.WriteForces:
                 fdf_file.write("WriteForces                 true\n")
             if self.Write_Denchar:
@@ -404,7 +414,121 @@ class Generatefdf:
                 fdf_file.write("%block Optical.Mesh\n")
                 fdf_file.write("  5 5 5 \n")
                 fdf_file.write("%endblock Optical.Mesh\n")
-                        
+
+            # if self.TS_electrode_calc or self.TS_ScatteringRegion_calc:
+            if self.TS_electrode_calc:
+                fdf_file.write(f"\n# TranSIESTA parameters\n")
+                fdf_file.write(f"TS.HS.Save                 true\n")
+                fdf_file.write(f"TS.DE.Save                 true\n")
+            if self.TS_ScatteringRegion_calc:
+                fdf_file.write(f"\n# TranSIESTA parameters\n")
+                fdf_file.write(f"SolutionMethod             transiesta\n")
+                # fdf_file.write(f"TS.SolutionMethod          bdt  # btd|mumps|full\n")
+                fdf_file.write(f"TS.SCF.Initialize          diagon  # diagon|transiesta (avoid transiesta as still in experimental)\n")
+                # fdf_file.write(f"TS.Analyze                 false\n")
+                fdf_file.write("TS.Elecs.Bulk              true\n")
+                fdf_file.write("TS.Elecs.DM.Update         none\n")
+                fdf_file.write("TS.Elecs.GF.ReUse          false\n")
+                fdf_file.write("TS.Elecs.Neglect.Principal true\n")
+                # if self.TS_Voltage: fdf_file.write(f"TS.Voltage                  {self.TS_Voltage} eV\n")
+                fdf_file.write(f"TS.Voltage                  {self.TS_Voltage} eV\n")
+                fdf_file.write(f"TS.Hartree.Fix              +C\n")
+                if self.TS_ElectronicTemperature:
+                    fdf_file.write(f"TS.ElectronicTemperature   {self.TS_ElectronicTemperature}\n")
+                if self.TS_Atoms_Buffer:
+                    fdf_file.write(f"\n%block TS.Atoms.Buffer\n")
+                    for x in self.TS_Atoms_Buffer:
+                        fdf_file.write(f"atom {x}\n")    # Here atom numbers start from 1
+                    fdf_file.write(f"%endblock TS.Atoms.Buffer\n")
+                
+                fdf_file.write(f"\n%block TS.Elecs\n")
+                fdf_file.write(f"  Left\n")
+                fdf_file.write(f"  Right\n")
+                fdf_file.write(f"%endblock TS.Elecs\n")
+
+                fdf_file.write(f"\n%block TS.Elec.Left\n")
+                fdf_file.write(f"  HS {self.TS_LelectrodePath}\n")
+                fdf_file.write(f"  chemical-potential Left\n")
+                fdf_file.write(f"  semi-inf-direction -a3\n")
+                fdf_file.write(f"  electrode-position {self.TS_LelectrodePosition}\n")
+                fdf_file.write(f"  used-atoms 8\n")
+                fdf_file.write(f"%endblock TS.Elec.Left\n")
+
+                fdf_file.write(f"\n%block TS.Elec.Right\n")
+                fdf_file.write(f"  HS {self.TS_RelectrodePath}\n")
+                fdf_file.write(f"  chemical-potential Right\n")
+                fdf_file.write(f"  semi-inf-direction +a3\n")
+                fdf_file.write(f"  electrode-position {self.TS_RelectrodePosition}\n")
+                fdf_file.write(f"  used-atoms 8\n")
+                fdf_file.write(f"%endblock TS.Elec.Right\n")
+
+                text = f"\n%block TS.ChemPots\n\
+  Left\n\
+  Right\n\
+%endblock TS.ChemPots\n\
+\n\
+%block TS.ChemPot.Left\n\
+  mu V/2\n\
+  contour.eq\n\
+    begin\n\
+      c-Left\n\
+      t-Left\n\
+    end\n\
+%endblock TS.ChemPot.Left\n\
+\n\
+%block TS.ChemPot.Right\n\
+  mu -V/2\n\
+  contour.eq\n\
+    begin\n\
+      c-Right\n\
+      t-Right\n\
+    end\n\
+%endblock TS.ChemPot.Right\n\
+\n\
+TS.Contours.Eq.Pole 2.5 eV\n\
+\n\
+%block TS.Contour.c-Left\n\
+  part circle\n\
+   from   -40.00000 eV + V/2 to -10. kT + V/2\n\
+    points 30\n\
+     method g-legendre\n\
+%endblock TS.Contour.c-Left\n\
+\n\
+%block TS.Contour.t-Left\n\
+  part tail\n\
+   from prev to inf\n\
+    points 10\n\
+     method g-fermi\n\
+%endblock TS.Contour.t-Left\n\
+\n\
+%block TS.Contour.c-Right\n\
+  part circle\n\
+   from   -40.00000 eV - V/2 to -10. kT - V/2\n\
+    points 30\n\
+     method g-legendre\n\
+%endblock TS.Contour.c-Right\n\
+\n\
+%block TS.Contour.t-Right\n\
+  part tail\n\
+   from prev to inf\n\
+    points 10\n\
+     method g-fermi\n\
+%endblock TS.Contour.t-Right\n\
+\n\
+TS.Contours.nEq.Eta 0.0001 eV\n\
+\n\
+%block TS.Contours.nEq\n\
+  neq\n\
+%endblock TS.Contours.nEq\n\
+\n\
+%block TS.Contour.nEq.neq\n\
+  part line\n\
+   from -|V|/2 - 5 kT to |V|/2 + 5 kT\n\
+    delta 0.01 eV\n\
+     method mid-rule\n\
+%endblock TS.Contour.nEq.neq\n\
+"
+                fdf_file.write(text)
                 # fdf_file.write(f"MD.MaxForceTol         0.04\n")
                 # fdf_file.write(f"MD.VariableCell        T\n")  # Is false by default.
                 # fdf_file.write(f"MD.ConstantVolume      F\n")  # Is false by default.
