@@ -232,10 +232,10 @@ class VASPReadOut():
         import numpy as np
         return np.dot(self.lattice_vectors[2], np.cross(self.lattice_vectors[0],self.lattice_vectors[1]))
 
-    def convert_to_cif(self):
+    def convert_to_cif(self, label = "structure"):
         from ase.io import read, write
         structure =  read(f"{self.out_folder}/CONTCAR")
-        write(f"{self.out_folder}/structure.cif", structure)
+        write(f"{self.out_folder}/{label}.cif", structure)
 
     def get_band_gap(self):
         return self.Eg
