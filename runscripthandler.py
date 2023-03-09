@@ -53,6 +53,8 @@ class RunScriptHandler():
         self.equals = f"="  # Here you can set the desired symbol for value assigner\
         self.files_to_move = []
         self.files_to_copy = []
+        self.files_to_move_to_runfolder = []
+        self.files_to_copy_to_runfolder = []
 
         # Gettings args here
         # No args to get currently
@@ -60,7 +62,8 @@ class RunScriptHandler():
         # Setting kwargs here
         # Base Run inits
         self.identifier       = kwargs.get("identifier", "run")
-        if "SystemLabel" in kwargs.keys(): self.identifier       = kwargs.get("SystemLabel", "run")  # This is if a siesta input is given
+        self.SystemLabel       = kwargs.get("SystemLabel", "run")
+        if "identifier" not in kwargs.keys(): self.identifier       = kwargs.get("SystemLabel", "run")  # This is if a siesta input is given
         self.job_handler      = kwargs.get("job_handler", "")
         self.a0               = kwargs.get("a0", [6.47])
         self.KE_cut           = kwargs.get("KE_cut", [20])
@@ -367,6 +370,19 @@ class RunScriptHandler():
                 except:
                     print(f"could not coply file (might not be present/created): {file_name}")
 
+        if len(self.files_to_copy_to_runfolder) == 0 and len(self.files_to_move_to_runfolder) == 0: return
+        else:
+            for file_name in self.files_to_move_to_runfolder:
+                try:
+                    shutil.move(file_name, f'./{self.base_folder}/{file_name}')
+                except:
+                    print(f"could not move file (might not be present/created): {file_name}")
+            for file_name in self.files_to_copy_to_runfolder:
+                try:
+                    shutil.copy(file_name, f'./{self.base_folder}/{file_name}')
+                except:
+                    print(f"could not coply file (might not be present/created): {file_name}")
+
     def get_number_of_calculations(self):
         return (len(self.KE_cut)*len(self.a0)*len(self.k)*len(self.R))
 
@@ -493,14 +509,14 @@ class RunScriptHandler():
             # file.write(f'rm *wfc*\n')
                 if self.calculator == "SIESTA":
                     # file_torque.write(f"    ln -s ~/SIESTA_compile/siesta-master/Obj/siesta siesta_v0\n")
-                    file_torque.write(f"    mpirun ~/bin_era/siesta_b4wb1preqintel18impi19fftw3 -in {self.identifier}.fdf > {self.identifier}.out\n")
+                    file_torque.write(f"    mpirun ~/bin_era/siesta_b4wb1preqintel18impi19fftw3 -in {self.SystemLabel}.fdf > {self.SystemLabel}.out\n")
                     # file_torque.write(f"    mpirun siesta -in {self.identifier}.fdf > {self.identifier}.out\n")
                     file_torque.write(f'    date\n')
                     file_torque.write(f'    echo "Completed fdf run"\n')
-                    file_torque.write(f"    cp {self.identifier}.fullBZ.WFSX {self.identifier}.WFSX\n")
-                    file_torque.write(f"    cp {self.identifier}.selected.WFSX {self.identifier}.WFSX\n")  # Since only one of them will work we dont have to worry about overwriting
+                    file_torque.write(f"    cp {self.SystemLabel}.fullBZ.WFSX {self.SystemLabel}.WFSX\n")
+                    file_torque.write(f"    cp {self.SystemLabel}.selected.WFSX {self.SystemLabel}.WFSX\n")  # Since only one of them will work we dont have to worry about overwriting
                     file_torque.write(f"    ln -s ~/SIESTA_compile/siesta-master/Util/Denchar/Src/denchar .\n")
-                    file_torque.write(f"    # mpirun ./denchar < {self.identifier}.Denchar.fdf > {self.identifier}.Denchar.out\n")
+                    file_torque.write(f"    # mpirun ./denchar < {self.SystemLabel}.Denchar.fdf > {self.SystemLabel}.Denchar.out\n")
                     file_torque.write(f"    # Usage: denchar -k 1 -w 108  < *Denchar.fdf | tee Sn100_1HBDT14.denchar.out\n")
                     file_torque.write(f'    date\n')
                     # file_torque.write(f'    echo "Completed denchar run"\n')
@@ -715,15 +731,19 @@ class RunScriptHandler():
         else:
             self.create_bash_file()
 
-    def create_bash_file(self):
+    def create_bash_file(self, folders = [".job.sh"], extra_pre_addlines = []):
         """
         This script creates bash files so that you can run a batch of the runs that need to be done
         """
         submit_file = open(f"{self.base_folder}/run_bash_jobs.sh", "w+")
         submit_file.write(f'#!/bin/bash\n')
         submit_file.write(f'dos2unix *job.sh\n')
-        submit_file.write(f'for f in *.job.sh\n')
-        submit_file.write(f'do\n')
+        submit_file.write(f"dir_list=(")
+        for x in folders:
+            submit_file.write(f" {x}")
+        submit_file.write(" )\n")
+        # submit_file.write(f'for f in *.job.sh\n')
+        submit_file.write('for f in "${dir_list[@]}"; do\n')
         submit_file.write(f'  . $f\n')
         submit_file.write(f'done\n')
         submit_file.close()
@@ -753,6 +773,8 @@ class RunScriptHandler():
         bash_file.write('for dir in "${dir_list[@]}"\n')
         bash_file.write(f"do\n")
         bash_file.write(f'  cd $dir\n')
+        for y in extra_pre_addlines:
+            bash_file.write(f'  {y}\n')
         bash_file.write(f'  echo "Now working on: $f ... $(date)" >> ../run.log\n')
         bash_file.write(f'  dos2unix *job\n')
 
@@ -765,7 +787,7 @@ class RunScriptHandler():
             bash_file.write(f"\n")
             if self.send_mail:
                 bash_file.write(f"  sendmail -t < email.txt\n")
-            bash_file.write(f'  mpirun -np {self.nodes*self.procs} siesta -in {self.identifier}.fdf | tee {self.identifier}.out\n')
+            bash_file.write(f'  mpirun -np {self.nodes*self.procs} siesta -in {self.SystemLabel}.fdf | tee {self.SystemLabel}.out\n')
             bash_file.write(f'  run_end_time=$(date +%s)\n')
             bash_file.write(f'  elapsed_run_time=$(( run_end_time - run_start_time ))\n')
             bash_file.write(f'  mail_text="${{email_header}} Calculation in folder $f has ended on $(date). Wall_time: $elapsed_run_time s."\n')
