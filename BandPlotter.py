@@ -148,8 +148,8 @@ class BandPlotter():
         self.ylim_low = -2
         self.ylim_high = 2
         self.x_margins = 0
-        # self.xlim_low = 0
-        # self.xlim_high = 0
+        self.xlim_low = 0
+        self.xlim_high = 300
         self.plt_width = 4
         self.plt_height = 4
         self.saveas_extension = "pdf"
@@ -215,7 +215,7 @@ class BandPlotter():
             ax2.set_xlabel(self.dos_units)
             ax2.set_ylabel("Energy (eV)")
             ax2.set_title(f"{self.dos_title}")
-            ax2.legend()
+            ax2.legend(loc="upper right")
         if not self.plot_only_dos :
             # We plot the bands figure here
             for i,v in enumerate(self.y_to_plot):
@@ -330,6 +330,7 @@ class BandPlotterASE():
         if self.include_dos:
             # fig, (ax1, ax2) = plt.subplots(1,2)
             gs = gridspec.GridSpec(1, 2, width_ratios=[4, 1])
+            gs.update(wspace=0.25, hspace=0.05)  #this does not seem to work.
             ax1 = plt.subplot(gs[0])
             ax2 = plt.subplot(gs[1])
         elif self.plot_only_dos:
