@@ -411,6 +411,8 @@ class Generatefdf:
                 # Use the quick bands setting to use well known band paths
                 fdf_file.write(f"\n# Optical Property parameters\n")
                 fdf_file.write(f"OpticalCalculation true\n")
+                fdf_file.write(f"Optical.PolarizationType polycrystal\n")
+                fdf_file.write(f"Optical.Broaden 0.2 eV\n")
                 fdf_file.write("%block Optical.Mesh\n")
                 fdf_file.write("  5 5 5 \n")
                 fdf_file.write("%endblock Optical.Mesh\n")
