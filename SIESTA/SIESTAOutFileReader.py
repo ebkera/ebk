@@ -1335,6 +1335,59 @@ class SiestaReadOut():
         plt.savefig(f"{self.out_file_name}_SCF_convergence.pdf")
         plt.show()
 
+    def optical(self):
+        import matplotlib.pyplot as plt
+        file = open(f"{self.folder_path}/e2.interband.out", 'r')
+        data = [line for line in file]
+        file.close()
+        energies = []
+        vals = []
+        for line in data:
+            energies.append(float(line.split()[0]))
+            vals.append(float(line.split()[1]))
+        plt.plot(energies, vals)
+        file = open(f"{self.folder_path}/epsilon_img.out", 'r')
+        data = [line for line in file]
+        file.close()
+        energies = []
+        vals = []
+        for line in data:
+            energies.append(float(line.split()[0]))
+            vals.append(float(line.split()[1]))
+        plt.plot(energies, vals)
+        plt.show()
+
+        file = open(f"{self.folder_path}/e1.interband.out", 'r')
+        data = [line for line in file]
+        file.close()
+        energies = []
+        vals = []
+        for line in data:
+            energies.append(float(line.split()[0]))
+            vals.append(float(line.split()[1]))
+        plt.plot(energies, vals)
+        file = open(f"{self.folder_path}/epsilon_real.out", 'r')
+        data = [line for line in file]
+        file.close()
+        energies = []
+        vals = []
+        for line in data:
+            energies.append(float(line.split()[0]))
+            vals.append(float(line.split()[1]))
+        plt.plot(energies, vals)
+        plt.show()
+
+        file = open(f"{self.folder_path}/absorp_coef.out", 'r')
+        data = [line for line in file]
+        file.close()
+        energies = []
+        vals = []
+        for line in data:
+            energies.append(float(line.split()[0]))
+            vals.append(float(line.split()[1]))
+        plt.plot(energies, vals)
+        plt.show()
+
 
 if __name__ == "__main__":
     vac = SiestaReadOut("Fe")
