@@ -3,9 +3,7 @@ Reads both .DOS and .PDOS files. Can calculate band gaps. use the Read_PDOS clas
 Has the ability to pin the graphs at the homo/lumo or fermi level.
 """
 
-
 import matplotlib.pyplot as plt
-
 
 class Read_PDOS():
     def __init__(self, figure_name = "PDOS"):
@@ -222,8 +220,8 @@ class Read_PDOS():
             plt.xlim([self.xlim_low,self.xlim_high])
         if self.set_y_range == True:
             plt.ylim([self.ylim_low,self.ylim_high])
-        plt.savefig(f"{self.figure_name}.png")
         plt.tight_layout()
+        plt.savefig(f"{self.figure_name}.png")
         if self.plt_show: plt.show()
         plt.close()
 
