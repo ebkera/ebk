@@ -56,6 +56,7 @@ class PlotEnergy():
         self.x_tick_font_size = 14
         self.xlabel = "Ligand"
         self.picture_path = []
+        self.fig_extension = "pdf"
         if "x_ticks_rotation" in kwargs:
             self.x_ticks_rotation = kwargs.get("x_ticks_rotation", 0)
 
@@ -216,7 +217,7 @@ class PlotEnergy():
         band_gaps = []
         for i in range(0,len(self.HOMOs)):
             band_gaps.append(self.LUMOs[i] - self.HOMOs[i])
-            self.labels[i] = f"{self.labels[i]} (Eg={band_gaps[i]:.3})"
+            self.labels[i] = f"{self.labels[i]} (E$_g$={band_gaps[i]:.3})"
 
         ax1.set_xticks(E)
         ax1.set_xticklabels(self.labels, fontsize=self.x_tick_font_size)
@@ -230,7 +231,7 @@ class PlotEnergy():
 
 
         plt.tight_layout()
-        plt.savefig(f"{self.file_name}.pdf")
+        plt.savefig(f"{self.file_name}.{self.fig_extension}")
         plt.show()
 
 
