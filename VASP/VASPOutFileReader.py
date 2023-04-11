@@ -216,10 +216,10 @@ class VASPReadOut():
                     self.dos_MIN_E = float(data[0])
                     self.dos_MAX_E = float(data[1])
                     self.dos_N_points = int(data[2])
-                    # self.Ef = float(data[3]) # Ef is updated here
+                    self.Ef_dos = float(data[3]) # Ef is updated here
                 if i>5 and len(line.split()) == 3:
                     data = line.split()
-                    self.dos_E.append(float(data[0]) - self.Ef)
+                    self.dos_E.append(float(data[0]) - self.Ef_dos)
                     self.dos_D.append(float(data[1]))
                     self.dos_ID.append(float(data[2]))
 
@@ -400,3 +400,181 @@ class VASPReadOut():
 
         if direction:
             pass
+
+    def get_optical(self, OPTICS_DIR):
+        from ebk.BandPlotter import BandPlotter
+        import matplotlib.pyplot as plt
+        # self.dos_MIN_E = 0
+        # self.dos_MAX_E = 0
+        # self.dos_E = []
+        # self.dos_D = []  # These are the DOS values
+        # self.dos_ID = []  # These are the integrated DOS values
+        print("Reading in Optics data...")
+
+        E_1_x = []  
+        E_2_x = []
+        E_1_y = []
+        E_2_y = []
+        E_1_z = []
+        E_2_z = []
+        E_1_xy = []
+        E_2_xy = []
+        E_1_yz = []
+        E_2_yz = []
+        E_1_zx = []
+        E_2_zx = []
+        E = []
+
+        with open(f"{OPTICS_DIR}/OUTCAR", "r+") as OUTCAR:
+            for i,line in enumerate(OUTCAR):
+                REAL_trigger = False
+                IMAG_trigger = False
+                new_trigger  = False
+
+                E_1_x_temp = []
+                E_2_x_temp = []
+                E_1_y_temp = []
+                E_2_y_temp = []
+                E_1_z_temp = []
+                E_2_z_temp = []
+                E_1_xy_temp = []
+                E_2_xy_temp = []
+                E_1_yz_temp = []
+                E_2_yz_temp = []
+                E_1_zx_temp = []
+                E_2_zx_temp = []
+                E_temp = []
+
+                for line in OUTCAR:
+                    if "frequency dependent IMAGINARY DIELECTRIC FUNCTION" in line:
+                        print(line)
+                        REAL_trigger = False
+                        IMAG_trigger = True
+                        new_trigger  = True
+                        continue
+                    elif "frequency dependent      REAL DIELECTRIC FUNCTION" in line:
+                        print(line)
+                        REAL_trigger = True
+                        IMAG_trigger = False
+                        new_trigger  = True
+                        continue           
+                    if REAL_trigger or IMAG_trigger:
+                        try:
+                            split_line = line.split()
+                            temp_line_vals = []
+                            if len(split_line) == 0:
+                                if REAL_trigger:
+                                    E_1_x.append(E_1_x_temp)
+                                    E_1_y.append(E_1_y_temp)
+                                    E_1_z.append(E_1_z_temp)
+                                    E_1_xy.append(E_1_xy_temp)
+                                    E_1_yz.append(E_1_yz_temp)
+                                    E_1_zx.append(E_1_zx_temp)
+                                if IMAG_trigger:
+                                    E_2_x.append(E_2_x_temp)
+                                    E_2_y.append(E_2_y_temp)
+                                    E_2_z.append(E_2_z_temp)
+                                    E_2_xy.append(E_2_xy_temp)
+                                    E_2_yz.append(E_2_yz_temp)
+                                    E_2_zx.append(E_2_zx_temp)
+                                E.append(E_temp)
+                                REAL_trigger = False
+                                IMAG_trigger = False
+                                E_1_x_temp = []
+                                E_2_x_temp = []
+                                E_1_y_temp = []
+                                E_2_y_temp = []
+                                E_1_z_temp = []
+                                E_2_z_temp = []
+                                E_1_xy_temp = []
+                                E_2_xy_temp = []
+                                E_1_yz_temp = []
+                                E_2_yz_temp = []
+                                E_1_zx_temp = []
+                                E_2_zx_temp = []
+                                E_temp = []
+
+                            if len(split_line) != 7: continue
+                            for x in split_line:
+                                # print("working")
+                                temp_line_vals.append(float(x))
+                            # print(temp_line_vals)
+                        except: continue
+
+                        if REAL_trigger:                    
+                            E_1_x_temp.append(temp_line_vals[1])
+                            E_1_y_temp.append(temp_line_vals[2])
+                            E_1_z_temp.append(temp_line_vals[3])
+                            E_1_xy_temp.append(temp_line_vals[4])
+                            E_1_yz_temp.append(temp_line_vals[5])
+                            E_1_zx_temp.append(temp_line_vals[6])
+                        if IMAG_trigger:                    
+                            E_2_x_temp.append(temp_line_vals[1])
+                            E_2_y_temp.append(temp_line_vals[2])
+                            E_2_z_temp.append(temp_line_vals[3])
+                            E_2_xy_temp.append(temp_line_vals[4])
+                            E_2_yz_temp.append(temp_line_vals[5])
+                            E_2_zx_temp.append(temp_line_vals[6])
+                        E_temp.append(temp_line_vals[0])
+
+        plt.figure()
+        plt.plot(E[0], E_2_x[0], label=f"$\epsilon_2 XX$ (d-d)")
+        plt.plot(E[0], E_2_y[0], label=f"$\epsilon_2 YY$ (d-d)")
+        plt.plot(E[0], E_2_z[0], label=f"$\epsilon_2 ZZ$ (d-d)")
+        # plt.plot(E[-1], E_2_x[1], label=f"$\epsilon_2 XX$ (c-c)")
+        # plt.plot(E[-1], E_2_y[1], label=f"$\epsilon_2 YY$ (c-c)")
+        # plt.plot(E[-1], E_2_z[1], label=f"$\epsilon_2 ZZ$ (c-c)")
+        plt.legend()
+        # plt.title(f"$\epsilon_2$ vs Energy")
+        plt.xlabel("Energy (eV)")
+        plt.ylabel("$\epsilon_2$")
+        plt.xlim([0, 3])
+        plt.savefig(f"E2vsE.png")
+        plt.show()
+
+        plt.figure()
+        plt.plot(E[0], E_1_x[0], label=f"$\epsilon_1 XX$ (d-d)")
+        plt.plot(E[0], E_1_y[0], label=f"$\epsilon_1 YY$ (d-d)")
+        plt.plot(E[0], E_1_z[0], label=f"$\epsilon_1 ZZ$ (d-d)")
+        # plt.plot(E[-1], E_1_x[1], label=f"$\epsilon_1 XX$ (c-c)")
+        # plt.plot(E[-1], E_1_y[1], label=f"$\epsilon_1 YY$ (c-c)")
+        # plt.plot(E[-1], E_1_z[1], label=f"$\epsilon_1 ZZ$ (c-c)")
+        plt.legend()
+        # plt.title(f"$\epsilon_1$ vs Energy")
+        plt.xlabel("Energy (eV)")
+        plt.ylabel("$\epsilon_1$")
+        plt.xlim([0, 3])
+        plt.savefig(f"E1vsE.png")
+        plt.show()
+
+
+        # Now calcualting the absorption
+        abs_x = []
+        abs_y = []
+        abs_z = []
+        abs_E = []
+        with open(f"{OPTICS_DIR}/ABSORPTION.dat", "r+") as abs:
+            for i,line in enumerate(abs):
+                if i==0:continue
+                split_line = line.split()
+                if len(split_line) != 7: continue
+                abs_E.append(float(split_line[0]))
+                abs_x.append(float(split_line[1]))
+                abs_y.append(float(split_line[2]))
+                abs_z.append(float(split_line[3]))
+
+        print(abs_x[3])
+        plt.figure()
+        plt.plot(abs_E, abs_x, label=f"$XX$")
+        plt.plot(abs_E, abs_y, label=f"$YY$")
+        plt.plot(abs_E, abs_z, label=f"$ZZ$")
+        plt.legend()
+        # plt.title(f"Absorption vs Energy")
+        plt.xlabel("Energy (eV)")
+        plt.ylabel("Absorption ($cm^{-1})$")
+        plt.xlim([0, 3])
+        plt.ylim([0, 1000000])
+        plt.savefig(f"absvsE.png")
+        plt.show()
+        
+
