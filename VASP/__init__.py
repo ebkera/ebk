@@ -655,9 +655,9 @@ def get_dos_INCAR(**kwargs):
 \n\
 # DOS calculations\n\
   LORBIT = 11        # 11 for both total and projected\n\
-  NEDOS  = 1000      # numbr of points for DOS\n\
-  EMIN   = -5\n\
-  EMAX   = 5\n\
+  NEDOS  = 6000      # numbr of points for DOS\n\
+  EMIN   = -6\n\
+  EMAX   = 6\n\
   # NBANDS = *\n\
 \n\
 # ionic relaxation\n\
