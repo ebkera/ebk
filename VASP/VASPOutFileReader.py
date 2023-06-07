@@ -145,6 +145,20 @@ class VASPReadOut():
                     self.lattice_vectors.append([float(parsed[0]), float(parsed[1]), float(parsed[2])])
                     self.reciprocal_lattice_vectors.append([float(parsed[3]), float(parsed[4]), float(parsed[5])])
                     if len(self.lattice_vectors) == 3: lattice_vectors_trigger = False
+                
+                # This part was started to write the optical data from an optical run into seperate files, but was abandoned and has its own function now.
+                # if "frequency dependent IMAGINARY DIELECTRIC FUNCTION" in line:
+                #     REAL_trigger = False
+                #     IMAG_trigger = True
+                # elif "frequency dependent      REAL DIELECTRIC FUNCTION" in line:
+                #     REAL_trigger = True
+                #     IMAG_trigger = False
+                # if REAL_trigger:
+                #     if line != "": er_data.append(line)
+                #     else:REAL_trigger = False
+                # if IMAG_trigger:
+                #     if line != "": ei_data.append(line)
+                #     else: IMAG_trigger = False
 
         for x in range(1,len(self.kpoints)):
             dist_v=[0, 0, 0]
@@ -404,13 +418,10 @@ class VASPReadOut():
     def get_optical(self, OPTICS_DIR):
         from ebk.BandPlotter import BandPlotter
         import matplotlib.pyplot as plt
-        # self.dos_MIN_E = 0
-        # self.dos_MAX_E = 0
-        # self.dos_E = []
-        # self.dos_D = []  # These are the DOS values
-        # self.dos_ID = []  # These are the integrated DOS values
+        # E_1 is the real part of the dielectric
+        # E_2 is the imaginary part of the dielectric
+        # E is energy
         print("Reading in Optics data...")
-
         E_1_x = []  
         E_2_x = []
         E_1_y = []
@@ -430,7 +441,6 @@ class VASPReadOut():
                 REAL_trigger = False
                 IMAG_trigger = False
                 new_trigger  = False
-
                 E_1_x_temp = []
                 E_2_x_temp = []
                 E_1_y_temp = []
@@ -447,13 +457,11 @@ class VASPReadOut():
 
                 for line in OUTCAR:
                     if "frequency dependent IMAGINARY DIELECTRIC FUNCTION" in line:
-                        print(line)
                         REAL_trigger = False
                         IMAG_trigger = True
                         new_trigger  = True
                         continue
                     elif "frequency dependent      REAL DIELECTRIC FUNCTION" in line:
-                        print(line)
                         REAL_trigger = True
                         IMAG_trigger = False
                         new_trigger  = True
@@ -528,7 +536,7 @@ class VASPReadOut():
         # plt.title(f"$\epsilon_2$ vs Energy")
         plt.xlabel("Energy (eV)")
         plt.ylabel("$\epsilon_2$")
-        plt.xlim([0, 3])
+        plt.xlim([0, 5])
         plt.savefig(f"E2vsE.png")
         plt.show()
 
@@ -543,38 +551,48 @@ class VASPReadOut():
         # plt.title(f"$\epsilon_1$ vs Energy")
         plt.xlabel("Energy (eV)")
         plt.ylabel("$\epsilon_1$")
-        plt.xlim([0, 3])
+        plt.xlim([0, 5])
         plt.savefig(f"E1vsE.png")
-        plt.show()
+        # plt.show()
+
+        with open(f"{OPTICS_DIR}/e_r.dat", "w+") as er:
+            for i,v in enumerate(E[0]):
+                if i !=  0:er.write("\n")
+                er.write(f"{E[0][i]:>12.6f}{E_1_x[0][i]:>12.6f}{E_1_y[0][i]:>12.6f}{E_1_z[0][i]:>12.6f}{E_1_xy[0][i]:>12.6f}{E_1_yz[0][i]:>12.6f}{E_1_zx[0][i]:>12.6f}")
+
+        with open(f"{OPTICS_DIR}/e_i.dat", "w+") as ei:
+            for i,v in enumerate(E[0]):
+                if i != 0: ei.write("\n")
+                ei.write(f"{E[0][i]:>12.6f}{E_2_x[0][i]:>12.6f}{E_2_y[0][i]:>12.6f}{E_2_z[0][i]:>12.6f}{E_2_xy[0][i]:>12.6f}{E_2_yz[0][i]:>12.6f}{E_2_zx[0][i]:>12.6f}")
 
 
-        # Now calcualting the absorption
-        abs_x = []
-        abs_y = []
-        abs_z = []
-        abs_E = []
-        with open(f"{OPTICS_DIR}/ABSORPTION.dat", "r+") as abs:
-            for i,line in enumerate(abs):
-                if i==0:continue
-                split_line = line.split()
-                if len(split_line) != 7: continue
-                abs_E.append(float(split_line[0]))
-                abs_x.append(float(split_line[1]))
-                abs_y.append(float(split_line[2]))
-                abs_z.append(float(split_line[3]))
+        # # Now calcualting the absorption
+        # abs_x = []
+        # abs_y = []
+        # abs_z = []
+        # abs_E = []
+        # with open(f"{OPTICS_DIR}/ABSORPTION.dat", "r+") as abs:
+        #     for i,line in enumerate(abs):
+        #         if i==0:continue
+        #         split_line = line.split()
+        #         if len(split_line) != 7: continue
+        #         abs_E.append(float(split_line[0]))
+        #         abs_x.append(float(split_line[1]))
+        #         abs_y.append(float(split_line[2]))
+        #         abs_z.append(float(split_line[3]))
 
-        print(abs_x[3])
-        plt.figure()
-        plt.plot(abs_E, abs_x, label=f"$XX$")
-        plt.plot(abs_E, abs_y, label=f"$YY$")
-        plt.plot(abs_E, abs_z, label=f"$ZZ$")
-        plt.legend()
-        # plt.title(f"Absorption vs Energy")
-        plt.xlabel("Energy (eV)")
-        plt.ylabel("Absorption ($cm^{-1})$")
-        plt.xlim([0, 3])
-        plt.ylim([0, 1000000])
-        plt.savefig(f"absvsE.png")
-        plt.show()
+        # print(abs_x[3])
+        # plt.figure()
+        # plt.plot(abs_E, abs_x, label=f"$XX$")
+        # plt.plot(abs_E, abs_y, label=f"$YY$")
+        # plt.plot(abs_E, abs_z, label=f"$ZZ$")
+        # plt.legend()
+        # # plt.title(f"Absorption vs Energy")
+        # plt.xlabel("Energy (eV)")
+        # plt.ylabel("Absorption ($cm^{-1})$")
+        # plt.xlim([0, 3])
+        # plt.ylim([0, 1000000])
+        # plt.savefig(f"absvsE.png")
+        # plt.show()
         
 
