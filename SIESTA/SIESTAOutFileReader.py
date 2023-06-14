@@ -235,7 +235,7 @@ class SiestaReadOut():
                 if len(parsed) != 11 and len(bands_temp) == 0 and len(parsed) == 2:
                     self.hsp.append(float(parsed[0]))
                     parsed[1] = parsed[1].strip("'")
-                    if parsed[1] == "GAMMA": parsed[1] = "$\Gamma$"
+                    if parsed[1].capitalize() == "Gamma": parsed[1] = "$\Gamma$"
                     self.hss.append((parsed[1]))
                     continue
                 if len(parsed) == 11:
@@ -344,7 +344,7 @@ class SiestaReadOut():
         """Plots the """
         from ebk.BandPlotter import BandPlotter
         # import matplotlib.pyplot as plt
-        kwargs.update({"arrow_data":[[self.highest_valance[0] , self.highest_valance[1],self.lowest_conduction[0],self.lowest_conduction[1]]]})
+        kwargs.update({"arrow_data":[[self.highest_valance[0], self.highest_valance[1], self.lowest_conduction[0], self.lowest_conduction[1]]]})
         plot = BandPlotter(**kwargs)
         b_gap = self.lowest_conduction[1] - self.highest_valance[1]
         plot.add_to_plot(self.Ef, self.k_dist, self.bands, self.hsp, self.hss, label=f"E$_g$={b_gap: .3f} eV")

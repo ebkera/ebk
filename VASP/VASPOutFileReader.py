@@ -68,8 +68,7 @@ class VASPReadOut():
                 #     # print(k2)
 
                 # print(line)  # Left here for debugging 
-                if 'k-point' in line and len(line.split()) == 6 and "Found" not in line  and "KPOINTS" not in line:
-                    # print(line)
+                if 'k-point' in line and len(line.split()) == 6 and "Found" not in line  and "KPOINTS" not in line and "generate" not in line:
                     k = line.split()
                     current_kpoint = int(k[1])
                     if current_kpoint< self.kpoints_read_from : continue
@@ -109,7 +108,8 @@ class VASPReadOut():
                     f=line.split()
                     # print(f)
                     band_label = int(f[0])-1
-                    E = float(f[1])-E_fermi
+                    # E = float(f[1])-E_fermi
+                    E = float(f[1])
                     # E = float(f[1])  # if we want to not shift by Ef
                     Occ = float(f[2])
                     try:
@@ -274,6 +274,9 @@ class VASPReadOut():
 
     def get_total_energy_without_entropy(self):
         return self.E_tot_with_entropy
+
+    def get_cell_volume(self):
+        return np.dot(self.a1, np.cross(self.a2, self.a3) )
 
     def get_band_structure(self, file_name = None):
         """
@@ -537,7 +540,7 @@ class VASPReadOut():
         plt.xlabel("Energy (eV)")
         plt.ylabel("$\epsilon_2$")
         plt.xlim([0, 5])
-        plt.savefig(f"E2vsE.png")
+        plt.savefig(f"{OPTICS_DIR}/E2vsE.png")
         plt.show()
 
         plt.figure()
@@ -552,7 +555,7 @@ class VASPReadOut():
         plt.xlabel("Energy (eV)")
         plt.ylabel("$\epsilon_1$")
         plt.xlim([0, 5])
-        plt.savefig(f"E1vsE.png")
+        plt.savefig(f"{OPTICS_DIR}/E1vsE.png")
         # plt.show()
 
         with open(f"{OPTICS_DIR}/e_r.dat", "w+") as er:
