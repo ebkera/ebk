@@ -156,6 +156,7 @@ class BandPlotter():
         self.include_bandgaparrow = True
         self.arrow_data = kwargs.get("arrow_data", [])
         self.show_figs = True
+        self.legend = True
 
     def plot(self):
         """
@@ -185,9 +186,9 @@ class BandPlotter():
         # Setting horizontal line on the fermi energy
         if self.hlines == True:
             if self.plot_only_dos or self.include_dos:
-                ax2.axhline(linewidth=0.1, color='k')
+                ax2.axhline(linewidth=0.1, color='k', alpha=0.2)
             if not self.plot_only_dos :
-                ax1.axhline(linewidth=0.1, color='k')
+                ax1.axhline(linewidth=0.1, color='k', alpha=0.2)
         # Setting y ranges
         if self.set_y_range == True:
             if self.plot_only_dos:
@@ -215,7 +216,7 @@ class BandPlotter():
             ax2.set_xlabel(self.dos_units)
             ax2.set_ylabel("Energy (eV)")
             ax2.set_title(f"{self.dos_title}")
-            ax2.legend(loc="upper right")
+            # ax2.legend(loc="upper right")
         if not self.plot_only_dos :
             # We plot the bands figure here
             for i,v in enumerate(self.y_to_plot):
@@ -235,7 +236,7 @@ class BandPlotter():
             ax1.set_ylabel("Energy (eV)")
             ax1.set_title(f"{self.title}")
             ax1.margins(x=self.x_margins)
-            ax1.legend(loc="upper right")
+            if self.legend:  ax1.legend(loc="upper right")
         plt.margins(x=self.x_margins)
         if self.include_bandgaparrow and self.arrow_data != []:
             for i,arrow in enumerate(self.arrow_data):
@@ -244,14 +245,16 @@ class BandPlotter():
         plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
         if self.show_figs: plt.show()
 
-    def add_to_plot(self, Ef, k_dist, bands, hsp, hss, E_dos=0, dos=0, label=None, dos_color_fill=True):
+    def add_to_plot(self, Ef, k_dist, bands, hsp, hss, E_dos=0, dos=0, dos_shift=0, label=None, dos_color_fill=True):
         """
         |Here you add individual plots that need to be plot and then just plot them with the plot() method
         """
 
-        self.dos.append(dos)
-        self.E_dos.append(E_dos)
-        self.dos_color_fills.append(dos_color_fill)
+        if dos != 0:
+            E_dos = [x-dos_shift for x in E_dos]
+            self.dos.append(dos)
+            self.E_dos.append(E_dos)
+            self.dos_color_fills.append(dos_color_fill)
 
         # This is for the band structure
         self.k_locations = hsp
