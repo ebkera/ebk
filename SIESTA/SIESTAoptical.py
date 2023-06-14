@@ -64,15 +64,17 @@ class optical:
         if self.plt_show: plt.show()
         plt.close()
 
-    def plot_absorption(self) -> None:
+    def plot_absorption(self, ylog = False) -> None:
         for i,val in enumerate(self.abs):
             plt.plot(val[0], val[1], label = f"{self.labels[i]}", **self.kwargs[i])
         plt.xlabel(f'Energy (eV)')
         plt.ylabel(f'Absorption (cm$^{{-1}}$)')
+        if ylog: plt.yscale("log")
         plt.legend(loc='upper right')
         # plt.title(f"{self.plt_title}")
         if self.set_x_range == True:
             plt.xlim([self.xlim_low,self.xlim_high])
+            plt.ylabel(f'Absorption (log) (cm$^{{-1}}$)')
         # if self.set_y_range == True:
         #     plt.ylim([self.ylim_low,self.ylim_high])
         plt.tight_layout()
@@ -80,4 +82,3 @@ class optical:
         if self.plt_show: plt.show()
         plt.close()
         
-
