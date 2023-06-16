@@ -167,17 +167,6 @@ class VASPReadOut():
             else: return hss.upper()
         
         def get_k_dist():
-            dist_v=[0, 0, 0]
-            k_start = (len(self.hss)-2)*self.k_point_density
-            for x in range(k_start, k_start+self.k_point_density):
-                print("x", x)
-                if x == 0: continue
-                for i in range(3):
-                    dist_v[i] = self.kpoints[x][i] - self.kpoints[x-1][i]
-                self.k_dist.append(((dist_v[0])**2+(dist_v[1])**2+(dist_v[2])**2) + self.k_dist[x-1])
-                print(self.k_dist[-1])
-        
-        def get_k_dist():
            # Here we adjust for the actual lengths in reciprocal space
            # While the correct thing would be to leave everything in terms of reciprocal space this comes in handy when trying to compare band structure between software
             if self.consider_actual_k_distance:
@@ -196,7 +185,7 @@ class VASPReadOut():
                 if x == 0: continue
                 for i in range(3):
                     dist_v[i] = self.kpoints[x][i] - self.kpoints[x-1][i]
-                if x == k_start: self.k_dist.append(self.k_dist[-1])
+                if x == k_start: self.k_dist.append(self.k_dist[-1]) # here discontinuities are taken into account
                 else: self.k_dist.append(((dist_v[0]*x_multiplier)**2+(dist_v[1]*y_multiplier)**2+(dist_v[2]*z_multiplier)**2) + self.k_dist[x-1])
            
         try:
