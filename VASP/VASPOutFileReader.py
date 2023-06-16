@@ -159,62 +159,75 @@ class VASPReadOut():
                 # if IMAG_trigger:
                 #     if line != "": ei_data.append(line)
                 #     else: IMAG_trigger = False
+              
+        self.Eg = self.lowest_conduction[1] - self.highest_valance[1]
 
-        for x in range(1,len(self.kpoints)):
+        def process_symbols(hss):
+            if hss.lower() == "gamma" or hss.lower() == "g": return "$\Gamma$"
+            else: return hss.upper()
+        
+        def get_k_dist():
             dist_v=[0, 0, 0]
-            # Here we adjust for the actual lengths in reciprocal space
+            k_start = (len(self.hss)-2)*self.k_point_density
+            print("self.kdist", self.k_dist)
+            for x in range(k_start, k_start+self.k_point_density):
+                print("x", x)
+                if x == 0: continue
+                for i in range(3):
+                    dist_v[i] = self.kpoints[x][i] - self.kpoints[x-1][i]
+                self.k_dist.append(((dist_v[0])**2+(dist_v[1])**2+(dist_v[2])**2) + self.k_dist[x-1])
+                print(self.k_dist[-1])
+        
+        def get_k_dist():
+           # Here we adjust for the actual lengths in reciprocal space
+           # While the correct thing would be to leave everything in terms of reciprocal space this comes in handy when trying to compare band structure between software
             if self.consider_actual_k_distance:
                 x_multiplier = 2*np.pi**(10)/self.A1
                 y_multiplier = 2*np.pi**(10)/self.A2
                 z_multiplier = 2*np.pi**(10)/self.A3
-            elif x+1 in self.reset_k_dist:  # If there is a discontinuity in the k path
-                # print(x,"multi0")
-                x_multiplier = 0
-                y_multiplier = 0
-                z_multiplier = 0
             else:
                 x_multiplier = 1
                 y_multiplier = 1
                 z_multiplier = 1
-            for i in range(3):
-                # print (i, x)
-                dist_v[i] = self.kpoints[x][i] - self.kpoints[x-1][i]
-            self.k_dist.append(((dist_v[0]*x_multiplier)**2+(dist_v[1]*y_multiplier)**2+(dist_v[2]*z_multiplier)**2) + self.k_dist[x-1])
-                
-        self.Eg = self.lowest_conduction[1] - self.highest_valance[1]
-
+            dist_v=[0, 0, 0]
+            k_start = (len(self.hss)-2)*self.k_point_density
+            # print("Kstart: ",k_start,  self.kpoints[k_start-1], self.kpoints[k_start], self.kpoints[k_start+1])
+            print(k_start, k_start+self.k_point_density)
+            for x in range(k_start, k_start+self.k_point_density):
+                if x == 0: continue
+                for i in range(3):
+                    dist_v[i] = self.kpoints[x][i] - self.kpoints[x-1][i]
+                if x == k_start: self.k_dist.append(self.k_dist[-1])
+                else: self.k_dist.append(((dist_v[0]*x_multiplier)**2+(dist_v[1]*y_multiplier)**2+(dist_v[2]*z_multiplier)**2) + self.k_dist[x-1])
+           
         try:
             with open(f"{self.out_folder}/KPOINTS", "r+") as KPOINTS:
-                hss_old = "empty"
+                hss_counter = 0
                 for line in KPOINTS:
                     line_s = line.split()
-
                     if len(line_s) == 1:
-                        try:
-                            self.k_point_density = int(line_s[0])
+                        try: self.k_point_density = int(line_s[0])
                         except: pass
-
-                    # This will check for actual K points
-                    try: 
-                        float(line_s[0])
-                    except: 
-                        continue
-
+                    try: float(line_s[0])  # This will check for actual K points
+                    except: continue
+                    
                     if len(line_s) == 4:
+                        hss_counter +=1
                         hss = line_s[3]
-                        if hss == hss_old: continue
-                        hss_old = hss
-                        self.hss.append(hss)
+                        if hss_counter == 1: 
+                            self.hss.append(process_symbols(hss))
+                            self.hsp.append(0) 
+                        elif hss_counter % 2 == 0: # this is when a single direction is closed between two points happen
+                            self.hss.append(process_symbols(hss))
+                            get_k_dist()
+                            self.hsp.append(self.k_dist[-1])
+                        elif hss_counter % 2 == 1: # this is beginign of a new set of two points
+                            if process_symbols(hss) != self.hss[-1] : # here is seems there is a discontinuity
+                                self.hss[-1] = f"{self.hss[-1]} | {process_symbols(hss)}"
 
-                        for i,v in enumerate(self.hss):
-                            if v.lower() == "gamma" or v.lower() == "g":
-                                self.hss[i] = "$\Gamma$"
-                self.hsp.append(self.k_dist[0])
-
-                for x in range(1,len(self.hss)):
-                    self.hsp.append(self.k_dist[self.k_point_density*x-1])
-        except:
+        except FileNotFoundError as e:
             print(f"Could not find KPOINTS file for : {self.out_folder}/KPOINTS")
+            print(f"{e}")
 
     def get_dos(self, DOS_DIR):
         self.dos_MIN_E = 0
