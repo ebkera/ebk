@@ -169,8 +169,7 @@ class VASPReadOut():
         def get_k_dist():
             dist_v=[0, 0, 0]
             k_start = (len(self.hss)-2)*self.k_point_density
-            print("self.kdist", self.k_dist)
-            for x in range(k_start, k_start+self.k_point_density):
+             for x in range(k_start, k_start+self.k_point_density):
                 print("x", x)
                 if x == 0: continue
                 for i in range(3):
