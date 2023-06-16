@@ -179,8 +179,6 @@ class VASPReadOut():
                 z_multiplier = 1
             dist_v=[0, 0, 0]
             k_start = (len(self.hss)-2)*self.k_point_density
-            # print("Kstart: ",k_start,  self.kpoints[k_start-1], self.kpoints[k_start], self.kpoints[k_start+1])
-            print(k_start, k_start+self.k_point_density)
             for x in range(k_start, k_start+self.k_point_density):
                 if x == 0: continue
                 for i in range(3):
