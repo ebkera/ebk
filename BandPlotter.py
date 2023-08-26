@@ -45,7 +45,6 @@ class BandPlotter_old():
         self.include_ylabel = True
         self.include_title = True
 
-
     def plot(self):
         """
         |All the features of the band plot are set here
@@ -135,6 +134,7 @@ class BandPlotter():
         self.labels = []
         self.same_band_colour = kwargs.get("same_band_colour", True)
         self.band_colour = ["b", "g", "r", "c", "m", "y", "k"]
+        self.band_colour = ["blue","red", "green", "purple", "brown", "pink", "orange", "gray", "olive", "cyan", "blue", "red", "green", "purple", "brown", "pink", "orange", "gray", "olive", "cyan"]
         self.new_fig = False
         self.k_locations = None
         self.k_symbols = None
@@ -157,6 +157,11 @@ class BandPlotter():
         self.arrow_data = kwargs.get("arrow_data", [])
         self.show_figs = True
         self.legend = True
+        self.dos_ylabel = ""
+        self.extra_data_x = []
+        self.extra_data_y = []
+        self.extra_kwargs = []
+        self.extra_labels = []
 
     def plot(self):
         """
@@ -164,19 +169,18 @@ class BandPlotter():
         |Inputs: None
         """
         # Setting the dimensions of the saved image
-        plt.rcParams["figure.figsize"] = (self.plt_width,self.plt_height)
         if self.include_dos:
-            fig, (ax1, ax2) = plt.subplots(1, 2,sharey=True,constrained_layout=True)
-            gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1],wspace=0)
+            fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True, constrained_layout=True, figsize=(self.plt_width,self.plt_height))
+            gs = gridspec.GridSpec(1, 2, width_ratios=[3, 1], wspace=0)
             ax1 = plt.subplot(gs[0])
             ax2 = plt.subplot(gs[1])
             ax2.yaxis.tick_right()
             ax2.yaxis.set_label_position("right")
             ax2.xaxis.get_major_ticks()[0].draw = lambda *args:None
         elif self.plot_only_dos:
-            fig, ax2 = plt.subplots()
+            fig, ax2 = plt.subplots(figsize=(self.plt_width,self.plt_height))
         else:
-            fig, ax1 = plt.subplots()
+            fig, ax1 = plt.subplots(figsize=(self.plt_width,self.plt_height))
 
         # Setting vertical lines
         if self.vlines == True:
@@ -214,8 +218,12 @@ class BandPlotter():
                     # ax2.fill_betweenx(self.dos[i], self.E_dos[i], facecolor=self.band_colour[i], alpha = 0.2)
 
             ax2.set_xlabel(self.dos_units)
-            ax2.set_ylabel("Energy (eV)")
+            ax2.set_ylabel(self.dos_ylabel)
             ax2.set_title(f"{self.dos_title}")
+            ax2.tick_params(axis="y",direction="in")
+            ax2.tick_params(axis="x",direction="in")
+            ax2.axes.yaxis.set_ticklabels([])
+
             # ax2.legend(loc="upper right")
         if not self.plot_only_dos :
             # We plot the bands figure here
@@ -230,17 +238,21 @@ class BandPlotter():
                     else:
                         ax1.plot(self.x_to_plot[i], band)  # Here we have ignored labels since individual bands have no labels
 
-            ax1.set_xticks( self.k_locations)
+            ax1.set_xticks(self.k_locations)
             ax1.set_xticklabels(self.k_symbols)
+            ax1.tick_params(axis="y",direction="in")
+            ax1.tick_params(axis="x",direction="in")
             ax1.set_xlabel("$\\vec{{k}}$")
             ax1.set_ylabel("Energy (eV)")
             ax1.set_title(f"{self.title}")
             ax1.margins(x=self.x_margins)
+            if self.include_bandgaparrow and self.arrow_data != []:
+                for i,arrow in enumerate(self.arrow_data):
+                    ax1.annotate('', xytext=(arrow[0],arrow[1]), xy=(arrow[2],arrow[3]), arrowprops={'arrowstyle': '->', 'color':self.band_colour[i]}, va='center', color='red')
+            for i in range(len(self.extra_data_x)):
+                ax1.plot(self.extra_data_x[i], self.extra_data_y[i], label=self.extra_labels[i], **self.extra_kwargs[i])
             if self.legend:  ax1.legend(loc="upper right")
         plt.margins(x=self.x_margins)
-        if self.include_bandgaparrow and self.arrow_data != []:
-            for i,arrow in enumerate(self.arrow_data):
-                ax1.annotate('', xytext=(arrow[0],arrow[1]), xy=(arrow[2],arrow[3]), arrowprops={'arrowstyle': '->', 'color':self.band_colour[i]}, va='center', color='red')
         plt.tight_layout()
         plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
         if self.show_figs: plt.show()
@@ -270,6 +282,12 @@ class BandPlotter():
         self.y_to_plot.append(Energy_to_plot)
         self.x_to_plot.append(k_dist)
         self.labels.append(label)
+    
+    def add_to_extras(self, x, y, label, **kwargs):
+        self.extra_data_x.append(x)
+        self.extra_data_y.append(y)
+        self.extra_labels.append(label)
+        self.extra_kwargs.append(kwargs)
 
 class BandPlotterASE():
     def __init__(self, **kwargs):
