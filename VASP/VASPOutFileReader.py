@@ -221,7 +221,7 @@ class VASPReadOut():
         self.dos_E = []
         self.dos_D = []  # These are the DOS values
         self.dos_ID = []  # These are the integrated DOS values
-        print("Calculating Density of States")
+        # print("Calculating Density of States")
         with open(f"{DOS_DIR}/DOSCAR", "r+") as DOSCAR:
             for i,line in enumerate(DOSCAR):
                 if i == 5:
