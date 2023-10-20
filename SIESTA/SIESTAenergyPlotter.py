@@ -53,10 +53,13 @@ class PlotEnergy():
         self.dots = kwargs.get("dots", False)
         self.ylim_low = -9
         self.ylim_high = 0
-        self.x_tick_font_size = 14
+        self.plt_height = kwargs.get("plt_height", 5)
+        self.font_size = 14 
         self.xlabel = "Ligand"
         self.picture_path = []
         self.fig_extension = "pdf"
+        self.show_band_gaps_in_xticklabels = True
+        self.display_band_gap_at_band_gap = True
         if "x_ticks_rotation" in kwargs:
             self.x_ticks_rotation = kwargs.get("x_ticks_rotation", 0)
 
@@ -180,10 +183,14 @@ class PlotEnergy():
         """
         Plots all energy levels
         """
-        fig, ax1 = plt.subplots(figsize=(4*(len(self.Energies)*self.line_widths*2+0.5), 10))
-        # fig, ax1 = plt.subplots()
-        plt.rcParams["figure.figsize"] = (10,4)
-        # plt.figure()
+        import matplotlib
+        font = {
+            # 'family' : 'normal',
+            # 'weight' : 'bold',
+            'size'   : self.font_size
+            }
+        matplotlib.rc('font', **font)
+        fig, ax1 = plt.subplots(figsize=(4*(len(self.Energies)*self.line_widths*2+0.5), self.plt_height))
         # Setting y ranges
         if self.set_y_range_upper == True:
             ax1.set(ylim=(self.ylim_low,self.ylim_high))
@@ -206,25 +213,35 @@ class PlotEnergy():
             if self.show_lumo:
                 plt.plot([x_coordinates[1]+0.1, x_coordinates[1]+0.1], [self.LUMOs[x-1], self.LUMOs[x-1]], "<g", label="LUMO")
         
-            try:
+            if self.picture_path != []:
                 arr_lena = mpimg.imread(self.picture_path[x-1])
-                imagebox = OffsetImage(arr_lena, zoom=0.2)
-                ab = AnnotationBbox(imagebox, (x,(self.HOMOs[x-1] + self.LUMOs[x-1])/2))
+                imagebox = OffsetImage(arr_lena, zoom=0.1)
+                ab = AnnotationBbox(imagebox, (x,(self.HOMOs[x-1] + self.LUMOs[x-1])/2), frameon = False)
                 ax1.add_artist(ab)
-            except:
+            else:
                 print("Plotting a ligand image can also be done need to specify image")
+
+            # if self.display_band_gap_at_band_gap:
+            #     ax1.annotate(f"(E$_g$={band_gaps[i]:.3} eV)", (x,(self.HOMOs[x-1] + self.LUMOs[x-1])/2))
+
+
 
         band_gaps = []
         for i in range(0,len(self.HOMOs)):
             band_gaps.append(self.LUMOs[i] - self.HOMOs[i])
-            self.labels[i] = f"{self.labels[i]} (E$_g$={band_gaps[i]:.3})"
+            if self.show_band_gaps_in_xticklabels:
+                self.labels[i] = f"{self.labels[i]} (E$_g$={band_gaps[i]:.3})"
+            else:
+                self.labels[i] = f"{self.labels[i]}"
 
         ax1.set_xticks(E)
-        ax1.set_xticklabels(self.labels, fontsize=self.x_tick_font_size)
+        ax1.set_xticklabels(self.labels)
+        # ax1.set_xticklabels(self.labels, fontsize=self.x_tick_font_size)
         ax1.set_xlabel(self.xlabel)
         ax1.set_ylabel("Energy (eV) (vac = 0)")
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
+        # plt.legend(by_label.values(), by_label.keys(), loc = 'center right', frameon = False)
         plt.legend(by_label.values(), by_label.keys(), loc = 'upper right')
         if hasattr(self, "x_ticks_rotation"): plt.xticks(rotation=self.x_ticks_rotation, ha='right')
         ax1.set_title(f"{self.title}")
