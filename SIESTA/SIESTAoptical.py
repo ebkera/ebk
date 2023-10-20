@@ -12,6 +12,8 @@ class optical:
         self.e1 = []
         self.e2 = []
         self.abs = []
+        self.plt_width = 3.5
+        self.plt_height = 5
         self.fig_extension = "pdf"
 
     def load(self, out_file, label=None, **kwargs) -> None:
@@ -65,6 +67,14 @@ class optical:
         plt.close()
 
     def plot_absorption(self, ylog = False) -> None:
+        import matplotlib
+        font = {
+            # 'family' : 'normal',
+            # 'weight' : 'bold',
+            'size'   : 10
+            }
+        matplotlib.rc('font', **font)
+        fig = plt.figure(figsize=(self.plt_width, self.plt_height))
         for i,val in enumerate(self.abs):
             plt.plot(val[0], val[1], label = f"{self.labels[i]}", **self.kwargs[i])
         plt.xlabel(f'Energy (eV)')
