@@ -25,7 +25,7 @@ class VASPReadOut():
         self.Ef = 0
         self.E_tot = 0
         self.E_tot_with_entropy = 0
-        self.consider_actual_k_distance = False  # important when we want actual K distance like when calculating electron and hole masses
+        self.consider_actual_k_distance = True  # important when we want actual K distance like when calculating electron and hole masses
         self.kpoints_read_from = kwargs.get("kpoints_read_from", 1)  # This is when you want to ignore some of the first k points for exxample in a HSE calculation grid k points not requried for band structure calculations
         self.reset_k_dist = kwargs.get("reset_k_dist", [])   # This is when there is a discontinuity in the K path like U|K
         self.lattice_vectors = []
