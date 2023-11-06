@@ -140,6 +140,7 @@ class BandPlotter():
         self.k_symbols = None
         self.dots = kwargs.get("dots", False)
         self.include_dos = kwargs.get("include_dos", False)
+        self.include_tdm = kwargs.get("include_tdm", False)  # include transitional dipole matrix
         self.dos_units = kwargs.get("dos_units", "states/eV")
         self.plot_only_dos = kwargs.get("only_dos", False)
         self.pin_fermi = kwargs.get("pin_fermi", "scf") # if there are difference in fermi levels (Eg E_scf and E_nscf) then use this to pin the levels There options "off", "scf", "nscf" 
@@ -150,8 +151,8 @@ class BandPlotter():
         self.x_margins = 0
         self.xlim_low = 0
         self.xlim_high = 300
-        self.plt_width = 4
-        self.plt_height = 4
+        self.plt_width = 3.5
+        self.plt_height = 3.5
         self.saveas_extension = "pdf"
         self.include_bandgaparrow = True
         self.arrow_data = kwargs.get("arrow_data", [])
@@ -162,6 +163,9 @@ class BandPlotter():
         self.extra_data_y = []
         self.extra_kwargs = []
         self.extra_labels = []
+        self.tdm_k        = []
+        self.tdm_tdm      = []
+        self.tdm_labels   = []
 
     def plot(self):
         """
@@ -177,22 +181,47 @@ class BandPlotter():
             ax2.yaxis.tick_right()
             ax2.yaxis.set_label_position("right")
             ax2.xaxis.get_major_ticks()[0].draw = lambda *args:None
+        elif self.include_tdm:
+            fig, (ax1, ax2) = plt.subplots(2, 1, constrained_layout=True, figsize=(self.plt_width,self.plt_height))
+            gs = gridspec.GridSpec(2, 1,height_ratios=[3, 1], hspace=0.3)
+            ax1 = plt.subplot(gs[0])
+            ax3 = plt.subplot(gs[1])
         elif self.plot_only_dos:
             fig, ax2 = plt.subplots(figsize=(self.plt_width,self.plt_height))
         else:
             fig, ax1 = plt.subplots(figsize=(self.plt_width,self.plt_height))
+
+        # #here we do an alternative
+        # fig, ax = plt.subplots(2, 2, sharey=True, constrained_layout=True, figsize=(self.plt_width,self.plt_height))
+        # if self.include_dos:
+        #     gs = gridspec.GridSpec(2, 2, width_ratios=[3, 1], wspace=0, hspace=0)
+        #     ax1 = plt.subplot(gs[0][0])
+        #     ax2 = plt.subplot(gs[0][1])
+        #     ax3 = plt.subplot(gs[1][0])
+        #     ax2.yaxis.tick_right()
+        #     ax2.yaxis.set_label_position("right")
+        #     ax2.xaxis.get_major_ticks()[0].draw = lambda *args:None
+        # elif self.plot_only_dos:
+        #     fig, ax2 = plt.subplots(figsize=(self.plt_width,self.plt_height))
+        # else:
+        #     fig, ax1 = plt.subplots(figsize=(self.plt_width,self.plt_height))
+
 
         # Setting vertical lines
         if self.vlines == True:
             if not self.plot_only_dos:
                 for xc in self.k_locations:  # Plotting a dotted line that will run vertical at high symmetry points on the Kpath
                     ax1.axvline(x=xc, linestyle='--', color='k', alpha=0.2)
+                    # try: ax3.axvline(x=xc, linestyle='--', color='k', alpha=0.2)
+                    # except: pass
         # Setting horizontal line on the fermi energy
         if self.hlines == True:
             if self.plot_only_dos or self.include_dos:
                 ax2.axhline(linewidth=0.1, color='k', alpha=0.2)
             if not self.plot_only_dos :
                 ax1.axhline(linewidth=0.1, color='k', alpha=0.2)
+                # try: ax3.axhline(linewidth=0.1, color='k', alpha=0.2)
+                # except: pass
         # Setting y ranges
         if self.set_y_range == True:
             if self.plot_only_dos:
@@ -224,6 +253,21 @@ class BandPlotter():
             ax2.tick_params(axis="x",direction="in")
             ax2.axes.yaxis.set_ticklabels([])
 
+        if self.include_tdm:
+            for i in range(len(self.tdm_k)):
+                ax3.fill_between(self.tdm_k[i], self.tdm_tdm[i], label=self.tdm_labels[i], alpha = 0.2)
+            # ax3.set_xticks(self.k_locations)
+            # ax3.set_xticklabels(self.k_symbols)
+            ax3.set_xticklabels([])
+            ax3.set_xticks([])
+            ax3.set_ylabel(f"P$^2$ (D$^2$)")
+            ax3.set_title(f"")
+            ax3.tick_params(axis="y",direction="in")
+            # ax3.tick_params(axis="x",direction="in")
+            # ax3.set_xlabel("$\\vec{{k}}$")
+            ax3.margins(x=self.x_margins)
+
+
             # ax2.legend(loc="upper right")
         if not self.plot_only_dos :
             # We plot the bands figure here
@@ -238,8 +282,12 @@ class BandPlotter():
                     else:
                         ax1.plot(self.x_to_plot[i], band)  # Here we have ignored labels since individual bands have no labels
 
+            # if not self.include_tdm:
             ax1.set_xticks(self.k_locations)
             ax1.set_xticklabels(self.k_symbols)
+            # else: 
+            #     ax1.set_xticks([])
+            #     ax1.set_xticklabels([])
             ax1.tick_params(axis="y",direction="in")
             ax1.tick_params(axis="x",direction="in")
             ax1.set_xlabel("$\\vec{{k}}$")
@@ -288,6 +336,11 @@ class BandPlotter():
         self.extra_data_y.append(y)
         self.extra_labels.append(label)
         self.extra_kwargs.append(kwargs)
+
+    def add_to_TDM(self, energies, tdm, tdm_labels=""):
+        self.tdm_k.append(energies)
+        self.tdm_tdm.append(tdm)
+        self.tdm_labels.append(tdm_labels)
 
 class BandPlotterASE():
     def __init__(self, **kwargs):
