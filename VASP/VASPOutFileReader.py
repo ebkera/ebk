@@ -4,6 +4,8 @@ This file reads the the file system_label.out and extracts/calculates data/value
 
 from ebk.BandPlotter import BandPlotter 
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib
 
 class VASPReadOut():
     def __init__(self, out_folder, *args, **kwargs):
@@ -237,12 +239,10 @@ class VASPReadOut():
                     self.dos_ID.append(float(data[2]))
 
     def plot_dos(self):
-        import matplotlib.pyplot as plt
         plt.plot(self.dos_E, self.dos_D)
         plt.show()
 
     def get_final_volume(self):
-        import numpy as np
         return np.dot(self.lattice_vectors[2], np.cross(self.lattice_vectors[0],self.lattice_vectors[1]))
 
     def convert_to_cif(self, label = "structure"):
@@ -318,7 +318,6 @@ class VASPReadOut():
         high_symmetry_point: set to true to accomodate for VASP k points being repeated in the k-path at highsymmetry points
         """
         print(f"Calculating curvature of the bands")
-        import numpy as np
         import scipy.constants
 
         if k_point:
@@ -417,13 +416,50 @@ class VASPReadOut():
         if direction:
             pass
 
-    def get_optical(self, OPTICS_DIR):
-        from ebk.BandPlotter import BandPlotter
-        import matplotlib.pyplot as plt
-        # E_1 is the real part of the dielectric
-        # E_2 is the imaginary part of the dielectric
-        # E is energy
+    def calculate_absorption_from_sumo_optplot(self, OPTICS_DIR=None):
+        print("sumo should be installed and sumo-optplot should be run with absorption.dat file present in the directory")
         print("Reading in Optics data...")
+
+        if OPTICS_DIR == None:
+            OPTICS_DIR = self.out_folder
+            
+        abs_E = []
+        abs_a = []
+        with open(f"{OPTICS_DIR}/absorption.dat", "r+") as abs:
+            for i,line in enumerate(abs):
+                if i==0:continue
+                split_line = line.split()
+                if len(split_line) != 2: continue
+                abs_E.append(float(split_line[0]))
+                abs_a.append(float(split_line[1]))
+
+        plt_width = 3.5
+        plt_height = 3.5
+        font = {
+            # 'family' : 'normal',
+            # 'weight' : 'bold',
+            'size'   : 10
+            }
+        matplotlib.rc('font', **font)
+        fig, ax1 = plt.subplots(figsize=(plt_width,plt_height))
+        plt.plot(abs_E, abs_a)
+        # plt.legend()
+        # plt.title(f"Absorption vs Energy")
+        plt.xlim([0, 1.8])
+        plt.ylim([0, 1e5])
+        plt.xlabel("Energy (eV)")
+        plt.ylabel("Absorption ($cm^{-1})$")
+        plt.tight_layout()
+        plt.savefig(f"{OPTICS_DIR}/absvsE_from_optplot.pdf")
+        plt.savefig(f"{OPTICS_DIR}/absvsE_from_optplot.png")
+        plt.show()
+
+    def get_epsilons(self, OPTICS_DIR=None):
+        print("Reading in Optics data...")
+
+        if OPTICS_DIR == None:
+            OPTICS_DIR = self.out_folder
+
         E_1_x = []  
         E_2_x = []
         E_1_y = []
@@ -527,74 +563,177 @@ class VASPReadOut():
                             E_2_zx_temp.append(temp_line_vals[6])
                         E_temp.append(temp_line_vals[0])
 
-        plt.figure()
-        plt.plot(E[0], E_2_x[0], label=f"$\epsilon_2 XX$ (d-d)")
-        plt.plot(E[0], E_2_y[0], label=f"$\epsilon_2 YY$ (d-d)")
-        plt.plot(E[0], E_2_z[0], label=f"$\epsilon_2 ZZ$ (d-d)")
-        # plt.plot(E[-1], E_2_x[1], label=f"$\epsilon_2 XX$ (c-c)")
-        # plt.plot(E[-1], E_2_y[1], label=f"$\epsilon_2 YY$ (c-c)")
-        # plt.plot(E[-1], E_2_z[1], label=f"$\epsilon_2 ZZ$ (c-c)")
-        plt.legend()
-        # plt.title(f"$\epsilon_2$ vs Energy")
-        plt.xlabel("Energy (eV)")
-        plt.ylabel("$\epsilon_2$")
-        plt.xlim([0, 5])
-        plt.savefig(f"{OPTICS_DIR}/E2vsE.png")
-        plt.show()
+        self.optics_E = np.array(E[0].copy())
+        self.optics_eps_r_x =np.array(E_1_x[0].copy())
+        self.optics_eps_r_y =np.array(E_1_y[0].copy())
+        self.optics_eps_r_z =np.array(E_1_z[0].copy())
+        self.optics_eps_r_xy = np.array(E_1_xy[0].copy())
+        self.optics_eps_r_yz = np.array(E_1_yz[0].copy())
+        self.optics_eps_r_zx = np.array(E_1_zx[0].copy())
+        self.optics_eps_i_x =np.array(E_2_x[0].copy())
+        self.optics_eps_i_y =np.array(E_2_y[0].copy())
+        self.optics_eps_i_z =np.array(E_2_z[0].copy())
+        self.optics_eps_i_xy = np.array(E_2_xy[0].copy())
+        self.optics_eps_i_yz = np.array(E_2_yz[0].copy())
+        self.optics_eps_i_zx = np.array(E_2_zx[0].copy())
 
-        plt.figure()
-        plt.plot(E[0], E_1_x[0], label=f"$\epsilon_1 XX$ (d-d)")
-        plt.plot(E[0], E_1_y[0], label=f"$\epsilon_1 YY$ (d-d)")
-        plt.plot(E[0], E_1_z[0], label=f"$\epsilon_1 ZZ$ (d-d)")
-        # plt.plot(E[-1], E_1_x[1], label=f"$\epsilon_1 XX$ (c-c)")
-        # plt.plot(E[-1], E_1_y[1], label=f"$\epsilon_1 YY$ (c-c)")
-        # plt.plot(E[-1], E_1_z[1], label=f"$\epsilon_1 ZZ$ (c-c)")
-        plt.legend()
-        # plt.title(f"$\epsilon_1$ vs Energy")
-        plt.xlabel("Energy (eV)")
-        plt.ylabel("$\epsilon_1$")
-        plt.xlim([0, 5])
-        plt.savefig(f"{OPTICS_DIR}/E1vsE.png")
-        # plt.show()
+    def write_epsilons(self, OPTICS_DIR=None):
+        if OPTICS_DIR == None:
+            OPTICS_DIR = self.out_folder
 
-        with open(f"{OPTICS_DIR}/e_r.dat", "w+") as er:
-            for i,v in enumerate(E[0]):
+        with open(f"{OPTICS_DIR}/e_r.era.dat", "w+") as er:
+            for i,v in enumerate(self.optics_E):
                 if i !=  0:er.write("\n")
-                er.write(f"{E[0][i]:>12.6f}{E_1_x[0][i]:>12.6f}{E_1_y[0][i]:>12.6f}{E_1_z[0][i]:>12.6f}{E_1_xy[0][i]:>12.6f}{E_1_yz[0][i]:>12.6f}{E_1_zx[0][i]:>12.6f}")
+                er.write(f"{self.optics_E[i]:>12.6f}{self.optics_eps_r_x[i]:>12.6f}{self.optics_eps_r_y[i]:>12.6f}{self.optics_eps_r_z[i]:>12.6f}{self.optics_eps_r_xy[i]:>12.6f}{self.optics_eps_r_yz[i]:>12.6f}{self.optics_eps_r_zx[i]:>12.6f}")
 
-        with open(f"{OPTICS_DIR}/e_i.dat", "w+") as ei:
-            for i,v in enumerate(E[0]):
+        with open(f"{OPTICS_DIR}/e_i.era.dat", "w+") as ei:
+            for i,v in enumerate(self.optics_E):
                 if i != 0: ei.write("\n")
-                ei.write(f"{E[0][i]:>12.6f}{E_2_x[0][i]:>12.6f}{E_2_y[0][i]:>12.6f}{E_2_z[0][i]:>12.6f}{E_2_xy[0][i]:>12.6f}{E_2_yz[0][i]:>12.6f}{E_2_zx[0][i]:>12.6f}")
+                ei.write(f"{self.optics_E[i]:>12.6f}{self.optics_eps_i_x[i]:>12.6f}{self.optics_eps_i_y[i]:>12.6f}{self.optics_eps_i_z[i]:>12.6f}{self.optics_eps_i_xy[i]:>12.6f}{self.optics_eps_i_yz[i]:>12.6f}{self.optics_eps_i_zx[i]:>12.6f}")
 
+    def nk(self, er, ei):
+        ee = np.sqrt(er **2 + ei ** 2)
+        n = np.sqrt(er/2 + ee/2)
+        k = np.sqrt(-er/2 + ee/2)
+        return n, k
 
-        # # Now calcualting the absorption
-        # abs_x = []
-        # abs_y = []
-        # abs_z = []
-        # abs_E = []
-        # with open(f"{OPTICS_DIR}/ABSORPTION.dat", "r+") as abs:
-        #     for i,line in enumerate(abs):
-        #         if i==0:continue
-        #         split_line = line.split()
-        #         if len(split_line) != 7: continue
-        #         abs_E.append(float(split_line[0]))
-        #         abs_x.append(float(split_line[1]))
-        #         abs_y.append(float(split_line[2]))
-        #         abs_z.append(float(split_line[3]))
+    def calculate_nk(self):
+        self.epsr_xy = (self.optics_eps_r_x + self.optics_eps_r_y) / 2
+        self.epsi_xy = (self.optics_eps_i_x + self.optics_eps_i_y) / 2
+        self.n_planar, self.k_planar = self.nk(self.epsr_xy, self.epsi_xy)
+        self.nx, self.kx = self.nk(self.optics_eps_r_x, self.optics_eps_i_x)
+        self.ny, self.ky = self.nk(self.optics_eps_r_y, self.optics_eps_i_y)
+        self.nz, self.kz = self.nk(self.optics_eps_r_z, self.optics_eps_i_z)
 
-        # print(abs_x[3])
-        # plt.figure()
-        # plt.plot(abs_E, abs_x, label=f"$XX$")
-        # plt.plot(abs_E, abs_y, label=f"$YY$")
-        # plt.plot(abs_E, abs_z, label=f"$ZZ$")
+    def get_optics(self, log_scale = False, fig_name="optical"):
+        from ebk import progress_bar as pb
+        self.calculate_nk()
+
+        hbar=1.05459e-34
+        ev_j=1.60219e-19
+        m0=9.10956e-31
+        sqrt2 = np.sqrt(2)
+        h2_m0 = hbar * hbar / (m0 * ev_j) * 1e20 
+        c = 2.997925e10
+        lam = hbar  * 2 *np.pi * c / (ev_j * self.optics_E)
+        self.alpha_e = 4 * np.pi * self.kx / lam
+        self.alpha_m = 4 * np.pi * self.kz / lam
+        self.alpha_planar = 4 * np.pi * self.k_planar / lam
+        self.alpha = (2 * self.alpha_planar + self.alpha_m)/3
+
+        print(f"Writing n_k_alpha to {self.out_folder}/nk.era.csv")
+        g_f1 = open(f"{self.out_folder}/n_k_alpha.era.csv", "w")
+        g_f1.write("'energy (eV)','nx(y)','nz','kx','kz','alpha_e (cm-1)','alpha_m (cm-1)','alpha (cm-1)'\n")		
+        bar = pb(len(self.optics_E), "n,k")
+        for j in range(len(self.optics_E)):
+            bar.get_progress(j)
+            # g_f1.write(f"{lam[j]*1e4:>12.6f},{self.n_planar[j]:>12.6f},{self.nz[j]:>12.6f},{self.k_planar[j]:>12.6f},{self.kz[j]:>12.6f},{self.alpha_e[j]:>12.6f},{self.alpha_m[j]:>12.6f},{self.alpha[j]:>12.6f},{self.optics_E[j]:>12.6f}")		
+            g_f1.write(f"{self.optics_E[j]:>12.6f},{self.n_planar[j]:>12.6f},{self.nz[j]:>12.6f},{self.k_planar[j]:>12.6f},{self.kz[j]:>12.6f},{self.alpha_e[j]:>12.6f},{self.alpha_m[j]:>12.6f},{self.alpha[j]:>12.6f}\n")		
+        g_f1.close()
+    
+        fig1, ax = plt.subplots(2,2)
+        plt.subplots_adjust(wspace = 0.1, hspace = 0.3)
+        fig2, ay = plt.subplots(2,2)
+        plt.subplots_adjust(wspace = 0.1, hspace = 0.3)
+
+        # ax[0,0].plot(self.optics_E,alpha_e) 
+        ax[0,0].plot(self.optics_E,self.alpha_planar) 
+        ax[0,1].plot(self.optics_E,self.alpha_m)
+        ax[1,0].plot(self.optics_E,self.epsi_xy)
+        ax[1,1].plot(self.optics_E,self.optics_eps_i_z)
+        ay[0,0].plot(self.optics_E,self.nx) 
+        ay[0,1].plot(self.optics_E,self.nz)
+        ay[1,0].plot(self.optics_E,self.kx)
+        ay[1,1].plot(self.optics_E,self.kz)
+
+        ax[0,0].set_xlabel('E (eV)')
+        ax[0,0].set_ylabel('Absorption x(y) (cm$^{-1}$)')
+        ax[0,1].set_xlabel('E (eV)')
+        ax[0,1].set_ylabel('Absorption z (cm$^{-1}$)')
+        ax[0,1].yaxis.tick_right()	
+        ax[0,1].yaxis.set_label_position("right")
+            
+        ax[1,0].set_xlabel('E (eV)')
+        ax[1,0].set_ylabel('Im $\\epsilon_{x(y)}$')
+        ax[1,1].set_xlabel('E (eV)')
+        ax[1,1].set_ylabel('Im $\\epsilon_z$')
+        ax[1,1].yaxis.tick_right()	
+        ax[1,1].yaxis.set_label_position("right")
+        xaxis_start = 0
+        xaxis_end = 1.8
+        ax[0,0].set_xlim([xaxis_start, xaxis_end])
+        ax[0,0].set_ylim([1, 1e5])
+        # ax[1,0].legend()
+        # ax[1,1].legend()
+        # ax[0,0].set_yscale('log')
+        # ax[0,1].set_yscale('log')
+
+        if log_scale == True:
+        	ax[1,0].set_yscale('log')
+        	ax[1,1].set_yscale('log')
+        	ax[0,0].set_ylabel('Absorption x(y) log(cm$^{-1}$)')
+        	ax[0,1].set_ylabel('Absorption z log(cm$^{-1}$)')
+        	ax[1,0].set_ylabel('Im $\\epsilon_{x(y)}$ log')
+        	ax[1,1].set_ylabel('Im $\\epsilon_z$ log')
+
+        # fig1.suptitle("This")
+        fig1.tight_layout()
+        fig1.savefig(f"{fig_name}_absorption.png")
+        fig1.savefig(f"{fig_name}_absorption.pdf")
+
+        ay[0,0].set_xlabel('E (eV)')
+        ay[0,0].set_ylabel('$n_{x(y)}$')
+        # ay[0,0].legend(fields)
+        ay[0,1].set_xlabel('E (eV)')
+        ay[0,1].set_ylabel('$n_z$')
+        ay[0,1].yaxis.tick_right()	
+        ay[0,1].yaxis.set_label_position("right")
+        # ay[0,1].legend(fields)
+            
+        ay[1,0].set_xlabel('E (eV)')
+        ay[1,0].set_ylabel('$k_{x(y)}$')
+        # ay[1,0].legend(fields)
+        ay[1,1].set_xlabel('E (eV)')
+        ay[1,1].set_ylabel('$k_z$')
+        ay[1,1].yaxis.tick_right()	
+        ay[1,1].yaxis.set_label_position("right")
+        # ay[1,1].legend(fields)
+        ay[0,0].set_xlim([0, xaxis_end])
+        ay[0,1].set_xlim([0, xaxis_end])
+        ay[1,0].set_xlim([0, xaxis_end])
+        ay[1,1].set_xlim([0, xaxis_end])
+        # ay[0,0].legend(labels)
+        # ay[0,1].legend(labels)
+        # ay[1,0].legend(labels)
+        # ay[1,1].legend(labels)
+        # ay[0,0].legend()
+        # ay[0,1].legend()
+        # ay[1,0].legend()
+        # ay[1,1].legend()
+
+        fig2.tight_layout()
+        fig2.savefig(f"{fig_name}_nk.png")
+        fig2.savefig(f"{fig_name}_nk.pdf")
+
+        plt_width = 3.5
+        plt_height = 3.5
+        font = {
+            # 'family' : 'normal',
+            # 'weight' : 'bold',
+            'size'   : 10
+            }
+        matplotlib.rc('font', **font)
+        fig, az = plt.subplots(figsize=(plt_width,plt_height))
+        plt.plot(self.optics_E,self.alpha)
         # plt.legend()
-        # # plt.title(f"Absorption vs Energy")
-        # plt.xlabel("Energy (eV)")
-        # plt.ylabel("Absorption ($cm^{-1})$")
-        # plt.xlim([0, 3])
-        # plt.ylim([0, 1000000])
-        # plt.savefig(f"absvsE.png")
-        # plt.show()
-        
-
+        # plt.title(f"Absorption vs Energy")
+        plt.xlim([0, 1.8])
+        plt.ylim([0, 1e5])
+        plt.xlabel("Energy (eV)")
+        plt.ylabel("Absorption ($cm^{-1})$")
+        plt.tight_layout()
+        plt.savefig(f"{fig_name}_absvsE_era.pdf")
+        plt.savefig(f"{fig_name}_absvsE_era.png")
+        plt.savefig(f"{self.out_folder}_absvsE_era.pdf")
+        plt.savefig(f"{self.out_folder}_absvsE_era.png")
+        plt.show()
