@@ -84,8 +84,7 @@ class optical:
         # plt.title(f"{self.plt_title}")
         if self.set_x_range == True:
             plt.xlim([self.xlim_low,self.xlim_high])
-            plt.ylabel(f'Absorption (log) (cm$^{{-1}}$)')
-        # if self.set_y_range == True:
+         # if self.set_y_range == True:
         #     plt.ylim([self.ylim_low,self.ylim_high])
         plt.tight_layout()
         plt.savefig(f"{self.file_name}_absorption.{self.fig_extension}")
