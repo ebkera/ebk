@@ -334,6 +334,10 @@ class Generatefdf:
                     fdf_file.write("MD.VariableCell             true\n")
                 if self.WriteMDHistory:
                     fdf_file.write("WriteMDHistory              true\n")
+                fdf_file.write("MD.UseSaveXV                true\n")
+                fdf_file.write("MD.UseSaveCG                true\n")
+                fdf_file.write("UseSaveData                 true\n")
+                fdf_file.write("DM.UseSaveDM                true\n")
 
                 if self.constrain_centre_atom or self.constrain_atom_list or self.constrain_cell_vectors:
                     fdf_file.write(f"%block Geometry.Constraints\n")
