@@ -222,8 +222,6 @@ class PlotEnergy():
                 if x>1:
                     plt.annotate(f"{self.LUMOs[x-1] - self.LUMOs[x-2]:2.3f}", (x,(self.HOMOs[x-1] + self.LUMOs[x-1])/2 + band_gaps[x-1]/4), ha='center')
                     plt.annotate(f"{self.HOMOs[x-1] - self.HOMOs[x-2]:2.3f}", (x,(self.HOMOs[x-1] + self.LUMOs[x-1])/2 - band_gaps[x-1]/4), ha='center')
-                    # plt.annotate("", [x-1+self.line_widths, self.HOMOs[x-2]], [x-self.line_widths, self.HOMOs[x-1]])
-                    # plt.annotate(f"{self.HOMOs[x-1] - self.HOMOs[x-2]:2.3f}", (x,(self.HOMOs[x-1] + self.LUMOs[x-1])*2/3), ha='center')
 
             if self.show_fermi:
                 plt.plot(x_coordinates, [self.fermi_energies[x-1], self.fermi_energies[x-1]], "b--", label="Fermi Level")
@@ -242,9 +240,6 @@ class PlotEnergy():
 
             if self.display_band_gap_at_band_gap:
                 ax1.annotate(f"{band_gaps[x-1]:2.3f} eV", (x,(self.HOMOs[x-1] + self.LUMOs[x-1])/2), ha='center')
-
-
-
 
         ax1.set_xticks(E)
         ax1.set_xticklabels(self.labels)
