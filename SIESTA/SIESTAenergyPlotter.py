@@ -60,6 +60,7 @@ class PlotEnergy():
         self.fig_extension = "pdf"
         self.show_band_gaps_in_xticklabels = True
         self.display_band_gap_at_band_gap = True
+        self.print_HOMO_LUMO_difference = False
         if "x_ticks_rotation" in kwargs:
             self.x_ticks_rotation = kwargs.get("x_ticks_rotation", 0)
 
@@ -159,7 +160,8 @@ class PlotEnergy():
         self.LUMOs.append(new)
         # print(Ef, old, new)
         self.kwargs_list.append(kwargs)
-        self.picture_path.append(picture_path)
+        if picture_path != None:
+            self.picture_path.append(picture_path)
 
         # Adjusting the HOMO and LUMO levels if IE and EA are present:
         if self.EAs[-1] != None and self.IEs[-1] !=None:
@@ -198,7 +200,16 @@ class PlotEnergy():
         # if self.set_y_range_lower == True:
         #     ax1.set_ylim(bottom=self.ylim_low)
 
+        band_gaps = []
+        for i in range(0,len(self.HOMOs)):
+            band_gaps.append(self.LUMOs[i] - self.HOMOs[i])
+            if self.show_band_gaps_in_xticklabels:
+                self.labels[i] = f"{self.labels[i]} (E$_g$={band_gaps[i]:.3})"
+            else:
+                self.labels[i] = f"{self.labels[i]}"
+
         E = range(1,len(self.Energies)+1)
+
         for x in E:
             print(f"Plotting {x}\tof {len(E)}")
             for y in self.Energies[x-1]:
@@ -206,6 +217,14 @@ class PlotEnergy():
                 x_coordinates = [x-self.line_widths, x+self.line_widths]
                 y_coordinates = [y, y]
                 plt.plot(x_coordinates, y_coordinates, **self.kwargs_list[x-1])
+            
+            if self.print_HOMO_LUMO_difference:
+                if x>1:
+                    plt.annotate(f"{self.LUMOs[x-1] - self.LUMOs[x-2]:2.3f}", (x,(self.HOMOs[x-1] + self.LUMOs[x-1])/2 + band_gaps[x-1]/4), ha='center')
+                    plt.annotate(f"{self.HOMOs[x-1] - self.HOMOs[x-2]:2.3f}", (x,(self.HOMOs[x-1] + self.LUMOs[x-1])/2 - band_gaps[x-1]/4), ha='center')
+                    # plt.annotate("", [x-1+self.line_widths, self.HOMOs[x-2]], [x-self.line_widths, self.HOMOs[x-1]])
+                    # plt.annotate(f"{self.HOMOs[x-1] - self.HOMOs[x-2]:2.3f}", (x,(self.HOMOs[x-1] + self.LUMOs[x-1])*2/3), ha='center')
+
             if self.show_fermi:
                 plt.plot(x_coordinates, [self.fermi_energies[x-1], self.fermi_energies[x-1]], "b--", label="Fermi Level")
             if self.show_homo:
@@ -221,18 +240,11 @@ class PlotEnergy():
             else:
                 print("Plotting a ligand image can also be done need to specify image")
 
-            # if self.display_band_gap_at_band_gap:
-            #     ax1.annotate(f"(E$_g$={band_gaps[i]:.3} eV)", (x,(self.HOMOs[x-1] + self.LUMOs[x-1])/2))
+            if self.display_band_gap_at_band_gap:
+                ax1.annotate(f"{band_gaps[x-1]:2.3f} eV", (x,(self.HOMOs[x-1] + self.LUMOs[x-1])/2), ha='center')
 
 
 
-        band_gaps = []
-        for i in range(0,len(self.HOMOs)):
-            band_gaps.append(self.LUMOs[i] - self.HOMOs[i])
-            if self.show_band_gaps_in_xticklabels:
-                self.labels[i] = f"{self.labels[i]} (E$_g$={band_gaps[i]:.3})"
-            else:
-                self.labels[i] = f"{self.labels[i]}"
 
         ax1.set_xticks(E)
         ax1.set_xticklabels(self.labels)
