@@ -56,7 +56,6 @@ class optical:
         plt.xlabel(f'Energy (eV)')
         plt.ylabel(f'Im[$\epsilon$]')
         plt.legend(loc='upper right')
-        plt.axvline(x=out_file.get)
         # plt.title(f"{self.plt_title}")
         if self.set_x_range == True:
             plt.xlim([self.xlim_low,self.xlim_high])

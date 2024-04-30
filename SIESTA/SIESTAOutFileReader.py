@@ -280,6 +280,7 @@ class SiestaReadOut():
         if atom_type == "": return self.N_atoms
         for x in range(len(self.Species)):
             if self.Species[x][0] == atom_type: return self.Species[x][2]
+            # else: return 0
         # result = filter(lambda x: x[0] == atom_type, self.Species)
         
     def get_number_of_orbitals(self):
