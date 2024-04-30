@@ -737,3 +737,21 @@ class VASPReadOut():
         plt.savefig(f"{self.out_folder}_absvsE_era.pdf")
         plt.savefig(f"{self.out_folder}_absvsE_era.png")
         plt.show()
+
+    # def get3DBandDiagram(self):
+    #     X = []
+    #     Y = []
+    #     Z = []
+    #     Bands = [][][] #band, x, y
+    #     for i,k in enumerate(self.kpoints):
+    #         if k[0] not in X:
+    #             X.append(k[0])
+    #         if k[1] not in Y:
+    #             Y.append(k[0])
+    #         if k[2] not in Z:
+    #             Z.append(k[0])
+
+    #     for band in self.bands:
+    #         Bands.append(self.bands[i][])
+
+    #     print(X)
