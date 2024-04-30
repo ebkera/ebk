@@ -56,6 +56,7 @@ class optical:
         plt.xlabel(f'Energy (eV)')
         plt.ylabel(f'Im[$\epsilon$]')
         plt.legend(loc='upper right')
+        plt.axvline(x=out_file.get)
         # plt.title(f"{self.plt_title}")
         if self.set_x_range == True:
             plt.xlim([self.xlim_low,self.xlim_high])
@@ -79,7 +80,9 @@ class optical:
             plt.plot(val[0], val[1], label = f"{self.labels[i]}", **self.kwargs[i])
         plt.xlabel(f'Energy (eV)')
         plt.ylabel(f'Absorption (cm$^{{-1}}$)')
-        if ylog: plt.yscale("log")
+        if ylog: 
+            plt.yscale("log")
+            plt.ylabel(f'Absorption (log) (cm$^{{-1}}$)')
         plt.legend(loc='upper right')
         # plt.title(f"{self.plt_title}")
         if self.set_x_range == True:
