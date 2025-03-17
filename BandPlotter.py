@@ -124,6 +124,7 @@ class BandPlotter():
         self.vlines = kwargs.get("vlines", True)
         self.dos_title = "Density of States"
         self.set_y_range = kwargs.get("set_y_range", True)
+        self.set_y_range_dme = kwargs.get("set_y_range_dme", True)
         self.set_x_range = False
         self.Ef_shift = True
         self.y_to_plot = []
@@ -148,6 +149,7 @@ class BandPlotter():
         self.QE_dos_file_path = ""
         self.ylim_low = -2
         self.ylim_high = 2
+        self.ylim_high_dme = 2
         self.x_margins = 0
         self.xlim_low = 0
         self.xlim_high = 300
@@ -182,7 +184,7 @@ class BandPlotter():
             ax2.yaxis.set_label_position("right")
             ax2.xaxis.get_major_ticks()[0].draw = lambda *args:None
         elif self.include_tdm:
-            fig, (ax1, ax2) = plt.subplots(2, 1, constrained_layout=True, figsize=(self.plt_width,self.plt_height))
+            # fig, (ax1, ax3) = plt.subplots(2, 1, constrained_layout=True, figsize=(self.plt_width,self.plt_height))
             gs = gridspec.GridSpec(2, 1,height_ratios=[3, 1], hspace=0.3)
             ax1 = plt.subplot(gs[0])
             ax3 = plt.subplot(gs[1])
@@ -301,7 +303,7 @@ class BandPlotter():
                 ax1.plot(self.extra_data_x[i], self.extra_data_y[i], label=self.extra_labels[i], **self.extra_kwargs[i])
             if self.legend:  ax1.legend(loc="upper right")
         plt.margins(x=self.x_margins)
-        plt.tight_layout()
+        # plt.tight_layout()
         plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
         if self.show_figs: plt.show()
 
