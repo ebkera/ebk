@@ -749,4 +749,4 @@ def vasp2xyz(file_name):
     del file_name[-1]
     file_write_name = ".".join(file_name)
     write(f"{file_write_name}.xyz", atoms)
-    print(f"vasp2xyz: Written to .xyz file")
+    print(f"vasp2xyz: Written to {file_name}.xyz file")

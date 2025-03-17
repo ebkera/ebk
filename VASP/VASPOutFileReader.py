@@ -253,6 +253,15 @@ class VASPReadOut():
     def get_band_gap(self):
         return self.Eg
 
+    def get_homo_lumo_gaps_for_kpath(self):
+        # valance_band = [E for E in self.bands[self.conduction_band_label_index]]
+        # valance_band = [E for E in self.bands[self.valance_band_label_index]]
+        homo_lumo_gaps = []
+        for i,x in enumerate(self.k_dist):
+            homo_lumo_gaps.append(self.bands[self.conduction_band_label_index][i] - self.bands[self.valance_band_label_index][i])
+        # return [E for E in self.bands[self.conduction_band_label_index]] - [E for E in self.bands[self.valance_band_label_index]]
+        return homo_lumo_gaps
+
     def get_fermi_energy(self):
         return self.Ef
 
@@ -662,11 +671,19 @@ class VASPReadOut():
         xaxis_start = 0
         xaxis_end = 1.8
         ax[0,0].set_xlim([xaxis_start, xaxis_end])
+        ax[1,0].set_xlim([xaxis_start, 1.5])
+        ax[1,1].set_xlim([xaxis_start, 1.5])
         ax[0,0].set_ylim([1, 1e5])
         # ax[1,0].legend()
         # ax[1,1].legend()
         # ax[0,0].set_yscale('log')
         # ax[0,1].set_yscale('log')
+
+        # plotting the bandgap in the diagrams
+        ax[0,0].axvline(self.get_band_gap())
+        ax[1,0].axvline(self.get_band_gap())
+        ax[1,1].axvline(self.get_band_gap())
+        ax[0,0].axvline(self.get_band_gap())
 
         if log_scale == True:
         	ax[1,0].set_yscale('log')

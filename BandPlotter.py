@@ -149,7 +149,7 @@ class BandPlotter():
         self.QE_dos_file_path = ""
         self.ylim_low = -2
         self.ylim_high = 2
-        self.ylim_high_dme = 2
+        self.ylim_high_dme = 3200
         self.x_margins = 0
         self.xlim_low = 0
         self.xlim_high = 300
@@ -158,6 +158,7 @@ class BandPlotter():
         self.saveas_extension = "pdf"
         self.include_bandgaparrow = True
         self.arrow_data = kwargs.get("arrow_data", [])
+        self.arrow_colors = kwargs.get("arrow_colors", self.band_colour)
         self.show_figs = True
         self.legend = True
         self.dos_ylabel = ""
@@ -165,6 +166,10 @@ class BandPlotter():
         self.extra_data_y = []
         self.extra_kwargs = []
         self.extra_labels = []
+        self.extra_data_annotations_x = []
+        self.extra_data_annotations_y = []
+        self.extra_data_annotations_text = []
+        self.extra_data_annotations_kwargs = []
         self.tdm_k        = []
         self.tdm_tdm      = []
         self.tdm_labels   = []
@@ -257,9 +262,10 @@ class BandPlotter():
 
         if self.include_tdm:
             for i in range(len(self.tdm_k)):
-                ax3.fill_between(self.tdm_k[i], self.tdm_tdm[i], label=self.tdm_labels[i], alpha = 0.2)
+                ax3.fill_between(self.tdm_k[i], self.tdm_tdm[i], label=self.tdm_labels[i], alpha = 1)
             # ax3.set_xticks(self.k_locations)
             # ax3.set_xticklabels(self.k_symbols)
+            if self.set_y_range_dme: ax3.set_ylim([0, self.ylim_high_dme])
             ax3.set_xticklabels([])
             ax3.set_xticks([])
             ax3.set_ylabel(f"P$^2$ (D$^2$)")
@@ -298,14 +304,17 @@ class BandPlotter():
             ax1.margins(x=self.x_margins)
             if self.include_bandgaparrow and self.arrow_data != []:
                 for i,arrow in enumerate(self.arrow_data):
-                    ax1.annotate('', xytext=(arrow[0],arrow[1]), xy=(arrow[2],arrow[3]), arrowprops={'arrowstyle': '->', 'color':self.band_colour[i]}, va='center', color='red')
+                    ax1.annotate('', xytext=(arrow[0],arrow[1]), xy=(arrow[2],arrow[3]), arrowprops={'arrowstyle': '->', 'color':self.arrow_colors[i]}, va='center')
             for i in range(len(self.extra_data_x)):
                 ax1.plot(self.extra_data_x[i], self.extra_data_y[i], label=self.extra_labels[i], **self.extra_kwargs[i])
+            for i in range(len(self.extra_data_annotations_x)):
+                ax1.text(self.extra_data_annotations_x[i], self.extra_data_annotations_y[i],self.extra_data_annotations_text[i], **self.extra_data_annotations_kwargs[i])
             if self.legend:  ax1.legend(loc="upper right")
         plt.margins(x=self.x_margins)
         # plt.tight_layout()
-        plt.savefig(f"Bands_{self.file_name}.{self.saveas_extension}")
+        plt.savefig(f"{self.file_name}.{self.saveas_extension}")
         if self.show_figs: plt.show()
+        plt.close('all')
 
     def add_to_plot(self, Ef, k_dist, bands, hsp, hss, E_dos=0, dos=0, dos_shift=0, label=None, dos_color_fill=True):
         """
@@ -338,6 +347,13 @@ class BandPlotter():
         self.extra_data_y.append(y)
         self.extra_labels.append(label)
         self.extra_kwargs.append(kwargs)
+
+    def add_annotations(self, x, y, text, **kwargs):
+        self.extra_data_annotations_x.append(x)
+        self.extra_data_annotations_y.append(y)
+        self.extra_data_annotations_text.append(text)
+        self.extra_data_annotations_kwargs.append(kwargs)
+
 
     def add_to_TDM(self, energies, tdm, tdm_labels=""):
         self.tdm_k.append(energies)

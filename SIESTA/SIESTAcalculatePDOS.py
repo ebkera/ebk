@@ -194,6 +194,7 @@ class Read_PDOS():
                     plt.fill_between(self.x[i], self.y_up[i], alpha = 0.2)
                 else:
                     plt.plot(self.x[i], self.y_up[i], linewidth=1, label=f"{self.orbital_labels[i]:<6}", **self.kwargs[i])
+                    plt.fill_between(self.x[i], self.y_up[i], alpha = 0.2)
             except:
                 # If there are mutiple species or nothing picked up.
                 if self.show_band_gaps:

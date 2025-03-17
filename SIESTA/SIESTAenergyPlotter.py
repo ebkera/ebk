@@ -54,13 +54,14 @@ class PlotEnergy():
         self.ylim_low = -9
         self.ylim_high = 0
         self.plt_height = kwargs.get("plt_height", 5)
-        self.font_size = 14 
+        self.font_size = 10 
         self.xlabel = "Ligand"
         self.picture_path = []
         self.fig_extension = "pdf"
         self.show_band_gaps_in_xticklabels = True
         self.display_band_gap_at_band_gap = True
         self.print_HOMO_LUMO_difference = False
+        self.show_legend = True
         if "x_ticks_rotation" in kwargs:
             self.x_ticks_rotation = kwargs.get("x_ticks_rotation", 0)
 
@@ -192,7 +193,9 @@ class PlotEnergy():
             'size'   : self.font_size
             }
         matplotlib.rc('font', **font)
-        fig, ax1 = plt.subplots(figsize=(4*(len(self.Energies)*self.line_widths*2+0.5), self.plt_height))
+        # fig, ax1 = plt.subplots(figsize=(4*(len(self.Energies)*self.line_widths*2+0.5), self.plt_height))
+        fig, ax1 = plt.subplots(figsize=(self.plt_height, self.plt_height))
+        # fig, ax1 = plt.subplots()
         # Setting y ranges
         if self.set_y_range_upper == True:
             ax1.set(ylim=(self.ylim_low,self.ylim_high))
@@ -249,7 +252,8 @@ class PlotEnergy():
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         # plt.legend(by_label.values(), by_label.keys(), loc = 'center right', frameon = False)
-        plt.legend(by_label.values(), by_label.keys(), loc = 'upper right')
+        if self.show_legend:
+            plt.legend(by_label.values(), by_label.keys(), loc = 'upper right')
         if hasattr(self, "x_ticks_rotation"): plt.xticks(rotation=self.x_ticks_rotation, ha='right')
         ax1.set_title(f"{self.title}")
 

@@ -15,6 +15,11 @@ class optical:
         self.plt_width = 3.5
         self.plt_height = 5
         self.fig_extension = "pdf"
+        self.show_legend = True
+        self.annotation_x = []
+        self.annotation_y = []
+        self.annotation_text = []
+        self.annotation_kwargs = []
 
     def load(self, out_file, label=None, **kwargs) -> None:
         self.kwargs.append(kwargs)
@@ -66,6 +71,12 @@ class optical:
         if self.plt_show: plt.show()
         plt.close()
 
+    def add_annotation(self, x, y, text, **kwargs) -> None:
+        self.annotation_x.append(x)
+        self.annotation_y.append(y)
+        self.annotation_text.append(text)
+        self.annotation_kwargs.append(kwargs)
+
     def plot_absorption(self, ylog = False) -> None:
         import matplotlib
         font = {
@@ -82,13 +93,16 @@ class optical:
         if ylog: 
             plt.yscale("log")
             plt.ylabel(f'Absorption (log) (cm$^{{-1}}$)')
-        plt.legend(loc='upper right')
+        if self.show_legend:
+            plt.legend(loc='upper right')
         # plt.title(f"{self.plt_title}")
         if self.set_x_range == True:
             plt.xlim([self.xlim_low,self.xlim_high])
          # if self.set_y_range == True:
         #     plt.ylim([self.ylim_low,self.ylim_high])
         plt.tight_layout()
+        for i,x in enumerate(self.annotation_text):
+            plt.annotate(x,(self.annotation_x[i],self.annotation_y[i]), **self.annotation_kwargs[i])
         plt.savefig(f"{self.file_name}_absorption.{self.fig_extension}")
         if self.plt_show: plt.show()
         plt.close()
